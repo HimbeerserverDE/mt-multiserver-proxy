@@ -1,0 +1,62 @@
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+)
+
+const latestSerializeVer = 0x1c
+const latestProtoVer = 39
+const maxPlayerNameLen = 20
+const playerNameChars = "^[a-zA-Z0-9-_]+$"
+const bytesPerMediaBunch = 5000
+
+const defaultSendInterval = 0.09
+const defaultUserLimit = 10
+const defaultAuthBackend = "sqlite3"
+const defaultBindAddr = ":40000"
+
+var conf Config
+
+type Config struct {
+	RequirePasswd bool
+	SendInterval  float32
+	UserLimit     int
+	AuthBackend   string
+	BindAddr      string
+	Servers       []struct {
+		Name string
+		Addr string
+	}
+}
+
+func loadConfig() error {
+	oldConf := conf
+
+	conf.SendInterval = defaultSendInterval
+	conf.UserLimit = defaultUserLimit
+	conf.AuthBackend = defaultAuthBackend
+	conf.BindAddr = defaultBindAddr
+
+	f, err := os.OpenFile("config.json", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		conf = oldConf
+		return err
+	}
+	defer f.Close()
+
+	if fi, _ := f.Stat(); fi.Size() == 0 {
+		f.WriteString("{\n\n}\n")
+		f.Seek(0, os.SEEK_SET)
+	}
+
+	decoder := json.NewDecoder(f)
+	if err := decoder.Decode(&conf); err != nil {
+		conf = oldConf
+		return err
+	}
+
+	log.Print("{←|⇶} load config")
+	return nil
+}
