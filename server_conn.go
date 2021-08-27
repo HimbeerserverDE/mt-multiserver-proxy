@@ -134,9 +134,19 @@ func handleSrv(sc *serverConn) {
 			})
 		case *mt.ToCltDisco:
 			sc.log("<--", fmt.Sprintf("deny access %+v", cmd))
+			if sc.client() != nil {
+				ack, _ := sc.client().SendCmd(cmd)
+				<-ack
+				sc.client().Close()
+			}
 		case *mt.ToCltAcceptAuth:
 			sc.auth.method = 0
 			sc.SendCmd(&mt.ToSrvInit2{Lang: sc.client().lang})
+		case *mt.ToCltDenySudoMode:
+			sc.log("<--", "deny sudo")
+		case *mt.ToCltAcceptSudoMode:
+			sc.log("<--", "accept sudo")
+			sc.state++
 		}
 	}
 }
