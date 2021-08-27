@@ -81,7 +81,7 @@ func handleContent(cc *contentConn) {
 
 			cc.state++
 
-			if cmd.AuthMethods&mt.FirstSRP == mt.FirstSRP {
+			if cmd.AuthMethods&mt.FirstSRP != 0 {
 				cc.auth.method = mt.FirstSRP
 			} else {
 				cc.auth.method = mt.SRP

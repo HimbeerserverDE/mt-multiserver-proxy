@@ -29,6 +29,15 @@ type Config struct {
 		Name string
 		Addr string
 	}
+	CSMRF struct {
+		NoCSMs        bool
+		NoChatMsgs    bool
+		NoItemDefs    bool
+		NoNodeDefs    bool
+		LimitMapRange bool
+		NoPlayerList  bool
+	}
+	MapRange uint32
 }
 
 func loadConfig() error {

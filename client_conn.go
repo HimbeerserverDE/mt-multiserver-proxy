@@ -42,6 +42,8 @@ type clientConn struct {
 	p0Map    param0Map
 	p0SrvMap param0SrvMap
 	media    []mediaFile
+
+	playerCAO, currentCAO mt.AOID
 }
 
 func (cc *clientConn) server() *serverConn { return cc.srv }
@@ -345,8 +347,37 @@ func handleClt(cc *clientConn) {
 
 			cc.SendCmd(&mt.ToCltAnnounceMedia{Files: files})
 			cc.lang = cmd.Lang
+
+			var csmrf mt.CSMRestrictionFlags
+			if conf.CSMRF.NoCSMs {
+				csmrf |= mt.NoCSMs
+			}
+			if conf.CSMRF.NoChatMsgs {
+				csmrf |= mt.NoChatMsgs
+			}
+			if conf.CSMRF.NoItemDefs {
+				csmrf |= mt.NoItemDefs
+			}
+			if conf.CSMRF.NoNodeDefs {
+				csmrf |= mt.NoNodeDefs
+			}
+			if conf.CSMRF.LimitMapRange {
+				csmrf |= mt.LimitMapRange
+			}
+			if conf.CSMRF.NoPlayerList {
+				csmrf |= mt.NoPlayerList
+			}
+
+			cc.SendCmd(&mt.ToCltCSMRestrictionFlags{
+				Flags:    csmrf,
+				MapRange: conf.MapRange,
+			})
 		case *mt.ToSrvReqMedia:
 			cc.sendMedia(cmd.Filenames)
+		case *mt.ToSrvCltReady:
+			cc.log("-->", "ready")
+			cc.state++
+			close(cc.initCh)
 		}
 	}
 }

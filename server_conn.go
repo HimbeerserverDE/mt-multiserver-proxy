@@ -72,7 +72,7 @@ func handleSrv(sc *serverConn) {
 
 			sc.state++
 
-			if cmd.AuthMethods&mt.FirstSRP == mt.FirstSRP {
+			if cmd.AuthMethods&mt.FirstSRP != 0 {
 				sc.auth.method = mt.FirstSRP
 			} else {
 				sc.auth.method = mt.SRP
