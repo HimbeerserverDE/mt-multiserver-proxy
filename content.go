@@ -250,11 +250,11 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 	var wg sync.WaitGroup
 
 	itemDefs = append(itemDefs, mt.ItemDef{
-		Type: mt.ToolItem,
-		InvImg: "blank.png",
+		Type:       mt.ToolItem,
+		InvImg:     "blank.png",
 		WieldScale: [3]float32{1, 1, 1},
-		StackMax: 1,
-		Usable: true,
+		StackMax:   1,
+		Usable:     true,
 		PointRange: 4,
 	})
 

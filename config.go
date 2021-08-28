@@ -30,12 +30,12 @@ type Config struct {
 		Addr string
 	}
 	CSMRF struct {
-		NoCSMs        bool
-		ChatMsgs    bool
-		ItemDefs    bool
-		NodeDefs    bool
+		NoCSMs          bool
+		ChatMsgs        bool
+		ItemDefs        bool
+		NodeDefs        bool
 		NoLimitMapRange bool
-		PlayerList  bool
+		PlayerList      bool
 	}
 	MapRange uint32
 }

@@ -352,19 +352,19 @@ func handleClt(cc *clientConn) {
 			if conf.CSMRF.NoCSMs {
 				csmrf |= mt.NoCSMs
 			}
-			if conf.CSMRF.NoChatMsgs {
+			if !conf.CSMRF.ChatMsgs {
 				csmrf |= mt.NoChatMsgs
 			}
-			if conf.CSMRF.NoItemDefs {
+			if !conf.CSMRF.ItemDefs {
 				csmrf |= mt.NoItemDefs
 			}
-			if conf.CSMRF.NoNodeDefs {
+			if !conf.CSMRF.NodeDefs {
 				csmrf |= mt.NoNodeDefs
 			}
-			if conf.CSMRF.LimitMapRange {
+			if !conf.CSMRF.NoLimitMapRange {
 				csmrf |= mt.LimitMapRange
 			}
-			if conf.CSMRF.NoPlayerList {
+			if !conf.CSMRF.PlayerList {
 				csmrf |= mt.NoPlayerList
 			}
 
