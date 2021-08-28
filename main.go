@@ -47,16 +47,28 @@ func main() {
 		sig := make(chan os.Signal)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
+		l.close()
 
 		mu.Lock()
 		defer mu.Unlock()
 
+		var wg sync.WaitGroup
+		wg.Add(len(clts))
+
 		for cc := range clts {
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
-			<-ack
-			cc.Close()
+			go func() {
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
+				wg.Done()
+			}()
 		}
 
+		wg.Wait()
 		os.Exit(0)
 	}()
 
@@ -64,6 +76,7 @@ func main() {
 		cc, err := l.accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
+				log.Print("{←|⇶} stop listening")
 				break
 			}
 
@@ -94,8 +107,12 @@ func main() {
 					Reason: mt.Custom,
 					Custom: "No servers are configured.",
 				})
-				<-ack
-				cc.Close()
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				return
 			}
 
@@ -106,24 +123,36 @@ func main() {
 					Reason: mt.Custom,
 					Custom: "Server address resolution failed.",
 				})
-				<-ack
-				cc.Close()
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				return
 			}
 
 			conn, err := net.DialUDP("udp", nil, addr)
 			if err != nil {
 				cc.log("<--", "connection fail")
+
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
 					Custom: "Server connection failed.",
 				})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				return
 			}
 
 			connect(conn, cc)
 		}()
 	}
+
+	select {}
 }

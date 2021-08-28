@@ -141,8 +141,12 @@ func handleSrv(sc *serverConn) {
 			sc.log("<--", fmt.Sprintf("deny access %+v", cmd))
 			if sc.client() != nil {
 				ack, _ := sc.client().SendCmd(cmd)
-				<-ack
-				sc.client().Close()
+
+				select {
+				case <-sc.client().Closed():
+				case <-ack:
+					sc.client().Close()
+				}
 			}
 		case *mt.ToCltAcceptAuth:
 			sc.auth.method = 0

@@ -95,32 +95,52 @@ func handleClt(cc *clientConn) {
 			if cmd.SerializeVer != latestSerializeVer {
 				cc.log("<--", "invalid serializeVer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
 			if cmd.MaxProtoVer < latestProtoVer {
 				cc.log("<--", "invalid protoVer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
 			if len(cmd.PlayerName) == 0 || len(cmd.PlayerName) > maxPlayerNameLen {
 				cc.log("<--", "invalid player name length")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
 			if ok, _ := regexp.MatchString(playerNameChars, cmd.PlayerName); !ok {
 				cc.log("<--", "invalid player name")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadNameChars})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -131,8 +151,12 @@ func handleClt(cc *clientConn) {
 			if ok {
 				cc.log("<--", "already connected")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.AlreadyConnected})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
 
 				playersMu.Unlock()
 				break
@@ -144,8 +168,13 @@ func handleClt(cc *clientConn) {
 			if cc.name == "singleplayer" {
 				cc.log("<--", "name is singleplayer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -153,8 +182,13 @@ func handleClt(cc *clientConn) {
 			if len(players) >= conf.UserLimit {
 				cc.log("<--", "player limit reached")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.TooManyClts})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -176,8 +210,13 @@ func handleClt(cc *clientConn) {
 				if cc.auth.method != mt.FirstSRP {
 					cc.log("-->", "unauthorized password change")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
-					<-ack
-					cc.Close()
+
+					select {
+					case <-cc.Closed():
+					case <-ack:
+						cc.Close()
+					}
+
 					break
 				}
 
@@ -186,16 +225,26 @@ func handleClt(cc *clientConn) {
 				if cmd.EmptyPasswd && conf.RequirePasswd {
 					cc.log("<--", "empty password disallowed")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.EmptyPasswd})
-					<-ack
-					cc.Close()
+
+					select {
+					case <-cc.Closed():
+					case <-ack:
+						cc.Close()
+					}
+
 					break
 				}
 
 				if err := authIface.SetPasswd(cc.name, cmd.Salt, cmd.Verifier); err != nil {
 					cc.log("<--", "set password fail")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
-					<-ack
-					cc.Close()
+
+					select {
+					case <-cc.Closed():
+					case <-ack:
+						cc.Close()
+					}
+
 					break
 				}
 
@@ -247,8 +296,13 @@ func handleClt(cc *clientConn) {
 				}
 
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -263,8 +317,13 @@ func handleClt(cc *clientConn) {
 			if err != nil {
 				cc.log("<--", "SRP data retrieval fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -274,8 +333,13 @@ func handleClt(cc *clientConn) {
 			if err != nil || cc.auth.srpB == nil {
 				cc.log("<--", "SRP safety check fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -299,8 +363,13 @@ func handleClt(cc *clientConn) {
 				}
 
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 
@@ -328,8 +397,13 @@ func handleClt(cc *clientConn) {
 
 				cc.log("<--", "invalid password")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.WrongPasswd})
-				<-ack
-				cc.Close()
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+
 				break
 			}
 		case *mt.ToSrvInit2:
