@@ -10,6 +10,7 @@ import (
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
+	"github.com/anon55555/mt/rudp"
 )
 
 type mediaFile struct {
@@ -63,7 +64,11 @@ func handleContent(cc *contentConn) {
 		pkt, err := cc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				cc.log("<->", "disconnect")
+				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
+					cc.log("<->", "timeout")
+				} else {
+					cc.log("<->", "disconnect")
+				}
 				break
 			}
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
+	"github.com/anon55555/mt/rudp"
 )
 
 type serverConn struct {
@@ -54,7 +55,11 @@ func handleSrv(sc *serverConn) {
 		pkt, err := sc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				sc.log("<->", "disconnect")
+				if errors.Is(sc.WhyClosed(), rudp.ErrTimedOut) {
+					sc.log("<->", "timeout")
+				} else {
+					sc.log("<->", "disconnect")
+				}
 				break
 			}
 

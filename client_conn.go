@@ -10,6 +10,7 @@ import (
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
+	"github.com/anon55555/mt/rudp"
 )
 
 type clientState uint8
@@ -63,7 +64,12 @@ func handleClt(cc *clientConn) {
 		pkt, err := cc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				cc.log("<->", "disconnect")
+				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
+					cc.log("<->", "timeout")
+				} else {
+					cc.log("<->", "disconnect")
+				}
+
 				if cc.name != "" {
 					playersMu.Lock()
 					delete(players, cc.name)

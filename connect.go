@@ -6,10 +6,13 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func connect(conn net.Conn) *serverConn {
+func connect(conn net.Conn, cc *clientConn) *serverConn {
 	sc := &serverConn{
 		Peer: mt.Connect(conn),
+		clt:  cc,
 	}
+	sc.log("-->", "connect")
+	cc.srv = sc
 
 	go handleSrv(sc)
 	return sc

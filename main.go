@@ -123,10 +123,7 @@ func main() {
 				return
 			}
 
-			sc := connect(conn)
-			sc.clt = cc
-			cc.srv = sc
-			sc.log("-->", "connect")
+			connect(conn, cc)
 		}()
 	}
 }
