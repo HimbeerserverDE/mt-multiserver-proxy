@@ -249,6 +249,15 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 	var aliases []struct{ Alias, Orig string }
 	var wg sync.WaitGroup
 
+	itemDefs = append(itemDefs, mt.ItemDef{
+		Type: mt.ToolItem,
+		InvImg: "blank.png",
+		WieldScale: [3]float32{1, 1, 1},
+		StackMax: 1,
+		Usable: true,
+		PointRange: 4,
+	})
+
 	for _, cc := range conns {
 		wg.Add(1)
 		go func() {
@@ -262,6 +271,9 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 
 				def.InvImg = mt.Texture(cc.name) + "_" + def.InvImg
 				def.WieldImg = mt.Texture(cc.name) + "_" + def.WieldImg
+				def.PlacePredict = cc.name + "_" + def.PlacePredict
+				def.PlaceSnd.Name = cc.name + "_" + def.PlaceSnd.Name
+				def.PlaceFailSnd.Name = cc.name + "_" + def.PlaceFailSnd.Name
 				def.Palette = mt.Texture(cc.name) + "_" + def.Palette
 				def.InvOverlay = mt.Texture(cc.name) + "_" + def.InvOverlay
 				def.WieldOverlay = mt.Texture(cc.name) + "_" + def.WieldOverlay
@@ -327,6 +339,7 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 				def.FootstepSnd.Name = cc.name + "_" + def.FootstepSnd.Name
 				def.DiggingSnd.Name = cc.name + "_" + def.DiggingSnd.Name
 				def.DugSnd.Name = cc.name + "_" + def.DugSnd.Name
+				def.DigPredict = cc.name + "_" + def.DigPredict
 				nodeDefs = append(nodeDefs, def)
 
 				param0++
