@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 const latestSerializeVer = 0x1c
@@ -48,7 +49,13 @@ func loadConfig() error {
 	conf.AuthBackend = defaultAuthBackend
 	conf.BindAddr = defaultBindAddr
 
-	f, err := os.OpenFile("config.json", os.O_RDWR|os.O_CREATE, 0666)
+	executable, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Dir(executable) + "/config.json"
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		conf = oldConf
 		return err

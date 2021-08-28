@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -122,8 +124,13 @@ func (a authSQLite3) updateTimestamp(name string) {
 }
 
 func (a *authSQLite3) init() error {
-	var err error
-	a.db, err = sql.Open("sqlite3", "auth.sqlite")
+	executable, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Dir(executable) + "/auth.sqlite"
+	a.db, err = sql.Open("sqlite3", path)
 	if err != nil {
 		return err
 	}
