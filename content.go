@@ -260,6 +260,9 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 		WieldScale: [3]float32{1, 1, 1},
 		StackMax:   1,
 		Usable:     true,
+		ToolCaps: mt.ToolCaps{
+			NonNil: true,
+		},
 		PointRange: 4,
 	})
 
