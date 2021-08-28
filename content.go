@@ -400,7 +400,10 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 			return
 		}
 
-		conns = append(conns, connectContent(conn, srv.Name, userName))
+		cc := connectContent(conn, srv.Name, userName)
+		defer cc.Close()
+
+		conns = append(conns, cc)
 	}
 
 	var wg sync.WaitGroup

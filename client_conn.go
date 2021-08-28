@@ -45,6 +45,8 @@ type clientConn struct {
 	media    []mediaFile
 
 	playerCAO, currentCAO mt.AOID
+
+	inv mt.Inv
 }
 
 func (cc *clientConn) server() *serverConn { return cc.srv }
@@ -68,6 +70,12 @@ func handleClt(cc *clientConn) {
 					cc.log("<->", "timeout")
 				} else {
 					cc.log("<->", "disconnect")
+				}
+
+				if cc.server() != nil {
+					cc.server().Close()
+					cc.server().clt = nil
+					cc.srv = nil
 				}
 
 				if cc.name != "" {
