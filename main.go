@@ -38,7 +38,7 @@ func main() {
 	l := listen(pc)
 	defer l.close()
 
-	log.Print("{←|⇶} listening on ", l.addr())
+	log.Print("{←|⇶} listen ", l.addr())
 
 	clts := make(map[*clientConn]struct{})
 	var mu sync.Mutex
@@ -87,8 +87,46 @@ func main() {
 		go func() {
 			<-cc.init()
 			cc.log("<->", "handshake completed")
-			// ToDo: establish serverConn
-			// and start handler goroutines
+
+			if len(conf.Servers) == 0 {
+				cc.log("<--", "no servers")
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{
+					Reason: mt.Custom,
+					Custom: "No servers are configured.",
+				})
+				<-ack
+				cc.Close()
+				return
+			}
+
+			addr, err := net.ResolveUDPAddr("udp", conf.Servers[0].Addr)
+			if err != nil {
+				cc.log("<--", "address resolution fail")
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{
+					Reason: mt.Custom,
+					Custom: "Server address resolution failed.",
+				})
+				<-ack
+				cc.Close()
+				return
+			}
+
+			conn, err := net.DialUDP("udp", nil, addr)
+			if err != nil {
+				cc.log("<--", "connection fail")
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{
+					Reason: mt.Custom,
+					Custom: "Server connection failed.",
+				})
+				<-ack
+				cc.Close()
+				return
+			}
+
+			sc := connect(conn)
+			sc.clt = cc
+			cc.srv = sc
+			sc.log("-->", "connect")
 		}()
 	}
 }

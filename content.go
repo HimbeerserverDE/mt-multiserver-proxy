@@ -156,7 +156,6 @@ func handleContent(cc *contentConn) {
 				cc.nodeDefs = append(cc.nodeDefs, def)
 			}
 		case *mt.ToCltAnnounceMedia:
-			// ToDo: OOB media support
 			var filenames []string
 
 			for _, f := range cmd.Files {
@@ -255,9 +254,18 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 		go func() {
 			<-cc.done()
 			for _, def := range cc.itemDefs {
-				def.Name = cc.name + "_" + def.Name
+				if def.Name == "" {
+					def.Name = cc.name + "_hand"
+				} else {
+					def.Name = cc.name + "_" + def.Name
+				}
+
+				def.InvImg = mt.Texture(cc.name) + "_" + def.InvImg
+				def.WieldImg = mt.Texture(cc.name) + "_" + def.WieldImg
+				def.Palette = mt.Texture(cc.name) + "_" + def.Palette
+				def.InvOverlay = mt.Texture(cc.name) + "_" + def.InvOverlay
+				def.WieldOverlay = mt.Texture(cc.name) + "_" + def.WieldOverlay
 				itemDefs = append(itemDefs, def)
-				// ToDo: Hand mux
 			}
 
 			for _, alias := range cc.aliases {
@@ -302,6 +310,23 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 
 				def.Param0 = param0
 				def.Name = cc.name + "_" + def.Name
+				def.Mesh = cc.name + "_" + def.Mesh
+				for k, v := range def.Tiles {
+					def.Tiles[k].Texture = mt.Texture(cc.name) + "_" + v.Texture
+				}
+				for k, v := range def.OverlayTiles {
+					def.OverlayTiles[k].Texture = mt.Texture(cc.name) + "_" + v.Texture
+				}
+				for k, v := range def.SpecialTiles {
+					def.SpecialTiles[k].Texture = mt.Texture(cc.name) + "_" + v.Texture
+				}
+				def.Palette = mt.Texture(cc.name) + "_" + def.Palette
+				for k, v := range def.ConnectTo {
+					def.ConnectTo[k] = p0Map[cc.name][v]
+				}
+				def.FootstepSnd.Name = cc.name + "_" + def.FootstepSnd.Name
+				def.DiggingSnd.Name = cc.name + "_" + def.DiggingSnd.Name
+				def.DugSnd.Name = cc.name + "_" + def.DugSnd.Name
 				nodeDefs = append(nodeDefs, def)
 
 				param0++
