@@ -63,7 +63,7 @@ func loadConfig() error {
 	defer f.Close()
 
 	if fi, _ := f.Stat(); fi.Size() == 0 {
-		f.WriteString("{\n\n}\n")
+		f.WriteString("{\n\t\n}\n")
 		f.Seek(0, os.SEEK_SET)
 	}
 

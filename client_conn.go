@@ -37,6 +37,11 @@ type clientConn struct {
 
 	lang string
 
+	major, minor, patch uint8
+	reservedVer         uint8
+	versionStr          string
+	formspecVer         uint16
+
 	itemDefs []mt.ItemDef
 	aliases  []struct{ Alias, Orig string }
 	nodeDefs []mt.NodeDef
@@ -464,6 +469,14 @@ func handleClt(cc *clientConn) {
 			cc.sendMedia(cmd.Filenames)
 		case *mt.ToSrvCltReady:
 			cc.log("-->", "ready")
+
+			cc.major = cmd.Major
+			cc.minor = cmd.Minor
+			cc.patch = cmd.Patch
+			cc.reservedVer = cmd.Reserved
+			cc.versionStr = cmd.Version
+			cc.formspecVer = cmd.Formspec
+
 			cc.state++
 			close(cc.initCh)
 		}

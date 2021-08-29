@@ -6,10 +6,12 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func connect(conn net.Conn, cc *clientConn) *serverConn {
+func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 	sc := &serverConn{
-		Peer: mt.Connect(conn),
-		clt:  cc,
+		Peer:   mt.Connect(conn),
+		initCh: make(chan struct{}),
+		clt:    cc,
+		name:   name,
 	}
 	sc.log("-->", "connect")
 	cc.srv = sc

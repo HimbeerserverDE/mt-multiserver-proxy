@@ -31,7 +31,11 @@ func (sc *serverConn) client() *clientConn { return sc.clt }
 func (sc *serverConn) init() <-chan struct{} { return sc.initCh }
 
 func (sc *serverConn) log(dir, msg string) {
-	log.Printf("{←|⇶} %s {%s} %s", dir, sc.name, msg)
+	if sc.client() != nil {
+		sc.client().log("", fmt.Sprintf("%s {%s} %s", dir, sc.name, msg))
+	} else {
+		log.Printf("{←|⇶} %s {%s} %s", dir, sc.name, msg)
+	}
 }
 
 func handleSrv(sc *serverConn) {
@@ -139,14 +143,12 @@ func handleSrv(sc *serverConn) {
 			})
 		case *mt.ToCltDisco:
 			sc.log("<--", fmt.Sprintf("deny access %+v", cmd))
-			if sc.client() != nil {
-				ack, _ := sc.client().SendCmd(cmd)
+			ack, _ := sc.client().SendCmd(cmd)
 
-				select {
-				case <-sc.client().Closed():
-				case <-ack:
-					sc.client().Close()
-				}
+			select {
+			case <-sc.client().Closed():
+			case <-ack:
+				sc.client().Close()
 			}
 		case *mt.ToCltAcceptAuth:
 			sc.auth.method = 0
@@ -156,6 +158,22 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltAcceptSudoMode:
 			sc.log("<--", "accept sudo")
 			sc.state++
+		case *mt.ToCltAnnounceMedia:
+			sc.SendCmd(&mt.ToSrvReqMedia{})
+		case *mt.ToCltMedia:
+			if sc.state == csInit && cmd.I == cmd.N-1 {
+				sc.SendCmd(&mt.ToSrvCltReady{
+					Major:    sc.client().major,
+					Minor:    sc.client().minor,
+					Patch:    sc.client().patch,
+					Reserved: sc.client().reservedVer,
+					Version:  sc.client().versionStr,
+					Formspec: sc.client().formspecVer,
+				})
+
+				sc.state++
+				close(sc.initCh)
+			}
 		}
 	}
 }

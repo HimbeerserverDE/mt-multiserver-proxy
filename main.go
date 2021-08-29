@@ -150,7 +150,7 @@ func main() {
 				return
 			}
 
-			connect(conn, cc)
+			connect(conn, conf.Servers[0].Name, cc)
 		}()
 	}
 

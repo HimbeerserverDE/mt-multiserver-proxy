@@ -46,6 +46,9 @@ Description: The proxy will listen for new clients on this address.
 Type: []Server
 Default: []Server{}
 Description: The list of internal servers served by this proxy.
+The first server is the default server new clients are connected to.
+It also acts as a fallback server if a connection
+to another server fails or closes.
 ```
 
 > `Server.Name`
