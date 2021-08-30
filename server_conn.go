@@ -345,18 +345,18 @@ func handleSrv(sc *serverConn) {
 			for i := range cmd.Textures {
 				prependTexture(sc.name, &cmd.Textures[i])
 			}
-
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltSunParams:
 			prependTexture(sc.name, &cmd.Texture)
 			prependTexture(sc.name, &cmd.ToneMap)
 			prependTexture(sc.name, &cmd.Rise)
-
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltMoonParams:
 			prependTexture(sc.name, &cmd.Texture)
 			prependTexture(sc.name, &cmd.ToneMap)
-
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltSetHotbarParam:
+			prependTexture(sc.name, &cmd.Img)
 			sc.client().SendCmd(cmd)
 		}
 	}
