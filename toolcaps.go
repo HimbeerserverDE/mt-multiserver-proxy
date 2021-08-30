@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 
 	"github.com/anon55555/mt"
 )
 
 type ToolGroupCaps struct {
-	Uses int16 `json:"uses"`
+	Uses   int16 `json:"uses"`
 	MaxLvl int16 `json:"maxlevel"`
 
 	Times map[int16]float32 `json:"times"`
@@ -17,7 +18,7 @@ type ToolCaps struct {
 	NonNil bool `json:"-"`
 
 	AttackCooldown float32 `json:"full_punch_interval`
-	MaxDropLvl int16 `json:"max_drop_level"`
+	MaxDropLvl     int16   `json:"max_drop_level"`
 
 	GroupCaps map[string]ToolGroupCaps `json:"groupcaps"`
 
@@ -28,23 +29,23 @@ type ToolCaps struct {
 
 func (t ToolCaps) toMT() mt.ToolCaps {
 	tc := mt.ToolCaps{
-		NonNil: t.NonNil,
+		NonNil:         t.NonNil,
 		AttackCooldown: t.AttackCooldown,
-		MaxDropLvl: t.MaxDropLvl,
-		AttackUses: t.AttackUses,
+		MaxDropLvl:     t.MaxDropLvl,
+		AttackUses:     t.AttackUses,
 	}
 
 	for k, v := range t.GroupCaps {
 		gc := mt.ToolGroupCaps{
-			Name: k,
-			Uses: v.Uses,
+			Name:   k,
+			Uses:   v.Uses,
 			MaxLvl: v.MaxLvl,
 		}
 
 		for k2, v2 := range v.Times {
 			gc.Times = append(gc.Times, mt.DigTime{
 				Rating: k2,
-				Time: v2,
+				Time:   v2,
 			})
 		}
 
@@ -53,7 +54,7 @@ func (t ToolCaps) toMT() mt.ToolCaps {
 
 	for k, v := range t.DmgGroups {
 		tc.DmgGroups = append(tc.DmgGroups, mt.Group{
-			Name: k,
+			Name:   k,
 			Rating: v,
 		})
 	}
@@ -71,7 +72,7 @@ func (t *ToolCaps) fromMT(tc mt.ToolCaps) {
 
 	for _, gc := range tc.GroupCaps {
 		g := ToolGroupCaps{
-			Uses: gc.Uses,
+			Uses:   gc.Uses,
 			MaxLvl: gc.MaxLvl,
 		}
 

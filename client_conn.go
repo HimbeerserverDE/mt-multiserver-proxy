@@ -466,8 +466,6 @@ func handleClt(cc *clientConn) {
 		case *mt.ToSrvReqMedia:
 			cc.sendMedia(cmd.Filenames)
 		case *mt.ToSrvCltReady:
-			cc.log("-->", "ready")
-
 			cc.major = cmd.Major
 			cc.minor = cmd.Minor
 			cc.patch = cmd.Patch

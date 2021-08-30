@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/HimbeerserverDE/srp"
@@ -46,7 +47,7 @@ func handleSrv(sc *serverConn) {
 	}
 
 	go func() {
-		for sc.state == csCreated {
+		for sc.state == csCreated && sc.client() != nil {
 			sc.SendCmd(&mt.ToSrvInit{
 				SerializeVer: latestSerializeVer,
 				MinProtoVer:  latestProtoVer,
@@ -66,6 +67,21 @@ func handleSrv(sc *serverConn) {
 				} else {
 					sc.log("<->", "disconnect")
 				}
+
+				if sc.client() != nil {
+					ack, _ := sc.client().SendCmd(&mt.ToCltDisco{
+						Reason: mt.Custom,
+						Custom: "Server connection closed unexpectedly.",
+					})
+
+					select {
+					case <-sc.client().Closed():
+					case <-ack:
+						sc.client().Close()
+						sc.clt = nil
+					}
+				}
+
 				break
 			}
 
@@ -151,6 +167,7 @@ func handleSrv(sc *serverConn) {
 			case <-sc.client().Closed():
 			case <-ack:
 				sc.client().Close()
+				sc.clt = nil
 			}
 		case *mt.ToCltAcceptAuth:
 			sc.auth.method = 0
@@ -162,50 +179,74 @@ func handleSrv(sc *serverConn) {
 			sc.state++
 		case *mt.ToCltAnnounceMedia:
 			sc.SendCmd(&mt.ToSrvReqMedia{})
-		case *mt.ToCltMedia:
-			if sc.state == csInit && cmd.I == cmd.N-1 {
-				sc.SendCmd(&mt.ToSrvCltReady{
-					Major:    sc.client().major,
-					Minor:    sc.client().minor,
-					Patch:    sc.client().patch,
-					Reserved: sc.client().reservedVer,
-					Version:  sc.client().versionStr,
-					Formspec: sc.client().formspecVer,
-				})
 
-				sc.state++
-				close(sc.initCh)
-			}
+			sc.SendCmd(&mt.ToSrvCltReady{
+				Major:    sc.client().major,
+				Minor:    sc.client().minor,
+				Patch:    sc.client().patch,
+				Reserved: sc.client().reservedVer,
+				Version:  sc.client().versionStr,
+				Formspec: sc.client().formspecVer,
+			})
+
+			sc.log("<->", "handshake completed")
+			sc.state++
+			close(sc.initCh)
 		case *mt.ToCltInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
 
+			for k, l := range inv {
+				for i, s := range l.Stacks {
+					inv[k].InvList.Stacks[i].Name = sc.name + "_" + s.Name
+				}
+			}
+
+			var t mt.ToolCaps
+			for _, iDef := range sc.client().itemDefs {
+				if iDef.Name == sc.name+"_hand" {
+					t = iDef.ToolCaps
+					break
+				}
+			}
+
+			var tc ToolCaps
+			tc.fromMT(t)
+
+			b := &strings.Builder{}
+			tc.SerializeJSON(b)
+
 			fields := []mt.Field{
-				mt.Field{
-					Name: "
+				{
+					Name:  "tool_capabilities",
+					Value: b.String(),
 				},
 			}
 			meta := mt.NewItemMeta(fields)
 
 			handStack := mt.Stack{
-				Name: sc.name + "_hand",
-				ItemMeta: meta,
+				Item: mt.Item{
+					Name:     sc.name + "_hand",
+					ItemMeta: meta,
+				},
 				Count: 1,
 			}
 
 			hand := inv.List("hand")
 			if hand == nil {
 				inv = append(inv, mt.NamedInvList{
-					Name:   "hand",
-					Width:  1,
-					Stacks: []mt.Stack{handStack},
+					Name: "hand",
+					InvList: mt.InvList{
+						Width:  1,
+						Stacks: []mt.Stack{handStack},
+					},
 				})
 			} else if len(hand.Stacks) == 0 {
 				hand.Width = 1
 				hand.Stacks = []mt.Stack{handStack}
 			}
 
-			b := &strings.Builder{}
+			b = &strings.Builder{}
 			inv.SerializeKeep(b, sc.inv)
 			sc.inv = inv
 
