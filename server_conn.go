@@ -347,6 +347,11 @@ func handleSrv(sc *serverConn) {
 			}
 
 			sc.client().SendCmd(cmd)
+		case *mt.ToCltMoonParams:
+			prependTexture(sc.name, &cmd.Texture)
+			prependTexture(sc.name, &cmd.ToneMap)
+
+			sc.client().SendCmd(cmd)
 		}
 	}
 }
