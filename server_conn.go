@@ -80,6 +80,7 @@ func handleSrv(sc *serverConn) {
 					case <-sc.client().Closed():
 					case <-ack:
 						sc.client().Close()
+						sc.client().srv = nil
 						sc.clt = nil
 					}
 				}

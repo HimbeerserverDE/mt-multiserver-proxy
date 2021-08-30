@@ -64,6 +64,8 @@ func main() {
 					cc.Close()
 				}
 
+				<-cc.server().Closed()
+				cc.srv = nil
 				wg.Done()
 			}()
 		}
