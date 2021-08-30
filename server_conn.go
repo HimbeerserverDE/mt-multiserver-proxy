@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"regexp"
 	"strings"
 	"time"
 
@@ -411,46 +410,23 @@ func handleSrv(sc *serverConn) {
 			delete(sc.huds, cmd.ID)
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltShowFormspec:
-			reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
-			reg2 := regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z0-9-_.]+")
-			subs := reg.Split(cmd.Formspec, -1)
-			seps := reg.FindAllString(cmd.Formspec, -1)
-
-			for i, sub := range subs {
-				if reg2.MatchString(sub) && !strings.Contains(sub, " ") {
-					prepend(sc.name, &subs[i])
-				}
-			}
-
-			cmd.Formspec = ""
-			for i, sub := range subs {
-				cmd.Formspec += sub
-				if i < len(seps) {
-					cmd.Formspec += seps[i]
-				}
-			}
-
+			sc.prependFormspec(&cmd.Formspec)
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltFormspecPrepend:
-			reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
-			reg2 := regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z0-9-_.]+")
-			subs := reg.Split(cmd.Prepend, -1)
-			seps := reg.FindAllString(cmd.Prepend, -1)
-
-			for i, sub := range subs {
-				if reg2.MatchString(sub) && !strings.Contains(sub, " ") {
-					prepend(sc.name, &subs[i])
-				}
+			sc.prependFormspec(&cmd.Prepend)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltInvFormspec:
+			sc.prependFormspec(&cmd.Formspec)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltMinimapModes:
+			for i := range cmd.Modes {
+				prependTexture(sc.name, &cmd.Modes[i].Texture)
 			}
-
-			cmd.Prepend = ""
-			for i, sub := range subs {
-				cmd.Prepend += sub
-				if i < len(seps) {
-					cmd.Prepend += seps[i]
-				}
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltNodeMetasChanged:
+			for k := range cmd.Changed {
+				sc.prependInv(cmd.Changed[k].Inv)
 			}
-
 			sc.client().SendCmd(cmd)
 		}
 	}
