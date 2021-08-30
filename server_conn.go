@@ -341,6 +341,12 @@ func handleSrv(sc *serverConn) {
 
 			prepend(sc.name, &cmd.Filename)
 			sc.client().SendCmd(cmd)
+		case *mt.ToCltSkyParams:
+			for i := range cmd.Textures {
+				prependTexture(sc.name, &cmd.Textures[i])
+			}
+
+			sc.client().SendCmd(cmd)
 		}
 	}
 }
