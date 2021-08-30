@@ -358,6 +358,14 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltSetHotbarParam:
 			prependTexture(sc.name, &cmd.Img)
 			sc.client().SendCmd(cmd)
+		case *mt.ToCltUpdatePlayerList:
+			if !sc.client().playerListInit {
+				sc.client().playerListInit = true
+			} else if cmd.Type == mt.InitPlayers {
+				cmd.Type = mt.AddPlayers
+			}
+
+			sc.client().SendCmd(cmd)
 		}
 	}
 }
