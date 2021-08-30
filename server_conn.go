@@ -29,7 +29,8 @@ type serverConn struct {
 	inv          mt.Inv
 	detachedInvs []string
 
-	aos map[mt.AOID]struct{}
+	aos              map[mt.AOID]struct{}
+	particleSpawners map[mt.ParticleSpawnerID]struct{}
 }
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
@@ -285,6 +286,8 @@ func handleSrv(sc *serverConn) {
 
 					resp.Add = append(resp.Add, ao)
 				}
+
+				sc.aos[ao.ID] = struct{}{}
 			}
 
 			sc.client().SendCmd(resp)
@@ -371,6 +374,16 @@ func handleSrv(sc *serverConn) {
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltAddNode:
 			sc.globalParam0(&cmd.Node.Param0)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltAddParticleSpawner:
+			prependTexture(sc.name, &cmd.Texture)
+			sc.swapAOID(&cmd.AttachedAOID)
+			sc.globalParam0(&cmd.NodeParam0)
+			sc.particleSpawners[cmd.ID] = struct{}{}
+
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltDelParticleSpawner:
+			delete(sc.particleSpawners, cmd.ID)
 			sc.client().SendCmd(cmd)
 		}
 	}

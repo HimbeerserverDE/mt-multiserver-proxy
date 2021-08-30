@@ -8,11 +8,12 @@ import (
 
 func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 	sc := &serverConn{
-		Peer:   mt.Connect(conn),
-		initCh: make(chan struct{}),
-		clt:    cc,
-		name:   name,
-		aos:    make(map[mt.AOID]struct{}),
+		Peer:             mt.Connect(conn),
+		initCh:           make(chan struct{}),
+		clt:              cc,
+		name:             name,
+		aos:              make(map[mt.AOID]struct{}),
+		particleSpawners: make(map[mt.ParticleSpawnerID]struct{}),
 	}
 	sc.log("-->", "connect")
 	cc.srv = sc
