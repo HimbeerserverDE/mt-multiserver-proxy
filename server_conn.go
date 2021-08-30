@@ -27,6 +27,8 @@ type serverConn struct {
 	}
 
 	inv mt.Inv
+
+	aos map[mt.AOID]struct{}
 }
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
@@ -251,6 +253,44 @@ func handleSrv(sc *serverConn) {
 			sc.inv = inv
 
 			sc.client().SendCmd(&mt.ToCltInv{Inv: b.String()})
+		case *mt.ToCltAOMsgs:
+			for k := range cmd.Msgs {
+				sc.swapAOID(&cmd.Msgs[k].ID)
+				sc.handleAOMsg(cmd.Msgs[k].Msg)
+			}
+
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltAORmAdd:
+			resp := &mt.ToCltAORmAdd{}
+
+			for _, ao := range cmd.Remove {
+				delete(sc.aos, ao)
+				resp.Remove = append(resp.Remove, ao)
+			}
+
+			for _, ao := range cmd.Add {
+				if ao.InitData.Name == sc.client().name {
+					sc.client().currentCAO = ao.ID
+
+					if sc.client().playerCAO == 0 {
+						sc.client().playerCAO = ao.ID
+						for _, msg := range ao.InitData.Msgs {
+							sc.handleAOMsg(msg)
+						}
+
+						resp.Add = append(resp.Add, ao)
+					}
+				} else {
+					sc.swapAOID(&ao.ID)
+					for _, msg := range ao.InitData.Msgs {
+						sc.handleAOMsg(msg)
+					}
+
+					resp.Add = append(resp.Add, ao)
+				}
+			}
+
+			sc.client().SendCmd(resp)
 		}
 	}
 }

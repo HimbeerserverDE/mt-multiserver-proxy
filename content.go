@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -254,7 +256,7 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 
 	itemDefs = append(itemDefs, mt.ItemDef{
 		Type:       mt.ToolItem,
-		InvImg:     "blank.png",
+		InvImg:     "wieldhand.png",
 		WieldScale: [3]float32{1, 1, 1},
 		StackMax:   1,
 		Usable:     true,
@@ -266,41 +268,32 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 
 	for _, cc := range conns {
 		wg.Add(1)
-
-		prepend := func(s *string) {
-			if *s != "" {
-				*s = cc.name + "_" + *s
-			}
-		}
-		prependTexture := func(s *mt.Texture) {
-			if *s != "" {
-				*s = mt.Texture(cc.name) + "_" + *s
-			}
-		}
-
 		go func() {
 			<-cc.done()
 			for _, def := range cc.itemDefs {
 				if def.Name == "" {
 					def.Name = "hand"
 				}
-				prepend(&def.Name)
+				prepend(cc.name, &def.Name)
 
-				prependTexture(&def.InvImg)
-				prependTexture(&def.WieldImg)
-				prepend(&def.PlacePredict)
-				prepend(&def.PlaceSnd.Name)
-				prepend(&def.PlaceFailSnd.Name)
-				prependTexture(&def.Palette)
-				prependTexture(&def.InvOverlay)
-				prependTexture(&def.WieldOverlay)
+				prependTexture(cc.name, &def.InvImg)
+				prependTexture(cc.name, &def.WieldImg)
+				prepend(cc.name, &def.PlacePredict)
+				prepend(cc.name, &def.PlaceSnd.Name)
+				prepend(cc.name, &def.PlaceFailSnd.Name)
+				prependTexture(cc.name, &def.Palette)
+				prependTexture(cc.name, &def.InvOverlay)
+				prependTexture(cc.name, &def.WieldOverlay)
 				itemDefs = append(itemDefs, def)
 			}
 
 			for _, alias := range cc.aliases {
+				prepend(cc.name, &alias.Alias)
+				prepend(cc.name, &alias.Orig)
+
 				aliases = append(aliases, struct{ Alias, Orig string }{
-					Alias: cc.name + "_" + alias.Alias,
-					Orig:  cc.name + "_" + alias.Orig,
+					Alias: alias.Alias,
+					Orig:  alias.Orig,
 				})
 			}
 
@@ -321,18 +314,6 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 
 	for _, cc := range conns {
 		wg.Add(1)
-
-		prepend := func(s *string) {
-			if *s != "" {
-				*s = cc.name + "_" + *s
-			}
-		}
-		prependTexture := func(s *mt.Texture) {
-			if *s != "" {
-				*s = mt.Texture(cc.name) + "_" + *s
-			}
-		}
-
 		go func() {
 			<-cc.done()
 			for _, def := range cc.nodeDefs {
@@ -350,25 +331,25 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 				}
 
 				def.Param0 = param0
-				prepend(&def.Name)
-				prepend(&def.Mesh)
+				prepend(cc.name, &def.Name)
+				prepend(cc.name, &def.Mesh)
 				for i := range def.Tiles {
-					prependTexture(&def.Tiles[i].Texture)
+					prependTexture(cc.name, &def.Tiles[i].Texture)
 				}
 				for i := range def.OverlayTiles {
-					prependTexture(&def.OverlayTiles[i].Texture)
+					prependTexture(cc.name, &def.OverlayTiles[i].Texture)
 				}
 				for i := range def.SpecialTiles {
-					prependTexture(&def.SpecialTiles[i].Texture)
+					prependTexture(cc.name, &def.SpecialTiles[i].Texture)
 				}
-				prependTexture(&def.Palette)
+				prependTexture(cc.name, &def.Palette)
 				for k, v := range def.ConnectTo {
 					def.ConnectTo[k] = p0Map[cc.name][v]
 				}
-				prepend(&def.FootstepSnd.Name)
-				prepend(&def.DiggingSnd.Name)
-				prepend(&def.DugSnd.Name)
-				prepend(&def.DigPredict)
+				prepend(cc.name, &def.FootstepSnd.Name)
+				prepend(cc.name, &def.DiggingSnd.Name)
+				prepend(cc.name, &def.DugSnd.Name)
+				prepend(cc.name, &def.DigPredict)
 				nodeDefs = append(nodeDefs, def)
 
 				param0++
@@ -391,17 +372,10 @@ func muxMedia(conns []*contentConn) []mediaFile {
 
 	for _, cc := range conns {
 		wg.Add(1)
-
-		prepend := func(s *string) {
-			if *s != "" {
-				*s = cc.name + "_" + *s
-			}
-		}
-
 		go func() {
 			<-cc.done()
 			for _, f := range cc.media {
-				prepend(&f.name)
+				prepend(cc.name, &f.name)
 				media = append(media, f)
 			}
 
@@ -454,4 +428,148 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 
 	wg.Wait()
 	return
+}
+
+func isDefaultTexture(s string) bool {
+	list := []string{
+		"",
+		"air.png",
+		"aux1_btn.png",
+		"blank.png",
+		"bubble.png",
+		"bubble_gone.png",
+		"camera_btn.png",
+		"cdb_add.png",
+		"cdb_clear.png",
+		"cdb_downloading.png",
+		"cdb_queued.png",
+		"cdb_update.png",
+		"cdb_viewonline.png",
+		"chat_btn.png",
+		"chat_hide_btn.png",
+		"chat_show_btn.png",
+		"checkbox_16.png",
+		"checkbox_32.png",
+		"checkbox_64.png",
+		"clear.png",
+		"crack_anylength.png",
+		"debug_btn.png",
+		"down.png",
+		"drop_btn.png",
+		"end_icon.png",
+		"error_screenshot.png",
+		"fast_btn.png",
+		"fly_btn.png",
+		"gear_icon.png",
+		"halo.png",
+		"heart.png",
+		"heart_gone.png",
+		"ignore.png",
+		"inventory_btn.png",
+		"joystick_bg.png",
+		"joystick_center.png",
+		"joystick_off.png",
+		"jump_btn.png",
+		"loading_screenshot.png",
+		"logo.png",
+		"menu_bg.png",
+		"menu_header.png",
+		"minimap_btn.png",
+		"minimap_mask_round.png",
+		"minimap_mask_square.png",
+		"minimap_overlay_round.png",
+		"minimap_overlay_square.png",
+		"next_icon.png",
+		"noclip_btn.png",
+		"no_screenshot.png",
+		"no_texture_airlike.png",
+		"object_marker_red.png",
+		"player.png",
+		"player_back.png",
+		"player_marker.png",
+		"plus.png",
+		"prev_icon.png",
+		"progress_bar.png",
+		"progress_bar_bg.png",
+		"rangeview_btn.png",
+		"rare_controls.png",
+		"refresh.png",
+		"search.png",
+		"server_favorite.png",
+		"server_flags_creative.png",
+		"server_flags_damage.png",
+		"server_flags_pvp.png",
+		"server_incompatible.png",
+		"server_ping_1.png",
+		"server_ping_2.png",
+		"server_ping_3.png",
+		"server_ping_4.png",
+		"server_public.png",
+		"smoke_puff.png",
+		"start_icon.png",
+		"sunrisebg.png",
+		"unknown_item.png",
+		"unknown_node.png",
+		"unknown_object.png",
+		"wieldhand.png",
+	}
+
+	for _, s2 := range list {
+		if s == s2 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isDefaultNode(s string) bool {
+	list := []string{
+		"",
+		"air",
+		"unknown",
+		"ignore",
+	}
+
+	for _, s2 := range list {
+		if s == s2 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func prependRaw(prep string, s *string, isTexture bool) {
+	if (isTexture && !isDefaultTexture(*s)) || (!isTexture && !isDefaultNode(*s)) {
+		reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
+		subs := reg.Split(*s, -1)
+		seps := reg.FindAllString(*s, -1)
+
+		for i, sub := range subs {
+			if !isTexture || strings.Contains(sub, ".") {
+				subs[i] = prep + "_" + sub
+			}
+		}
+
+		fmt.Println("before", *s)
+		*s = ""
+		for i, sub := range subs {
+			*s += sub
+			if i < len(seps) {
+				*s += seps[i]
+			}
+		}
+		fmt.Println("afters", *s)
+	}
+}
+
+func prepend(prep string, s *string) {
+	prependRaw(prep, s, false)
+}
+
+func prependTexture(prep string, t *mt.Texture) {
+	s := string(*t)
+	prependRaw(prep, &s, true)
+	*t = mt.Texture(s)
 }

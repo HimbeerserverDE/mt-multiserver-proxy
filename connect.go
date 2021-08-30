@@ -12,6 +12,7 @@ func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 		initCh: make(chan struct{}),
 		clt:    cc,
 		name:   name,
+		aos:    make(map[mt.AOID]struct{}),
 	}
 	sc.log("-->", "connect")
 	cc.srv = sc
