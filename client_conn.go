@@ -477,6 +477,16 @@ func handleClt(cc *clientConn) {
 
 			cc.state++
 			close(cc.initCh)
+		case *mt.ToSrvInteract:
+			if cc.server() == nil {
+				cc.log("-->", "interact to no server")
+				break
+			}
+
+			if _, ok := cmd.Pointed.(*mt.PointedAO); ok {
+				cc.server().swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
+			}
+			cc.server().SendCmd(cmd)
 		}
 	}
 }
