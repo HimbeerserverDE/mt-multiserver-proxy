@@ -50,8 +50,6 @@ type clientConn struct {
 	media    []mediaFile
 
 	playerCAO, currentCAO mt.AOID
-
-	inv mt.Inv
 }
 
 func (cc *clientConn) server() *serverConn { return cc.srv }

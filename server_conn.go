@@ -24,6 +24,8 @@ type serverConn struct {
 		method              mt.AuthMethods
 		salt, srpA, a, srpK []byte
 	}
+
+	inv mt.Inv
 }
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
@@ -174,6 +176,40 @@ func handleSrv(sc *serverConn) {
 				sc.state++
 				close(sc.initCh)
 			}
+		case *mt.ToCltInv:
+			var inv mt.Inv
+			inv.Deserialize(strings.NewReader(cmd.Inv))
+
+			fields := []mt.Field{
+				mt.Field{
+					Name: "
+				},
+			}
+			meta := mt.NewItemMeta(fields)
+
+			handStack := mt.Stack{
+				Name: sc.name + "_hand",
+				ItemMeta: meta,
+				Count: 1,
+			}
+
+			hand := inv.List("hand")
+			if hand == nil {
+				inv = append(inv, mt.NamedInvList{
+					Name:   "hand",
+					Width:  1,
+					Stacks: []mt.Stack{handStack},
+				})
+			} else if len(hand.Stacks) == 0 {
+				hand.Width = 1
+				hand.Stacks = []mt.Stack{handStack}
+			}
+
+			b := &strings.Builder{}
+			inv.SerializeKeep(b, sc.inv)
+			sc.inv = inv
+
+			sc.client().SendCmd(&mt.ToCltInv{Inv: b.String()})
 		}
 	}
 }
