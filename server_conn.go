@@ -204,7 +204,7 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
-			sc.prependInv(inv)
+			sc.prependInv(&inv)
 
 			var t mt.ToolCaps
 			for _, iDef := range sc.client().itemDefs {
@@ -301,7 +301,7 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltDetachedInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
-			sc.prependInv(inv)
+			sc.prependInv(&inv)
 
 			b := &strings.Builder{}
 			inv.Serialize(b)
@@ -372,7 +372,7 @@ func handleSrv(sc *serverConn) {
 			}
 
 			for k := range cmd.Blk.NodeMetas {
-				sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
+				sc.prependInv(&cmd.Blk.NodeMetas[k].Inv)
 			}
 
 			sc.client().SendCmd(cmd)
