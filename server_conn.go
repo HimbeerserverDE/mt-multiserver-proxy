@@ -33,6 +33,8 @@ type serverConn struct {
 	particleSpawners map[mt.ParticleSpawnerID]struct{}
 
 	sounds map[mt.SoundID]struct{}
+
+	huds map[mt.HUDID]struct{}
 }
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
@@ -391,7 +393,7 @@ func handleSrv(sc *serverConn) {
 			prepend(sc.name, &cmd.Name)
 			sc.swapAOID(&cmd.SrcAOID)
 			if cmd.Loop {
-				sc.sounds[sc.ID] = struct{}{}
+				sc.sounds[cmd.ID] = struct{}{}
 			}
 
 			sc.client().SendCmd(cmd)
@@ -400,6 +402,12 @@ func handleSrv(sc *serverConn) {
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltStopSound:
 			delete(sc.sounds, cmd.ID)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltAddHUD:
+			sc.huds[cmd.ID] = struct{}{}
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltRmHUD:
+			delete(sc.huds, cmd.ID)
 			sc.client().SendCmd(cmd)
 		}
 	}

@@ -14,7 +14,8 @@ func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 		name:             name,
 		aos:              make(map[mt.AOID]struct{}),
 		particleSpawners: make(map[mt.ParticleSpawnerID]struct{}),
-		sounds: make(map[mt.SoundID]struct{}),
+		sounds:           make(map[mt.SoundID]struct{}),
+		huds:             make(map[mt.HUDID]struct{}),
 	}
 	sc.log("-->", "connect")
 	cc.srv = sc
