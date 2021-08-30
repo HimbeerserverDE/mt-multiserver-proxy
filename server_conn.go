@@ -326,6 +326,21 @@ func handleSrv(sc *serverConn) {
 				Len:  cmd.Len,
 				Inv:  b.String(),
 			})
+		case *mt.ToCltMediaPush:
+			var exit bool
+			for _, f := range sc.client().media {
+				if f.name == cmd.Filename {
+					exit = true
+					break
+				}
+			}
+
+			if exit {
+				break
+			}
+
+			prepend(sc.name, &cmd.Filename)
+			sc.client().SendCmd(cmd)
 		}
 	}
 }
