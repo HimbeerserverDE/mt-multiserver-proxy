@@ -589,3 +589,11 @@ func prependTexture(prep string, t *mt.Texture) {
 	prependRaw(prep, &s, true)
 	*t = mt.Texture(s)
 }
+
+func (sc *serverConn) prependInv(inv mt.Inv) {
+	for k, l := range inv {
+		for i := range l.Stacks {
+			prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
+		}
+	}
+}

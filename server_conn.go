@@ -199,12 +199,7 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
-
-			for k, l := range inv {
-				for i := range l.Stacks {
-					prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
-				}
-			}
+			sc.prependInv(inv)
 
 			var t mt.ToolCaps
 			for _, iDef := range sc.client().itemDefs {
@@ -299,12 +294,7 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltDetachedInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
-
-			for k, l := range inv {
-				for i := range l.Stacks {
-					prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
-				}
-			}
+			sc.prependInv(inv)
 
 			b := &strings.Builder{}
 			inv.Serialize(b)
@@ -368,6 +358,19 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltSpawnParticle:
 			prependTexture(sc.name, &cmd.Texture)
 			sc.globalParam0(&cmd.NodeParam0)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltBlkData:
+			for i := range cmd.Blk.Param0 {
+				sc.globalParam0(&cmd.Blk.Param0[i])
+			}
+
+			for k := range cmd.Blk.NodeMetas {
+				sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
+			}
+
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltAddNode:
+			sc.globalParam0(&cmd.Node.Param0)
 			sc.client().SendCmd(cmd)
 		}
 	}
