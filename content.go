@@ -376,7 +376,7 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 				nodeDefs = append(nodeDefs, def)
 
 				param0++
-				if param0 >= mt.Unknown || param0 <= mt.Ignore {
+				if param0 >= mt.Unknown && param0 <= mt.Ignore {
 					param0 = mt.Ignore + 1
 				}
 			}
