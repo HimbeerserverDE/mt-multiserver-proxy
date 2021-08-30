@@ -430,6 +430,24 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 	return
 }
 
+func (sc *serverConn) globalParam0(p0 *mt.Content) {
+	if sc.client() != nil && sc.client().p0Map != nil {
+		if sc.client().p0Map[sc.name] != nil {
+			*p0 = sc.client().p0Map[sc.name][*p0]
+		}
+	}
+}
+
+func (cc *clientConn) srvParam0(p0 *mt.Content) string {
+	if cc.p0SrvMap != nil {
+		srv := cc.p0SrvMap[*p0]
+		*p0 = srv.param0
+		return srv.name
+	}
+
+	return ""
+}
+
 func isDefaultTexture(s string) bool {
 	list := []string{
 		"",

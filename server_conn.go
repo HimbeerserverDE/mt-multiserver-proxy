@@ -364,7 +364,10 @@ func handleSrv(sc *serverConn) {
 			} else if cmd.Type == mt.InitPlayers {
 				cmd.Type = mt.AddPlayers
 			}
-
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltSpawnParticle:
+			prependTexture(sc.name, &cmd.Texture)
+			sc.globalParam0(&cmd.NodeParam0)
 			sc.client().SendCmd(cmd)
 		}
 	}

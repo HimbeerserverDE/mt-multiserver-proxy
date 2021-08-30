@@ -486,6 +486,7 @@ func handleClt(cc *clientConn) {
 			if _, ok := cmd.Pointed.(*mt.PointedAO); ok {
 				cc.server().swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 			}
+
 			cc.server().SendCmd(cmd)
 		}
 	}
