@@ -310,7 +310,26 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 	var param0 mt.Content
 
 	p0Map = make(param0Map)
-	p0SrvMap = make(param0SrvMap)
+	p0SrvMap = param0SrvMap{
+		mt.Unknown: struct {
+			name   string
+			param0 mt.Content
+		}{
+			param0: mt.Unknown,
+		},
+		mt.Air: struct {
+			name   string
+			param0 mt.Content
+		}{
+			param0: mt.Air,
+		},
+		mt.Ignore: struct {
+			name   string
+			param0 mt.Content
+		}{
+			param0: mt.Ignore,
+		},
+	}
 
 	for _, cc := range conns {
 		wg.Add(1)
@@ -318,7 +337,11 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			<-cc.done()
 			for _, def := range cc.nodeDefs {
 				if p0Map[cc.name] == nil {
-					p0Map[cc.name] = make(map[mt.Content]mt.Content)
+					p0Map[cc.name] = map[mt.Content]mt.Content{
+						mt.Unknown: mt.Unknown,
+						mt.Air:     mt.Air,
+						mt.Ignore:  mt.Ignore,
+					}
 				}
 
 				p0Map[cc.name][def.Param0] = param0
