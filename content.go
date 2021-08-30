@@ -552,7 +552,6 @@ func prependRaw(prep string, s *string, isTexture bool) {
 			}
 		}
 
-		fmt.Println("before", *s)
 		*s = ""
 		for i, sub := range subs {
 			*s += sub
@@ -560,7 +559,6 @@ func prependRaw(prep string, s *string, isTexture bool) {
 				*s += seps[i]
 			}
 		}
-		fmt.Println("afters", *s)
 	}
 }
 

@@ -26,7 +26,8 @@ type serverConn struct {
 		salt, srpA, a, srpK []byte
 	}
 
-	inv mt.Inv
+	inv          mt.Inv
+	detachedInvs []string
 
 	aos map[mt.AOID]struct{}
 }
@@ -200,8 +201,8 @@ func handleSrv(sc *serverConn) {
 			inv.Deserialize(strings.NewReader(cmd.Inv))
 
 			for k, l := range inv {
-				for i, s := range l.Stacks {
-					inv[k].InvList.Stacks[i].Name = sc.name + "_" + s.Name
+				for i := range l.Stacks {
+					prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
 				}
 			}
 
@@ -292,6 +293,39 @@ func handleSrv(sc *serverConn) {
 			}
 
 			sc.client().SendCmd(resp)
+		case *mt.ToCltCSMRestrictionFlags:
+			cmd.Flags &= ^mt.NoCSMs
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltDetachedInv:
+			var inv mt.Inv
+			inv.Deserialize(strings.NewReader(cmd.Inv))
+
+			for k, l := range inv {
+				for i := range l.Stacks {
+					prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
+				}
+			}
+
+			b := &strings.Builder{}
+			inv.Serialize(b)
+
+			if cmd.Keep {
+				sc.detachedInvs = append(sc.detachedInvs, cmd.Name)
+			} else {
+				for i, name := range sc.detachedInvs {
+					if name == cmd.Name {
+						sc.detachedInvs = append(sc.detachedInvs[:i], sc.detachedInvs[i+1:]...)
+						break
+					}
+				}
+			}
+
+			sc.client().SendCmd(&mt.ToCltDetachedInv{
+				Name: cmd.Name,
+				Keep: cmd.Keep,
+				Len:  cmd.Len,
+				Inv:  b.String(),
+			})
 		}
 	}
 }
