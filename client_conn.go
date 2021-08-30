@@ -479,7 +479,7 @@ func handleClt(cc *clientConn) {
 			close(cc.initCh)
 		case *mt.ToSrvInteract:
 			if cc.server() == nil {
-				cc.log("-->", "interact to no server")
+				cc.log("-->", "no server")
 				break
 			}
 
@@ -487,6 +487,72 @@ func handleClt(cc *clientConn) {
 				cc.server().swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 			}
 
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvChatMsg:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvDeletedBlks:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvFallDmg:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvGotBlks:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvJoinModChan:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvLeaveModChan:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvMsgModChan:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvNodeMetaFields:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvPlayerPos:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvRespawn:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvSelectItem:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
 			cc.server().SendCmd(cmd)
 		}
 	}

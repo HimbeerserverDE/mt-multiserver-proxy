@@ -428,6 +428,44 @@ func handleSrv(sc *serverConn) {
 				sc.prependInv(cmd.Changed[k].Inv)
 			}
 			sc.client().SendCmd(cmd)
+		case *mt.ToCltAddPlayerVel:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltBreath:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltChatMsg:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltCloudParams:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltDeathScreen:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltEyeOffset:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltFOV:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltHP:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltHUDFlags:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltLocalPlayerAnim:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltModChanMsg:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltModChanSig:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltMovePlayer:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltMovement:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltOverrideDayNightRatio:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltPrivs:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltRemoveNode:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltStarParams:
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltTimeOfDay:
+			sc.client().SendCmd(cmd)
 		}
 	}
 }
