@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
 	"time"
 
@@ -408,6 +409,48 @@ func handleSrv(sc *serverConn) {
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltRmHUD:
 			delete(sc.huds, cmd.ID)
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltShowFormspec:
+			reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
+			reg2 := regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z0-9-_.]+")
+			subs := reg.Split(cmd.Formspec, -1)
+			seps := reg.FindAllString(cmd.Formspec, -1)
+
+			for i, sub := range subs {
+				if reg2.MatchString(sub) && !strings.Contains(sub, " ") {
+					prepend(sc.name, &subs[i])
+				}
+			}
+
+			cmd.Formspec = ""
+			for i, sub := range subs {
+				cmd.Formspec += sub
+				if i < len(seps) {
+					cmd.Formspec += seps[i]
+				}
+			}
+
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltFormspecPrepend:
+			reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
+			reg2 := regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z0-9-_.]+")
+			subs := reg.Split(cmd.Prepend, -1)
+			seps := reg.FindAllString(cmd.Prepend, -1)
+
+			for i, sub := range subs {
+				if reg2.MatchString(sub) && !strings.Contains(sub, " ") {
+					prepend(sc.name, &subs[i])
+				}
+			}
+
+			cmd.Prepend = ""
+			for i, sub := range subs {
+				cmd.Prepend += sub
+				if i < len(seps) {
+					cmd.Prepend += seps[i]
+				}
+			}
+
 			sc.client().SendCmd(cmd)
 		}
 	}
