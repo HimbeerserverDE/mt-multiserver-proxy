@@ -548,6 +548,18 @@ func handleClt(cc *clientConn) {
 				break
 			}
 			cc.server().SendCmd(cmd)
+		case *mt.ToSrvInvAction:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
+		case *mt.ToSrvInvFields:
+			if cc.server() == nil {
+				cc.log("-->", "no server")
+				break
+			}
+			cc.server().SendCmd(cmd)
 		case *mt.ToSrvSelectItem:
 			if cc.server() == nil {
 				cc.log("-->", "no server")
