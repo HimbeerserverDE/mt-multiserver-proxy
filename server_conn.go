@@ -372,6 +372,12 @@ func handleSrv(sc *serverConn) {
 			}
 
 			for k := range cmd.Blk.NodeMetas {
+				for j, field := range cmd.Blk.NodeMetas[k].Fields {
+					if field.Name == "formspec" {
+						sc.prependFormspec(&cmd.Blk.NodeMetas[k].Fields[j].Value)
+						break
+					}
+				}
 				sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
 			}
 
@@ -425,6 +431,12 @@ func handleSrv(sc *serverConn) {
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltNodeMetasChanged:
 			for k := range cmd.Changed {
+				for i, field := range cmd.Changed[k].Fields {
+					if field.Name == "formspec" {
+						sc.prependFormspec(&cmd.Changed[k].Fields[i].Value)
+						break
+					}
+				}
 				sc.prependInv(cmd.Changed[k].Inv)
 			}
 			sc.client().SendCmd(cmd)
