@@ -202,9 +202,10 @@ func handleSrv(sc *serverConn) {
 			sc.state++
 			close(sc.initCh)
 		case *mt.ToCltInv:
-			var inv mt.Inv
-			inv.Deserialize(strings.NewReader(cmd.Inv))
-			sc.prependInv(inv)
+			var oldInv mt.Inv
+			copy(oldInv, sc.inv)
+			sc.inv.Deserialize(strings.NewReader(cmd.Inv))
+			sc.prependInv(sc.inv)
 
 			var t mt.ToolCaps
 			for _, iDef := range sc.client().itemDefs {
@@ -236,23 +237,22 @@ func handleSrv(sc *serverConn) {
 				Count: 1,
 			}
 
-			hand := inv.List("hand")
+			hand := sc.inv.List("hand")
 			if hand == nil {
-				inv = append(inv, mt.NamedInvList{
+				sc.inv = append(sc.inv, mt.NamedInvList{
 					Name: "hand",
 					InvList: mt.InvList{
-						Width:  1,
+						Width:  0,
 						Stacks: []mt.Stack{handStack},
 					},
 				})
 			} else if len(hand.Stacks) == 0 {
-				hand.Width = 1
+				hand.Width = 0
 				hand.Stacks = []mt.Stack{handStack}
 			}
 
 			b = &strings.Builder{}
-			inv.SerializeKeep(b, sc.inv)
-			sc.inv = inv
+			sc.inv.SerializeKeep(b, oldInv)
 
 			sc.client().SendCmd(&mt.ToCltInv{Inv: b.String()})
 		case *mt.ToCltAOMsgs:
