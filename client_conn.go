@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/HimbeerserverDE/srp"
@@ -29,6 +30,7 @@ type clientConn struct {
 	state  clientState
 	name   string
 	initCh chan struct{}
+	hopMu  sync.Mutex
 
 	auth struct {
 		method                       mt.AuthMethods
