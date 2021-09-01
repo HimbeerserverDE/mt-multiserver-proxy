@@ -284,6 +284,16 @@ func handleSrv(sc *serverConn) {
 						}
 
 						resp.Add = append(resp.Add, ao)
+					} else {
+						var msgs []mt.IDAOMsg
+						for _, msg := range ao.InitData.Msgs {
+							msgs = append(msgs, mt.IDAOMsg{
+								ID:  ao.ID,
+								Msg: msg,
+							})
+						}
+
+						sc.client().SendCmd(&mt.ToCltAOMsgs{Msgs: msgs})
 					}
 				} else {
 					sc.swapAOID(&ao.ID)
