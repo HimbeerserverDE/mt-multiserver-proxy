@@ -35,6 +35,8 @@ type serverConn struct {
 	sounds map[mt.SoundID]struct{}
 
 	huds map[mt.HUDID]struct{}
+
+	playerList map[string]struct{}
 }
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
@@ -374,6 +376,17 @@ func handleSrv(sc *serverConn) {
 			} else if cmd.Type == mt.InitPlayers {
 				cmd.Type = mt.AddPlayers
 			}
+
+			if cmd.Type <= mt.AddPlayers {
+				for _, player := range cmd.Players {
+					sc.playerList[player] = struct{}{}
+				}
+			} else if cmd.Type == mt.RemovePlayers {
+				for _, player := range cmd.Players {
+					delete(sc.playerList, player)
+				}
+			}
+
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltSpawnParticle:
 			prependTexture(sc.name, &cmd.Texture)
