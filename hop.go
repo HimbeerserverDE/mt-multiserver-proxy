@@ -106,5 +106,10 @@ func (cc *clientConn) hop(serverName string) error {
 	}
 
 	connect(conn, serverName, cc)
+
+	for ch := range cc.modChs {
+		cc.server().SendCmd(&mt.ToSrvJoinModChan{Channel: ch})
+	}
+
 	return nil
 }
