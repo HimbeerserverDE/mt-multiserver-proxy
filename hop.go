@@ -60,5 +60,37 @@ func (cc *clientConn) hop(serverName string) error {
 	}
 
 	// Static parameters
+	cc.SendCmd(&mt.ToCltBreath{Breath: 10})
+	cc.SendCmd(&mt.ToCltCloudParams{})
+	cc.SendCmd(&mt.ToCltEyeOffset{})
+	cc.SendCmd(&mt.ToCltFOV{})
+	cc.SendCmd(&mt.ToCltFormspecPrepend{})
+	cc.SendCmd(&mt.ToCltHP{})
+	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0)})
+	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
+	cc.SendCmd(&mt.ToCltMinimapModes{})
+	cc.SendCmd(&mt.ToCltMoonParams{})
+	cc.SendCmd(&mt.ToCltMovement{})
+	cc.SendCmd(&mt.ToCltOverrideDayNightRatio{})
+	cc.SendCmd(&mt.ToCltPrivs{})
+
+	for i := mt.HotbarParam(mt.HotbarSize); i < mt.HotbarSelImg; i++ {
+		cc.SendCmd(&mt.ToCltSetHotbarParam{Param: i})
+	}
+
+	cc.SendCmd(&mt.ToCltSkyParams{})
+	cc.SendCmd(&mt.ToCltStarParams{})
+	cc.SendCmd(&mt.ToCltSunParams{})
+
+	var players []string
+	for player := range cc.server().playerList {
+		players = append(players, player)
+	}
+
+	cc.SendCmd(&mt.ToCltUpdatePlayerList{
+		Type:    mt.RemovePlayers,
+		Players: players,
+	})
+
 	return nil
 }
