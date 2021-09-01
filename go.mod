@@ -1,6 +1,6 @@
 module github.com/HimbeerserverDE/MTConnector
 
-go 1.16
+go 1.17
 
 require (
 	github.com/HimbeerserverDE/srp v0.0.0-20210331172529-2b5dbec6b82b
