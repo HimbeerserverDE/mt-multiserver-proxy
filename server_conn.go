@@ -489,6 +489,24 @@ func handleSrv(sc *serverConn) {
 		case *mt.ToCltModChanMsg:
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltModChanSig:
+			var exit bool
+			switch cmd.Signal {
+			case mt.JoinOK:
+				if _, ok := sc.client().modChs[cmd.Channel]; ok {
+					exit = true
+					break
+				}
+				sc.client().modChs[cmd.Channel] = struct{}{}
+			case mt.JoinFail:
+				fallthrough
+			case mt.LeaveOK:
+				delete(sc.client().modChs, cmd.Channel)
+			}
+
+			if exit {
+				break
+			}
+
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltMovePlayer:
 			sc.client().SendCmd(cmd)

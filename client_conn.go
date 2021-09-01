@@ -54,6 +54,8 @@ type clientConn struct {
 	playerCAO, currentCAO mt.AOID
 
 	playerListInit bool
+
+	modChs map[string]struct{}
 }
 
 func (cc *clientConn) server() *serverConn { return cc.srv }

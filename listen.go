@@ -32,6 +32,7 @@ func (l *listener) accept() (*clientConn, error) {
 	cc := &clientConn{
 		Peer:   p,
 		initCh: make(chan struct{}),
+		modChs: make(map[string]struct{}),
 	}
 
 	cc.log("-->", "connect")
