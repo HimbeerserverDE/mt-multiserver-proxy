@@ -59,6 +59,6 @@ func (cc *clientConn) hop(serverName string) error {
 		cc.SendCmd(&mt.ToCltRmHUD{ID: hud})
 	}
 
-	// Stateless packets
+	// Static parameters
 	return nil
 }

@@ -179,7 +179,10 @@ func handleSrv(sc *serverConn) {
 				sc.clt = nil
 			}
 		case *mt.ToCltAcceptAuth:
-			sc.auth.method = 0
+			sc.auth = struct {
+				method              mt.AuthMethods
+				salt, srpA, a, srpK []byte
+			}{}
 			sc.SendCmd(&mt.ToSrvInit2{Lang: sc.client().lang})
 		case *mt.ToCltDenySudoMode:
 			sc.log("<--", "deny sudo")

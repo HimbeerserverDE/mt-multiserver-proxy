@@ -235,7 +235,10 @@ func handleClt(cc *clientConn) {
 					break
 				}
 
-				cc.auth.method = 0
+				cc.auth = struct {
+					method                       mt.AuthMethods
+					salt, srpA, srpB, srpM, srpK []byte
+				}{}
 
 				if cmd.EmptyPasswd && conf.RequirePasswd {
 					cc.log("<--", "empty password disallowed")
@@ -390,7 +393,10 @@ func handleClt(cc *clientConn) {
 
 			M := srp.ClientProof([]byte(cc.name), cc.auth.salt, cc.auth.srpA, cc.auth.srpB, cc.auth.srpK)
 			if subtle.ConstantTimeCompare(cmd.M, M) == 1 {
-				cc.auth.method = 0
+				cc.auth = struct {
+					method                       mt.AuthMethods
+					salt, srpA, srpB, srpM, srpK []byte
+				}{}
 
 				if wantSudo {
 					cc.state++
