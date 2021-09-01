@@ -437,7 +437,12 @@ func handleClt(cc *clientConn) {
 			})
 			cc.SendCmd(&mt.ToCltNodeDefs{Defs: cc.nodeDefs})
 
-			cc.itemDefs = []mt.ItemDef{}
+			for i, def := range cc.itemDefs {
+				cc.itemDefs[i] = mt.ItemDef{
+					Name:     def.Name,
+					ToolCaps: def.ToolCaps,
+				}
+			}
 			cc.nodeDefs = []mt.NodeDef{}
 
 			var files []struct{ Name, Base64SHA1 string }

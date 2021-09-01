@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"strings"
 
 	"github.com/anon55555/mt"
 )
@@ -11,13 +12,13 @@ type ToolGroupCaps struct {
 	Uses   int16 `json:"uses"`
 	MaxLvl int16 `json:"maxlevel"`
 
-	Times map[int16]float32 `json:"times"`
+	Times []float32 `json:"times"`
 }
 
 type ToolCaps struct {
 	NonNil bool `json:"-"`
 
-	AttackCooldown float32 `json:"full_punch_interval`
+	AttackCooldown float32 `json:"full_punch_interval"`
 	MaxDropLvl     int16   `json:"max_drop_level"`
 
 	GroupCaps map[string]ToolGroupCaps `json:"groupcaps"`
@@ -44,7 +45,7 @@ func (t ToolCaps) toMT() mt.ToolCaps {
 
 		for k2, v2 := range v.Times {
 			gc.Times = append(gc.Times, mt.DigTime{
-				Rating: k2,
+				Rating: int16(k2),
 				Time:   v2,
 			})
 		}
@@ -76,6 +77,18 @@ func (t *ToolCaps) fromMT(tc mt.ToolCaps) {
 			MaxLvl: gc.MaxLvl,
 		}
 
+		var max int16
+		for _, dt := range gc.Times {
+			if dt.Rating > max {
+				max = dt.Rating
+			}
+		}
+
+		g.Times = make([]float32, max+1)
+		for i := range g.Times {
+			g.Times[i] = -1
+		}
+
 		for _, dt := range gc.Times {
 			g.Times[dt.Rating] = dt.Time
 		}
@@ -89,8 +102,13 @@ func (t *ToolCaps) fromMT(tc mt.ToolCaps) {
 }
 
 func (t ToolCaps) SerializeJSON(w io.Writer) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(t)
+	b := &strings.Builder{}
+	encoder := json.NewEncoder(b)
+	err := encoder.Encode(t)
+
+	s := strings.ReplaceAll(b.String(), "-1", "null")
+	io.WriteString(w, s)
+	return err
 }
 
 func (t *ToolCaps) DeserializeJSON(r io.Reader) error {

@@ -274,8 +274,8 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 				if def.Name == "" {
 					def.Name = "hand"
 				}
-				prepend(cc.name, &def.Name)
 
+				prepend(cc.name, &def.Name)
 				prependTexture(cc.name, &def.InvImg)
 				prependTexture(cc.name, &def.WieldImg)
 				prepend(cc.name, &def.PlacePredict)
