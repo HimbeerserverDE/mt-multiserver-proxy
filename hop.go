@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/anon55555/mt"
 )
@@ -92,5 +93,18 @@ func (cc *clientConn) hop(serverName string) error {
 		Players: players,
 	})
 
+	cc.srv = nil
+
+	addr, err := net.ResolveUDPAddr("udp", strAddr)
+	if err != nil {
+		return err
+	}
+
+	conn, err := net.DialUDP("udp", nil, addr)
+	if err != nil {
+		return err
+	}
+
+	connect(conn, serverName, cc)
 	return nil
 }
