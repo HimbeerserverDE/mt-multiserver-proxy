@@ -96,7 +96,7 @@ func handleSrv(sc *serverConn) {
 				break
 			}
 
-			sc.log("-->", err.Error())
+			sc.log("<--", err.Error())
 			continue
 		}
 

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-const latestSerializeVer = 0x1c
+const latestSerializeVer = 28
 const latestProtoVer = 39
 const maxPlayerNameLen = 20
 const playerNameChars = "^[a-zA-Z0-9-_]+$"
