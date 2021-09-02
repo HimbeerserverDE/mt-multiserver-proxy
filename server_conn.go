@@ -212,32 +212,9 @@ func handleSrv(sc *serverConn) {
 			sc.inv.Deserialize(strings.NewReader(cmd.Inv))
 			sc.prependInv(sc.inv)
 
-			var t mt.ToolCaps
-			for _, iDef := range sc.client().itemDefs {
-				if iDef.Name == sc.name+"_hand" {
-					t = iDef.ToolCaps
-					break
-				}
-			}
-
-			var tc ToolCaps
-			tc.fromMT(t)
-
-			b := &strings.Builder{}
-			tc.SerializeJSON(b)
-
-			fields := []mt.Field{
-				{
-					Name:  "tool_capabilities",
-					Value: b.String(),
-				},
-			}
-			meta := mt.NewItemMeta(fields)
-
 			handStack := mt.Stack{
 				Item: mt.Item{
 					Name:     sc.name + "_hand",
-					ItemMeta: meta,
 				},
 				Count: 1,
 			}
@@ -256,7 +233,7 @@ func handleSrv(sc *serverConn) {
 				hand.Stacks = []mt.Stack{handStack}
 			}
 
-			b = &strings.Builder{}
+			b := &strings.Builder{}
 			sc.inv.SerializeKeep(b, oldInv)
 
 			sc.client().SendCmd(&mt.ToCltInv{Inv: b.String()})
