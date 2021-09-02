@@ -214,7 +214,7 @@ func handleSrv(sc *serverConn) {
 
 			handStack := mt.Stack{
 				Item: mt.Item{
-					Name:     sc.name + "_hand",
+					Name: sc.name + "_hand",
 				},
 				Count: 1,
 			}
