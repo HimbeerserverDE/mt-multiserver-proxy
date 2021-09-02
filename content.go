@@ -530,3 +530,40 @@ func (sc *serverConn) prependInv(inv mt.Inv) {
 		}
 	}
 }
+
+func (sc *serverConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
+	pa := func(cmd *mt.ToCltAddHUD) {
+		switch t {
+		case mt.StatbarHUD:
+			prepend(sc.name, &cmd.Text2)
+			fallthrough
+		case mt.ImgHUD:
+			fallthrough
+		case mt.ImgWaypointHUD:
+			fallthrough
+		case mt.ImgWaypointHUD + 1:
+			prepend(sc.name, &cmd.Text)
+		}
+	}
+
+	pc := func(cmd *mt.ToCltChangeHUD) {
+		switch t {
+		case mt.StatbarHUD:
+			prepend(sc.name, &cmd.Text2)
+			fallthrough
+		case mt.ImgHUD:
+			fallthrough
+		case mt.ImgWaypointHUD:
+			fallthrough
+		case mt.ImgWaypointHUD + 1:
+			prepend(sc.name, &cmd.Text)
+		}
+	}
+
+	switch cmd := cmdIface.(type) {
+	case *mt.ToCltAddHUD:
+		pa(cmd)
+	case *mt.ToCltChangeHUD:
+		pc(cmd)
+	}
+}

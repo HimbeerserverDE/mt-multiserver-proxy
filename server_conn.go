@@ -34,7 +34,7 @@ type serverConn struct {
 
 	sounds map[mt.SoundID]struct{}
 
-	huds map[mt.HUDID]struct{}
+	huds map[mt.HUDID]mt.HUDType
 
 	playerList map[string]struct{}
 }
@@ -413,7 +413,12 @@ func handleSrv(sc *serverConn) {
 			delete(sc.sounds, cmd.ID)
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltAddHUD:
-			sc.huds[cmd.ID] = struct{}{}
+			sc.prependHUD(cmd.Type, cmd)
+
+			sc.huds[cmd.ID] = cmd.Type
+			sc.client().SendCmd(cmd)
+		case *mt.ToCltChangeHUD:
+			sc.prependHUD(sc.huds[cmd.ID], cmd)
 			sc.client().SendCmd(cmd)
 		case *mt.ToCltRmHUD:
 			delete(sc.huds, cmd.ID)
