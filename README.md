@@ -1,7 +1,7 @@
 # MTConnector
 MTConnector is a reverse proxy designed for linking multiple Minetest servers together
 ## Installation
-Go 1.16 or higher is required. Run
+Go 1.17 or higher is required. Run
 
 `go install github.com/HimbeerserverDE/MTConnector`
 
