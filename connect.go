@@ -19,7 +19,10 @@ func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 		playerList:       make(map[string]struct{}),
 	}
 	sc.log("-->", "connect")
+
+	cc.mu.Lock()
 	cc.srv = sc
+	cc.mu.Unlock()
 
 	go handleSrv(sc)
 	return sc

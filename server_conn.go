@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/HimbeerserverDE/srp"
@@ -17,9 +18,10 @@ type serverConn struct {
 	mt.Peer
 	clt *clientConn
 
-	state  clientState
-	name   string
-	initCh chan struct{}
+	cstate   clientState
+	cstateMu sync.RWMutex
+	name     string
+	initCh   chan struct{}
 
 	auth struct {
 		method              mt.AuthMethods
@@ -41,6 +43,20 @@ type serverConn struct {
 
 func (sc *serverConn) client() *clientConn { return sc.clt }
 
+func (sc *serverConn) state() clientState {
+	sc.cstateMu.RLock()
+	defer sc.cstateMu.RUnlock()
+
+	return sc.cstate
+}
+
+func (sc *serverConn) setState(state clientState) {
+	sc.cstateMu.Lock()
+	defer sc.cstateMu.Unlock()
+
+	sc.cstate = state
+}
+
 func (sc *serverConn) init() <-chan struct{} { return sc.initCh }
 
 func (sc *serverConn) log(dir, msg string) {
@@ -57,7 +73,7 @@ func handleSrv(sc *serverConn) {
 	}
 
 	go func() {
-		for sc.state == csCreated && sc.client() != nil {
+		for sc.state() == csCreated && sc.client() != nil {
 			sc.SendCmd(&mt.ToSrvInit{
 				SerializeVer: latestSerializeVer,
 				MinProtoVer:  latestProtoVer,
@@ -108,8 +124,7 @@ func handleSrv(sc *serverConn) {
 				break
 			}
 
-			sc.state++
-
+			sc.setState(sc.state() + 1)
 			if cmd.AuthMethods&mt.FirstSRP != 0 {
 				sc.auth.method = mt.FirstSRP
 			} else {
@@ -190,7 +205,7 @@ func handleSrv(sc *serverConn) {
 			sc.log("<--", "deny sudo")
 		case *mt.ToCltAcceptSudoMode:
 			sc.log("<--", "accept sudo")
-			sc.state++
+			sc.setState(sc.state() + 1)
 		case *mt.ToCltAnnounceMedia:
 			sc.SendCmd(&mt.ToSrvReqMedia{})
 
@@ -204,7 +219,7 @@ func handleSrv(sc *serverConn) {
 			})
 
 			sc.log("<->", "handshake completed")
-			sc.state++
+			sc.setState(sc.state() + 1)
 			close(sc.initCh)
 		case *mt.ToCltInv:
 			var oldInv mt.Inv

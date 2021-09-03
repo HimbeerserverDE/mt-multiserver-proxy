@@ -24,7 +24,8 @@ type mediaFile struct {
 type contentConn struct {
 	mt.Peer
 
-	state          clientState
+	cstate         clientState
+	cstateMu       sync.RWMutex
 	name, userName string
 	doneCh         chan struct{}
 
@@ -41,6 +42,20 @@ type contentConn struct {
 	media []mediaFile
 }
 
+func (cc *contentConn) state() clientState {
+	cc.cstateMu.RLock()
+	defer cc.cstateMu.RUnlock()
+
+	return cc.cstate
+}
+
+func (cc *contentConn) setState(state clientState) {
+	cc.cstateMu.Lock()
+	defer cc.cstateMu.Unlock()
+
+	cc.cstate = state
+}
+
 func (cc *contentConn) done() <-chan struct{} { return cc.doneCh }
 
 func (cc *contentConn) log(dir, msg string) {
@@ -51,7 +66,7 @@ func handleContent(cc *contentConn) {
 	defer close(cc.doneCh)
 
 	go func() {
-		for cc.state == csCreated {
+		for cc.state() == csCreated {
 			cc.SendCmd(&mt.ToSrvInit{
 				SerializeVer: latestSerializeVer,
 				MinProtoVer:  latestProtoVer,
@@ -84,8 +99,7 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.state++
-
+			cc.setState(cc.state() + 1)
 			if cmd.AuthMethods&mt.FirstSRP != 0 {
 				cc.auth.method = mt.FirstSRP
 			} else {
