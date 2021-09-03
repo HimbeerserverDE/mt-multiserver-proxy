@@ -1,10 +1,14 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -14,6 +18,8 @@ import (
 	"github.com/anon55555/mt"
 	"github.com/anon55555/mt/rudp"
 )
+
+var b64 = base64.StdEncoding
 
 type mediaFile struct {
 	name       string
@@ -57,6 +63,35 @@ func (cc *contentConn) setState(state clientState) {
 }
 
 func (cc *contentConn) done() <-chan struct{} { return cc.doneCh }
+
+func (cc *contentConn) readDefaultTextures() error {
+	executable, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Dir(executable) + "/textures"
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		data, err := os.ReadFile(path + "/" + file.Name())
+		if err != nil {
+			return err
+		}
+
+		sum := sha1.Sum(data)
+		cc.media = append(cc.media, mediaFile{
+			name:       file.Name(),
+			base64SHA1: b64.EncodeToString(sum[:]),
+			data:       data,
+		})
+	}
+
+	return nil
+}
 
 func (cc *contentConn) log(dir, msg string) {
 	log.Printf("{←|⇶} %s {%s} %s", dir, cc.name, msg)
@@ -177,13 +212,21 @@ func handleContent(cc *contentConn) {
 		case *mt.ToCltAnnounceMedia:
 			var filenames []string
 
+RequestLoop:
 			for _, f := range cmd.Files {
+				filenames = append(filenames, f.Name)
+
+				for i, mf := range cc.media {
+					if mf.name == f.Name {
+						cc.media[i].base64SHA1 = f.Base64SHA1
+						continue RequestLoop
+					}
+				}
+
 				cc.media = append(cc.media, mediaFile{
 					name:       f.Name,
 					base64SHA1: f.Base64SHA1,
 				})
-
-				filenames = append(filenames, f.Name)
 			}
 
 			cc.SendCmd(&mt.ToSrvReqMedia{Filenames: filenames})
@@ -438,7 +481,11 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 			return
 		}
 
-		cc := connectContent(conn, srv.Name, userName)
+		var cc *contentConn
+		cc, err = connectContent(conn, srv.Name, userName)
+		if err != nil {
+			return
+		}
 		defer cc.Close()
 
 		conns = append(conns, cc)
@@ -484,10 +531,6 @@ func (cc *clientConn) srvParam0(p0 *mt.Content) string {
 	return ""
 }
 
-func isDefaultTexture(s string) bool {
-	return s == ""
-}
-
 func isDefaultNode(s string) bool {
 	list := []string{
 		"",
@@ -506,7 +549,7 @@ func isDefaultNode(s string) bool {
 }
 
 func prependRaw(prep string, s *string, isTexture bool) {
-	if (isTexture && !isDefaultTexture(*s)) || (!isTexture && !isDefaultNode(*s)) {
+	if !isDefaultNode(*s) {
 		reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
 		subs := reg.Split(*s, -1)
 		seps := reg.FindAllString(*s, -1)

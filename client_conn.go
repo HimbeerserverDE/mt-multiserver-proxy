@@ -450,6 +450,21 @@ func handleClt(cc *clientConn) {
 			}
 		case *mt.ToSrvInit2:
 			cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.name)
+			if err != nil {
+				cc.log("<--", err.Error())
+
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{
+					Reason: mt.Custom,
+					Custom: "Content multiplexing failed.",
+				})
+
+				select {
+				case <-cc.Closed():
+				case <-ack:
+					cc.Close()
+				}
+			}
+
 			cc.SendCmd(&mt.ToCltItemDefs{
 				Defs:    cc.itemDefs,
 				Aliases: cc.aliases,

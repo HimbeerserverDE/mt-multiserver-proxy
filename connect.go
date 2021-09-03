@@ -28,7 +28,7 @@ func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 	return sc
 }
 
-func connectContent(conn net.Conn, name, userName string) *contentConn {
+func connectContent(conn net.Conn, name, userName string) (*contentConn, error) {
 	cc := &contentConn{
 		Peer:     mt.Connect(conn),
 		doneCh:   make(chan struct{}),
@@ -36,6 +36,10 @@ func connectContent(conn net.Conn, name, userName string) *contentConn {
 		userName: userName,
 	}
 
+	if err := cc.readDefaultTextures(); err != nil {
+		return nil, err
+	}
+
 	go handleContent(cc)
-	return cc
+	return cc, nil
 }
