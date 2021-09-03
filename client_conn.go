@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -83,11 +84,21 @@ func (cc *clientConn) setState(state clientState) {
 
 func (cc *clientConn) init() <-chan struct{} { return cc.initCh }
 
-func (cc *clientConn) log(dir, msg string) {
+func (cc *clientConn) log(dir string, v ...interface{}) {
 	if cc.name != "" {
-		log.Printf("{%s, %s} %s {←|⇶} %s", cc.name, cc.RemoteAddr(), dir, msg)
+		format := "{%s, %s} %s {←|⇶}"
+		format += strings.Repeat(" %v", len(v))
+
+		log.Printf(format, append([]interface{}{
+			cc.name,
+			cc.RemoteAddr(),
+			dir,
+		}, v...)...)
 	} else {
-		log.Printf("{%s} %s {←|⇶} %s", cc.RemoteAddr(), dir, msg)
+		format := "{%s} %s {←|⇶}"
+		format += strings.Repeat(" %v", len(v))
+
+		log.Printf(format, append([]interface{}{cc.RemoteAddr(), dir}, v...)...)
 	}
 }
 
@@ -117,7 +128,7 @@ func handleClt(cc *clientConn) {
 				break
 			}
 
-			cc.log("-->", err.Error())
+			cc.log("-->", err)
 			continue
 		}
 
@@ -335,7 +346,6 @@ func handleClt(cc *clientConn) {
 				}
 
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
-
 				select {
 				case <-cc.Closed():
 				case <-ack:

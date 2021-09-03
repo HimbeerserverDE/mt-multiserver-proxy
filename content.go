@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -93,8 +92,11 @@ func (cc *contentConn) readDefaultTextures() error {
 	return nil
 }
 
-func (cc *contentConn) log(dir, msg string) {
-	log.Printf("{←|⇶} %s {%s} %s", dir, cc.name, msg)
+func (cc *contentConn) log(dir string, v ...interface{}) {
+	format := "{←|⇶} %s {%s}"
+	format += strings.Repeat(" %v", len(v))
+
+	log.Printf(format, append([]interface{}{dir, cc.name}, v...)...)
 }
 
 func handleContent(cc *contentConn) {
@@ -122,7 +124,7 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.log("-->", err.Error())
+			cc.log("-->", err)
 			continue
 		}
 
@@ -150,7 +152,7 @@ func handleContent(cc *contentConn) {
 			case mt.SRP:
 				cc.auth.srpA, cc.auth.a, err = srp.InitiateHandshake()
 				if err != nil {
-					cc.log("-->", err.Error())
+					cc.log("-->", err)
 					break
 				}
 
@@ -161,7 +163,7 @@ func handleContent(cc *contentConn) {
 			case mt.FirstSRP:
 				salt, verifier, err := srp.NewClient([]byte(cc.userName), []byte{})
 				if err != nil {
-					cc.log("-->", err.Error())
+					cc.log("-->", err)
 					break
 				}
 
@@ -182,7 +184,7 @@ func handleContent(cc *contentConn) {
 
 			cc.auth.srpK, err = srp.CompleteHandshake(cc.auth.srpA, cc.auth.a, []byte(cc.userName), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
-				cc.log("-->", err.Error())
+				cc.log("-->", err)
 				break
 			}
 
@@ -196,7 +198,7 @@ func handleContent(cc *contentConn) {
 				M: M,
 			})
 		case *mt.ToCltDisco:
-			cc.log("<--", fmt.Sprintf("deny access %+v", cmd))
+			cc.log("<--", "deny access", cmd)
 		case *mt.ToCltAcceptAuth:
 			cc.auth.method = 0
 			cc.SendCmd(&mt.ToSrvInit2{})
@@ -212,7 +214,7 @@ func handleContent(cc *contentConn) {
 		case *mt.ToCltAnnounceMedia:
 			var filenames []string
 
-RequestLoop:
+		RequestLoop:
 			for _, f := range cmd.Files {
 				filenames = append(filenames, f.Name)
 

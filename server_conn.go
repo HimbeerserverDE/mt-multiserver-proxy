@@ -59,11 +59,20 @@ func (sc *serverConn) setState(state clientState) {
 
 func (sc *serverConn) init() <-chan struct{} { return sc.initCh }
 
-func (sc *serverConn) log(dir, msg string) {
+func (sc *serverConn) log(dir string, v ...interface{}) {
 	if sc.client() != nil {
-		sc.client().log("", fmt.Sprintf("%s {%s} %s", dir, sc.name, msg))
+		format := "%s {%s}"
+		format += strings.Repeat(" %v", len(v))
+
+		sc.client().log("", fmt.Sprintf(format, append([]interface{}{
+			dir,
+			sc.name,
+		}, v...)...))
 	} else {
-		log.Printf("{←|⇶} %s {%s} %s", dir, sc.name, msg)
+		format := "{←|⇶} %s {%s}"
+		format += strings.Repeat(" %v", len(v))
+
+		log.Printf(format, append([]interface{}{dir, sc.name}, v...)...)
 	}
 }
 
@@ -112,7 +121,7 @@ func handleSrv(sc *serverConn) {
 				break
 			}
 
-			sc.log("<--", err.Error())
+			sc.log("<--", err)
 			continue
 		}
 
@@ -140,7 +149,7 @@ func handleSrv(sc *serverConn) {
 			case mt.SRP:
 				sc.auth.srpA, sc.auth.a, err = srp.InitiateHandshake()
 				if err != nil {
-					sc.log("-->", err.Error())
+					sc.log("-->", err)
 					break
 				}
 
@@ -151,7 +160,7 @@ func handleSrv(sc *serverConn) {
 			case mt.FirstSRP:
 				salt, verifier, err := srp.NewClient([]byte(sc.client().name), []byte{})
 				if err != nil {
-					sc.log("-->", err.Error())
+					sc.log("-->", err)
 					break
 				}
 
@@ -172,7 +181,7 @@ func handleSrv(sc *serverConn) {
 
 			sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(sc.client().name), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
-				sc.log("-->", err.Error())
+				sc.log("-->", err)
 				break
 			}
 
@@ -186,7 +195,7 @@ func handleSrv(sc *serverConn) {
 				M: M,
 			})
 		case *mt.ToCltDisco:
-			sc.log("<--", fmt.Sprintf("deny access %+v", cmd))
+			sc.log("<--", "deny access", cmd)
 			ack, _ := sc.client().SendCmd(cmd)
 
 			select {

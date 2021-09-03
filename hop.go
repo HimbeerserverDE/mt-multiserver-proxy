@@ -13,7 +13,7 @@ func (cc *clientConn) hop(serverName string) error {
 
 	if cc.server() == nil {
 		err := fmt.Errorf("hop: no server connection")
-		cc.log("<->", err.Error())
+		cc.log("<->", err)
 		return err
 	}
 
