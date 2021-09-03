@@ -1,13 +1,10 @@
 package main
 
 import (
-	"crypto/sha1"
 	"encoding/base64"
 	"errors"
 	"log"
 	"net"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -17,6 +14,8 @@ import (
 	"github.com/anon55555/mt"
 	"github.com/anon55555/mt/rudp"
 )
+
+//go:generate go run gen_textures.go
 
 var b64 = base64.StdEncoding
 
@@ -63,33 +62,8 @@ func (cc *contentConn) setState(state clientState) {
 
 func (cc *contentConn) done() <-chan struct{} { return cc.doneCh }
 
-func (cc *contentConn) readDefaultTextures() error {
-	executable, err := os.Executable()
-	if err != nil {
-		return err
-	}
-
-	path := filepath.Dir(executable) + "/textures"
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		data, err := os.ReadFile(path + "/" + file.Name())
-		if err != nil {
-			return err
-		}
-
-		sum := sha1.Sum(data)
-		cc.media = append(cc.media, mediaFile{
-			name:       file.Name(),
-			base64SHA1: b64.EncodeToString(sum[:]),
-			data:       data,
-		})
-	}
-
-	return nil
+func (cc *contentConn) addDefaultTextures() {
+	cc.media = defaultTextures // auto generated variable, see gen_textures.go
 }
 
 func (cc *contentConn) log(dir string, v ...interface{}) {
