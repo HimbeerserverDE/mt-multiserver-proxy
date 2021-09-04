@@ -44,7 +44,7 @@ func main() {
 	var mu sync.Mutex
 
 	go func() {
-		sig := make(chan os.Signal)
+		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
 		l.close()
@@ -56,7 +56,7 @@ func main() {
 		wg.Add(len(clts))
 
 		for cc := range clts {
-			go func() {
+			go func(cc *clientConn) {
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
 				select {
 				case <-cc.Closed():
@@ -67,7 +67,7 @@ func main() {
 				<-cc.server().Closed()
 				cc.srv = nil
 				wg.Done()
-			}()
+			}(cc)
 		}
 
 		wg.Wait()

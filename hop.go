@@ -11,8 +11,10 @@ func (cc *clientConn) hop(serverName string) error {
 	cc.hopMu.Lock()
 	defer cc.hopMu.Unlock()
 
+	cc.log("<->", "hop", serverName)
+
 	if cc.server() == nil {
-		err := fmt.Errorf("hop: no server connection")
+		err := fmt.Errorf("no server connection")
 		cc.log("<->", err)
 		return err
 	}
@@ -26,14 +28,14 @@ func (cc *clientConn) hop(serverName string) error {
 	}
 
 	if strAddr == "" {
-		return fmt.Errorf("hop: inexistent server")
+		return fmt.Errorf("inexistent server")
 	}
 
 	// This needs to be done before the serverConn is closed
 	// so the clientConn isn't closed by the packet handler
-	cc.mu.Lock()
+	cc.server().mu.Lock()
 	cc.server().clt = nil
-	cc.mu.Unlock()
+	cc.server().mu.Unlock()
 
 	cc.server().Close()
 
@@ -72,7 +74,8 @@ func (cc *clientConn) hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltHP{})
 	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0)})
 	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
-	cc.SendCmd(&mt.ToCltMinimapModes{})
+	// An issue in the mt package breaks this
+	// cc.SendCmd(&mt.ToCltMinimapModes{})
 	cc.SendCmd(&mt.ToCltMoonParams{})
 	cc.SendCmd(&mt.ToCltMovement{})
 	cc.SendCmd(&mt.ToCltOverrideDayNightRatio{})
@@ -96,7 +99,9 @@ func (cc *clientConn) hop(serverName string) error {
 		Players: players,
 	})
 
+	cc.mu.Lock()
 	cc.srv = nil
+	cc.mu.Unlock()
 
 	addr, err := net.ResolveUDPAddr("udp", strAddr)
 	if err != nil {

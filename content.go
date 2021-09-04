@@ -453,9 +453,10 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 }
 
 func (sc *serverConn) globalParam0(p0 *mt.Content) {
-	if sc.client() != nil && sc.client().p0Map != nil {
-		if sc.client().p0Map[sc.name] != nil {
-			*p0 = sc.client().p0Map[sc.name][*p0]
+	clt := sc.client()
+	if clt != nil && clt.p0Map != nil {
+		if clt.p0Map[sc.name] != nil {
+			*p0 = clt.p0Map[sc.name][*p0]
 		}
 	}
 }

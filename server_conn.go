@@ -17,6 +17,7 @@ import (
 type serverConn struct {
 	mt.Peer
 	clt *clientConn
+	mu  sync.RWMutex
 
 	cstate   clientState
 	cstateMu sync.RWMutex
@@ -41,7 +42,12 @@ type serverConn struct {
 	playerList map[string]struct{}
 }
 
-func (sc *serverConn) client() *clientConn { return sc.clt }
+func (sc *serverConn) client() *clientConn {
+	sc.mu.RLock()
+	defer sc.mu.RUnlock()
+
+	return sc.clt
+}
 
 func (sc *serverConn) state() clientState {
 	sc.cstateMu.RLock()
@@ -125,6 +131,12 @@ func handleSrv(sc *serverConn) {
 			continue
 		}
 
+		clt := sc.client()
+		if clt == nil {
+			sc.log("<--", "no client")
+			continue
+		}
+
 		switch cmd := pkt.Cmd.(type) {
 		case *mt.ToCltHello:
 			if sc.auth.method != 0 {
@@ -158,7 +170,7 @@ func handleSrv(sc *serverConn) {
 					NoSHA1: true,
 				})
 			case mt.FirstSRP:
-				salt, verifier, err := srp.NewClient([]byte(sc.client().name), []byte{})
+				salt, verifier, err := srp.NewClient([]byte(clt.name), []byte{})
 				if err != nil {
 					sc.log("-->", err)
 					break
@@ -179,13 +191,13 @@ func handleSrv(sc *serverConn) {
 				break
 			}
 
-			sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(sc.client().name), []byte{}, cmd.Salt, cmd.B)
+			sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(clt.name), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
 				sc.log("-->", err)
 				break
 			}
 
-			M := srp.ClientProof([]byte(sc.client().name), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
+			M := srp.ClientProof([]byte(clt.name), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
 			if M == nil {
 				sc.log("<--", "SRP safety check fail")
 				break
@@ -196,20 +208,23 @@ func handleSrv(sc *serverConn) {
 			})
 		case *mt.ToCltDisco:
 			sc.log("<--", "deny access", cmd)
-			ack, _ := sc.client().SendCmd(cmd)
+			ack, _ := clt.SendCmd(cmd)
 
 			select {
-			case <-sc.client().Closed():
+			case <-clt.Closed():
 			case <-ack:
-				sc.client().Close()
+				clt.Close()
+
+				sc.mu.Lock()
 				sc.clt = nil
+				sc.mu.Unlock()
 			}
 		case *mt.ToCltAcceptAuth:
 			sc.auth = struct {
 				method              mt.AuthMethods
 				salt, srpA, a, srpK []byte
 			}{}
-			sc.SendCmd(&mt.ToSrvInit2{Lang: sc.client().lang})
+			sc.SendCmd(&mt.ToSrvInit2{Lang: clt.lang})
 		case *mt.ToCltDenySudoMode:
 			sc.log("<--", "deny sudo")
 		case *mt.ToCltAcceptSudoMode:
@@ -219,12 +234,12 @@ func handleSrv(sc *serverConn) {
 			sc.SendCmd(&mt.ToSrvReqMedia{})
 
 			sc.SendCmd(&mt.ToSrvCltReady{
-				Major:    sc.client().major,
-				Minor:    sc.client().minor,
-				Patch:    sc.client().patch,
-				Reserved: sc.client().reservedVer,
-				Version:  sc.client().versionStr,
-				Formspec: sc.client().formspecVer,
+				Major:    clt.major,
+				Minor:    clt.minor,
+				Patch:    clt.patch,
+				Reserved: clt.reservedVer,
+				Version:  clt.versionStr,
+				Formspec: clt.formspecVer,
 			})
 
 			sc.log("<->", "handshake completed")
@@ -260,14 +275,14 @@ func handleSrv(sc *serverConn) {
 			b := &strings.Builder{}
 			sc.inv.SerializeKeep(b, oldInv)
 
-			sc.client().SendCmd(&mt.ToCltInv{Inv: b.String()})
+			clt.SendCmd(&mt.ToCltInv{Inv: b.String()})
 		case *mt.ToCltAOMsgs:
 			for k := range cmd.Msgs {
 				sc.swapAOID(&cmd.Msgs[k].ID)
 				sc.handleAOMsg(cmd.Msgs[k].Msg)
 			}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltAORmAdd:
 			resp := &mt.ToCltAORmAdd{}
 
@@ -277,11 +292,11 @@ func handleSrv(sc *serverConn) {
 			}
 
 			for _, ao := range cmd.Add {
-				if ao.InitData.Name == sc.client().name {
-					sc.client().currentCAO = ao.ID
+				if ao.InitData.Name == clt.name {
+					clt.currentCAO = ao.ID
 
-					if sc.client().playerCAO == 0 {
-						sc.client().playerCAO = ao.ID
+					if clt.playerCAO == 0 {
+						clt.playerCAO = ao.ID
 						for _, msg := range ao.InitData.Msgs {
 							sc.handleAOMsg(msg)
 						}
@@ -296,7 +311,7 @@ func handleSrv(sc *serverConn) {
 							})
 						}
 
-						sc.client().SendCmd(&mt.ToCltAOMsgs{Msgs: msgs})
+						clt.SendCmd(&mt.ToCltAOMsgs{Msgs: msgs})
 					}
 				} else {
 					sc.swapAOID(&ao.ID)
@@ -305,15 +320,14 @@ func handleSrv(sc *serverConn) {
 					}
 
 					resp.Add = append(resp.Add, ao)
+					sc.aos[ao.ID] = struct{}{}
 				}
-
-				sc.aos[ao.ID] = struct{}{}
 			}
 
-			sc.client().SendCmd(resp)
+			clt.SendCmd(resp)
 		case *mt.ToCltCSMRestrictionFlags:
 			cmd.Flags &= ^mt.NoCSMs
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltDetachedInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))
@@ -333,7 +347,7 @@ func handleSrv(sc *serverConn) {
 				}
 			}
 
-			sc.client().SendCmd(&mt.ToCltDetachedInv{
+			clt.SendCmd(&mt.ToCltDetachedInv{
 				Name: cmd.Name,
 				Keep: cmd.Keep,
 				Len:  cmd.Len,
@@ -341,7 +355,7 @@ func handleSrv(sc *serverConn) {
 			})
 		case *mt.ToCltMediaPush:
 			var exit bool
-			for _, f := range sc.client().media {
+			for _, f := range clt.media {
 				if f.name == cmd.Filename {
 					exit = true
 					break
@@ -353,27 +367,27 @@ func handleSrv(sc *serverConn) {
 			}
 
 			prepend(sc.name, &cmd.Filename)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltSkyParams:
 			for i := range cmd.Textures {
 				prependTexture(sc.name, &cmd.Textures[i])
 			}
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltSunParams:
 			prependTexture(sc.name, &cmd.Texture)
 			prependTexture(sc.name, &cmd.ToneMap)
 			prependTexture(sc.name, &cmd.Rise)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltMoonParams:
 			prependTexture(sc.name, &cmd.Texture)
 			prependTexture(sc.name, &cmd.ToneMap)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltSetHotbarParam:
 			prependTexture(sc.name, &cmd.Img)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltUpdatePlayerList:
-			if !sc.client().playerListInit {
-				sc.client().playerListInit = true
+			if !clt.playerListInit {
+				clt.playerListInit = true
 			} else if cmd.Type == mt.InitPlayers {
 				cmd.Type = mt.AddPlayers
 			}
@@ -388,11 +402,11 @@ func handleSrv(sc *serverConn) {
 				}
 			}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltSpawnParticle:
 			prependTexture(sc.name, &cmd.Texture)
 			sc.globalParam0(&cmd.NodeParam0)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltBlkData:
 			for i := range cmd.Blk.Param0 {
 				sc.globalParam0(&cmd.Blk.Param0[i])
@@ -408,20 +422,20 @@ func handleSrv(sc *serverConn) {
 				sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
 			}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltAddNode:
 			sc.globalParam0(&cmd.Node.Param0)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltAddParticleSpawner:
 			prependTexture(sc.name, &cmd.Texture)
 			sc.swapAOID(&cmd.AttachedAOID)
 			sc.globalParam0(&cmd.NodeParam0)
 			sc.particleSpawners[cmd.ID] = struct{}{}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltDelParticleSpawner:
 			delete(sc.particleSpawners, cmd.ID)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltPlaySound:
 			prepend(sc.name, &cmd.Name)
 			sc.swapAOID(&cmd.SrcAOID)
@@ -429,38 +443,38 @@ func handleSrv(sc *serverConn) {
 				sc.sounds[cmd.ID] = struct{}{}
 			}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltFadeSound:
 			delete(sc.sounds, cmd.ID)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltStopSound:
 			delete(sc.sounds, cmd.ID)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltAddHUD:
 			sc.prependHUD(cmd.Type, cmd)
 
 			sc.huds[cmd.ID] = cmd.Type
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltChangeHUD:
 			sc.prependHUD(sc.huds[cmd.ID], cmd)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltRmHUD:
 			delete(sc.huds, cmd.ID)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltShowFormspec:
 			sc.prependFormspec(&cmd.Formspec)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltFormspecPrepend:
 			sc.prependFormspec(&cmd.Prepend)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltInvFormspec:
 			sc.prependFormspec(&cmd.Formspec)
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltMinimapModes:
 			for i := range cmd.Modes {
 				prependTexture(sc.name, &cmd.Modes[i].Texture)
 			}
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltNodeMetasChanged:
 			for k := range cmd.Changed {
 				for i, field := range cmd.Changed[k].Fields {
@@ -471,63 +485,63 @@ func handleSrv(sc *serverConn) {
 				}
 				sc.prependInv(cmd.Changed[k].Inv)
 			}
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltAddPlayerVel:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltBreath:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltChatMsg:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltCloudParams:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltDeathScreen:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltEyeOffset:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltFOV:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltHP:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltHUDFlags:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltLocalPlayerAnim:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltModChanMsg:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltModChanSig:
 			var exit bool
 			switch cmd.Signal {
 			case mt.JoinOK:
-				if _, ok := sc.client().modChs[cmd.Channel]; ok {
+				if _, ok := clt.modChs[cmd.Channel]; ok {
 					exit = true
 					break
 				}
-				sc.client().modChs[cmd.Channel] = struct{}{}
+				clt.modChs[cmd.Channel] = struct{}{}
 			case mt.JoinFail:
 				fallthrough
 			case mt.LeaveOK:
-				delete(sc.client().modChs, cmd.Channel)
+				delete(clt.modChs, cmd.Channel)
 			}
 
 			if exit {
 				break
 			}
 
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltMovePlayer:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltMovement:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltOverrideDayNightRatio:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltPrivs:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltRemoveNode:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltStarParams:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		case *mt.ToCltTimeOfDay:
-			sc.client().SendCmd(cmd)
+			clt.SendCmd(cmd)
 		}
 	}
 }
