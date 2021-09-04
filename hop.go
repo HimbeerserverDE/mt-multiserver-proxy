@@ -31,7 +31,10 @@ func (cc *clientConn) hop(serverName string) error {
 
 	// This needs to be done before the serverConn is closed
 	// so the clientConn isn't closed by the packet handler
+	cc.mu.Lock()
 	cc.server().clt = nil
+	cc.mu.Unlock()
+
 	cc.server().Close()
 
 	// Reset the client to its initial state
