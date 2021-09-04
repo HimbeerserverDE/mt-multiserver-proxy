@@ -299,7 +299,6 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 
 	for _, cc := range conns {
 		<-cc.done()
-
 		for _, def := range cc.itemDefs {
 			if def.Name == "" {
 				def.Name = "hand"
@@ -358,7 +357,6 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 
 	for _, cc := range conns {
 		<-cc.done()
-
 		for _, def := range cc.nodeDefs {
 			if p0Map[cc.name] == nil {
 				p0Map[cc.name] = map[mt.Content]mt.Content{
@@ -414,7 +412,6 @@ func muxMedia(conns []*contentConn) []mediaFile {
 
 	for _, cc := range conns {
 		<-cc.done()
-
 		for _, f := range cc.media {
 			prepend(cc.name, &f.name)
 			media = append(media, f)

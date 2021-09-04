@@ -115,8 +115,11 @@ func handleClt(cc *clientConn) {
 
 				if cc.server() != nil {
 					cc.server().Close()
+
+					cc.mu.Lock()
 					cc.server().clt = nil
 					cc.srv = nil
+					cc.mu.Unlock()
 				}
 
 				if cc.name != "" {
