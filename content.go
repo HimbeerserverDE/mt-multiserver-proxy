@@ -285,7 +285,6 @@ type param0SrvMap map[mt.Content]struct {
 func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig string }) {
 	var itemDefs []mt.ItemDef
 	var aliases []struct{ Alias, Orig string }
-	var wg sync.WaitGroup
 
 	itemDefs = append(itemDefs, mt.ItemDef{
 		Type:       mt.ToolItem,
@@ -299,46 +298,40 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 	})
 
 	for _, cc := range conns {
-		wg.Add(1)
-		go func() {
-			<-cc.done()
-			for _, def := range cc.itemDefs {
-				if def.Name == "" {
-					def.Name = "hand"
-				}
+		<-cc.done()
 
-				prepend(cc.name, &def.Name)
-				prependTexture(cc.name, &def.InvImg)
-				prependTexture(cc.name, &def.WieldImg)
-				prepend(cc.name, &def.PlacePredict)
-				prepend(cc.name, &def.PlaceSnd.Name)
-				prepend(cc.name, &def.PlaceFailSnd.Name)
-				prependTexture(cc.name, &def.Palette)
-				prependTexture(cc.name, &def.InvOverlay)
-				prependTexture(cc.name, &def.WieldOverlay)
-				itemDefs = append(itemDefs, def)
+		for _, def := range cc.itemDefs {
+			if def.Name == "" {
+				def.Name = "hand"
 			}
 
-			for _, alias := range cc.aliases {
-				prepend(cc.name, &alias.Alias)
-				prepend(cc.name, &alias.Orig)
+			prepend(cc.name, &def.Name)
+			prependTexture(cc.name, &def.InvImg)
+			prependTexture(cc.name, &def.WieldImg)
+			prepend(cc.name, &def.PlacePredict)
+			prepend(cc.name, &def.PlaceSnd.Name)
+			prepend(cc.name, &def.PlaceFailSnd.Name)
+			prependTexture(cc.name, &def.Palette)
+			prependTexture(cc.name, &def.InvOverlay)
+			prependTexture(cc.name, &def.WieldOverlay)
+			itemDefs = append(itemDefs, def)
+		}
 
-				aliases = append(aliases, struct{ Alias, Orig string }{
-					Alias: alias.Alias,
-					Orig:  alias.Orig,
-				})
-			}
+		for _, alias := range cc.aliases {
+			prepend(cc.name, &alias.Alias)
+			prepend(cc.name, &alias.Orig)
 
-			wg.Done()
-		}()
+			aliases = append(aliases, struct{ Alias, Orig string }{
+				Alias: alias.Alias,
+				Orig:  alias.Orig,
+			})
+		}
 	}
 
-	wg.Wait()
 	return itemDefs, aliases
 }
 
 func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap) {
-	var wg sync.WaitGroup
 	var param0 mt.Content
 
 	p0Map = make(param0Map)
@@ -364,81 +357,70 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 	}
 
 	for _, cc := range conns {
-		wg.Add(1)
-		go func() {
-			<-cc.done()
-			for _, def := range cc.nodeDefs {
-				if p0Map[cc.name] == nil {
-					p0Map[cc.name] = map[mt.Content]mt.Content{
-						mt.Unknown: mt.Unknown,
-						mt.Air:     mt.Air,
-						mt.Ignore:  mt.Ignore,
-					}
-				}
+		<-cc.done()
 
-				p0Map[cc.name][def.Param0] = param0
-				p0SrvMap[param0] = struct {
-					name   string
-					param0 mt.Content
-				}{
-					name:   cc.name,
-					param0: def.Param0,
-				}
-
-				def.Param0 = param0
-				prepend(cc.name, &def.Name)
-				prepend(cc.name, &def.Mesh)
-				for i := range def.Tiles {
-					prependTexture(cc.name, &def.Tiles[i].Texture)
-				}
-				for i := range def.OverlayTiles {
-					prependTexture(cc.name, &def.OverlayTiles[i].Texture)
-				}
-				for i := range def.SpecialTiles {
-					prependTexture(cc.name, &def.SpecialTiles[i].Texture)
-				}
-				prependTexture(cc.name, &def.Palette)
-				for k, v := range def.ConnectTo {
-					def.ConnectTo[k] = p0Map[cc.name][v]
-				}
-				prepend(cc.name, &def.FootstepSnd.Name)
-				prepend(cc.name, &def.DiggingSnd.Name)
-				prepend(cc.name, &def.DugSnd.Name)
-				prepend(cc.name, &def.DigPredict)
-				nodeDefs = append(nodeDefs, def)
-
-				param0++
-				if param0 >= mt.Unknown && param0 <= mt.Ignore {
-					param0 = mt.Ignore + 1
+		for _, def := range cc.nodeDefs {
+			if p0Map[cc.name] == nil {
+				p0Map[cc.name] = map[mt.Content]mt.Content{
+					mt.Unknown: mt.Unknown,
+					mt.Air:     mt.Air,
+					mt.Ignore:  mt.Ignore,
 				}
 			}
 
-			wg.Done()
-		}()
+			p0Map[cc.name][def.Param0] = param0
+			p0SrvMap[param0] = struct {
+				name   string
+				param0 mt.Content
+			}{
+				name:   cc.name,
+				param0: def.Param0,
+			}
+
+			def.Param0 = param0
+			prepend(cc.name, &def.Name)
+			prepend(cc.name, &def.Mesh)
+			for i := range def.Tiles {
+				prependTexture(cc.name, &def.Tiles[i].Texture)
+			}
+			for i := range def.OverlayTiles {
+				prependTexture(cc.name, &def.OverlayTiles[i].Texture)
+			}
+			for i := range def.SpecialTiles {
+				prependTexture(cc.name, &def.SpecialTiles[i].Texture)
+			}
+			prependTexture(cc.name, &def.Palette)
+			for k, v := range def.ConnectTo {
+				def.ConnectTo[k] = p0Map[cc.name][v]
+			}
+			prepend(cc.name, &def.FootstepSnd.Name)
+			prepend(cc.name, &def.DiggingSnd.Name)
+			prepend(cc.name, &def.DugSnd.Name)
+			prepend(cc.name, &def.DigPredict)
+			nodeDefs = append(nodeDefs, def)
+
+			param0++
+			if param0 >= mt.Unknown && param0 <= mt.Ignore {
+				param0 = mt.Ignore + 1
+			}
+		}
 	}
 
-	wg.Wait()
 	return
 }
 
 func muxMedia(conns []*contentConn) []mediaFile {
 	var media []mediaFile
-	var wg sync.WaitGroup
 
 	for _, cc := range conns {
-		wg.Add(1)
-		go func() {
-			<-cc.done()
-			for _, f := range cc.media {
-				prepend(cc.name, &f.name)
-				media = append(media, f)
-			}
+		<-cc.done()
 
-			wg.Done()
-		}()
+		for _, f := range cc.media {
+			prepend(cc.name, &f.name)
+			media = append(media, f)
+		}
 	}
 
-	wg.Wait()
 	return media
 }
 
@@ -467,25 +449,9 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 		conns = append(conns, cc)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go func() {
-		defer wg.Done()
-		itemDefs, aliases = muxItemDefs(conns)
-	}()
-
-	go func() {
-		defer wg.Done()
-		nodeDefs, p0Map, p0SrvMap = muxNodeDefs(conns)
-	}()
-
-	go func() {
-		defer wg.Done()
-		media = muxMedia(conns)
-	}()
-
-	wg.Wait()
+	itemDefs, aliases = muxItemDefs(conns)
+	nodeDefs, p0Map, p0SrvMap = muxNodeDefs(conns)
+	media = muxMedia(conns)
 	return
 }
 
