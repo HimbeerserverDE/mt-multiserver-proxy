@@ -113,6 +113,12 @@ func handleClt(cc *clientConn) {
 					cc.log("<->", "disconnect")
 				}
 
+				if cc.name != "" {
+					playersMu.Lock()
+					delete(players, cc.name)
+					playersMu.Unlock()
+				}
+
 				if cc.server() != nil {
 					cc.server().Close()
 
@@ -120,12 +126,6 @@ func handleClt(cc *clientConn) {
 					cc.server().clt = nil
 					cc.srv = nil
 					cc.mu.Unlock()
-				}
-
-				if cc.name != "" {
-					playersMu.Lock()
-					delete(players, cc.name)
-					playersMu.Unlock()
 				}
 
 				break
@@ -550,6 +550,7 @@ func handleClt(cc *clientConn) {
 				cc.log("-->", "no server")
 				break
 			}
+			go cc.hop("Map2")
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {

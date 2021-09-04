@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"net"
 
 	"github.com/anon55555/mt"
@@ -76,7 +77,14 @@ func (cc *clientConn) hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
 	// An issue in the mt package breaks this
 	// cc.SendCmd(&mt.ToCltMinimapModes{})
-	cc.SendCmd(&mt.ToCltMoonParams{})
+
+	cc.SendCmd(&mt.ToCltMoonParams{
+		Visible: true,
+		Texture: "moon.png",
+		ToneMap: "moon_toneap.png",
+		Size:    1,
+	})
+
 	cc.SendCmd(&mt.ToCltMovement{})
 	cc.SendCmd(&mt.ToCltOverrideDayNightRatio{})
 	cc.SendCmd(&mt.ToCltPrivs{})
@@ -85,9 +93,33 @@ func (cc *clientConn) hop(serverName string) error {
 		cc.SendCmd(&mt.ToCltSetHotbarParam{Param: i})
 	}
 
-	cc.SendCmd(&mt.ToCltSkyParams{})
-	cc.SendCmd(&mt.ToCltStarParams{})
-	cc.SendCmd(&mt.ToCltSunParams{})
+	cc.SendCmd(&mt.ToCltSkyParams{
+		Type:         "regular",
+		Clouds:       true,
+		DayHorizon:   color.NRGBA{144, 211, 246, 255},
+		DawnHorizon:  color.NRGBA{186, 193, 240, 255},
+		NightHorizon: color.NRGBA{64, 144, 255, 255},
+		DaySky:       color.NRGBA{97, 181, 245, 255},
+		DawnSky:      color.NRGBA{180, 186, 250, 255},
+		NightSky:     color.NRGBA{0, 107, 255, 255},
+		Indoor:       color.NRGBA{100, 100, 100, 255},
+	})
+
+	cc.SendCmd(&mt.ToCltStarParams{
+		Visible: true,
+		Count:   1000,
+		Color:   color.NRGBA{105, 235, 235, 255},
+		Size:    1,
+	})
+
+	cc.SendCmd(&mt.ToCltSunParams{
+		Visible: true,
+		Texture: "sun.png",
+		ToneMap: "sun_tonemap.png",
+		Rise:    "sunrisebg.png",
+		Rising:  true,
+		Size:    1,
+	})
 
 	var players []string
 	for player := range cc.server().playerList {

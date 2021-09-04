@@ -47,7 +47,6 @@ func main() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
-		l.close()
 
 		mu.Lock()
 		defer mu.Unlock()
