@@ -18,14 +18,14 @@ func main() {
 	}
 
 	var err error
-	switch conf.AuthBackend {
+	switch conf().AuthBackend {
 	case "sqlite3":
 		authIface = authSQLite3{}
 	default:
 		log.Fatal("{←|⇶} invalid auth backend")
 	}
 
-	addr, err := net.ResolveUDPAddr("udp", conf.BindAddr)
+	addr, err := net.ResolveUDPAddr("udp", conf().BindAddr)
 	if err != nil {
 		log.Fatal("{←|⇶} ", err)
 	}
@@ -102,7 +102,7 @@ func main() {
 			<-cc.init()
 			cc.log("<->", "handshake completed")
 
-			if len(conf.Servers) == 0 {
+			if len(conf().Servers) == 0 {
 				cc.log("<--", "no servers")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
@@ -117,7 +117,7 @@ func main() {
 				return
 			}
 
-			addr, err := net.ResolveUDPAddr("udp", conf.Servers[0].Addr)
+			addr, err := net.ResolveUDPAddr("udp", conf().Servers[0].Addr)
 			if err != nil {
 				cc.log("<--", "address resolution fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
@@ -151,7 +151,7 @@ func main() {
 				return
 			}
 
-			connect(conn, conf.Servers[0].Name, cc)
+			connect(conn, conf().Servers[0].Name, cc)
 		}()
 	}
 

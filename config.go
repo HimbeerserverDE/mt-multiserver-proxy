@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 const latestSerializeVer = 28
@@ -18,7 +19,8 @@ const defaultUserLimit = 10
 const defaultAuthBackend = "sqlite3"
 const defaultBindAddr = ":40000"
 
-var conf Config
+var config Config
+var configMu sync.RWMutex
 
 type Config struct {
 	RequirePasswd bool
@@ -41,13 +43,23 @@ type Config struct {
 	MapRange uint32
 }
 
-func loadConfig() error {
-	oldConf := conf
+func conf() Config {
+	configMu.RLock()
+	defer configMu.RUnlock()
 
-	conf.SendInterval = defaultSendInterval
-	conf.UserLimit = defaultUserLimit
-	conf.AuthBackend = defaultAuthBackend
-	conf.BindAddr = defaultBindAddr
+	return config
+}
+
+func loadConfig() error {
+	configMu.Lock()
+	defer configMu.Unlock()
+
+	oldConf := config
+
+	config.SendInterval = defaultSendInterval
+	config.UserLimit = defaultUserLimit
+	config.AuthBackend = defaultAuthBackend
+	config.BindAddr = defaultBindAddr
 
 	executable, err := os.Executable()
 	if err != nil {
@@ -57,7 +69,7 @@ func loadConfig() error {
 	path := filepath.Dir(executable) + "/config.json"
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		conf = oldConf
+		config = oldConf
 		return err
 	}
 	defer f.Close()
@@ -68,8 +80,8 @@ func loadConfig() error {
 	}
 
 	decoder := json.NewDecoder(f)
-	if err := decoder.Decode(&conf); err != nil {
-		conf = oldConf
+	if err := decoder.Decode(&config); err != nil {
+		config = oldConf
 		return err
 	}
 

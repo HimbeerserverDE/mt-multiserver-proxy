@@ -21,7 +21,7 @@ func (cc *clientConn) hop(serverName string) error {
 	}
 
 	var strAddr string
-	for _, srv := range conf.Servers {
+	for _, srv := range conf().Servers {
 		if srv.Name == serverName {
 			strAddr = srv.Addr
 			break

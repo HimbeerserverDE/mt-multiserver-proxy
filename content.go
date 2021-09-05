@@ -423,7 +423,7 @@ func muxMedia(conns []*contentConn) []mediaFile {
 
 func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, err error) {
 	var conns []*contentConn
-	for _, srv := range conf.Servers {
+	for _, srv := range conf().Servers {
 		var addr *net.UDPAddr
 		addr, err = net.ResolveUDPAddr("udp", srv.Addr)
 		if err != nil {

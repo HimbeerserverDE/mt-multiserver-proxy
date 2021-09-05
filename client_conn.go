@@ -230,7 +230,7 @@ func handleClt(cc *clientConn) {
 			}
 
 			// user limit
-			if len(players) >= conf.UserLimit {
+			if len(players) >= conf().UserLimit {
 				cc.log("<--", "player limit reached")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.TooManyClts})
 
@@ -276,7 +276,7 @@ func handleClt(cc *clientConn) {
 					salt, srpA, srpB, srpM, srpK []byte
 				}{}
 
-				if cmd.EmptyPasswd && conf.RequirePasswd {
+				if cmd.EmptyPasswd && conf().RequirePasswd {
 					cc.log("<--", "empty password disallowed")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.EmptyPasswd})
 
@@ -306,7 +306,7 @@ func handleClt(cc *clientConn) {
 				cc.SendCmd(&mt.ToCltAcceptAuth{
 					PlayerPos:       mt.Pos{0, 5, 0},
 					MapSeed:         0,
-					SendInterval:    conf.SendInterval,
+					SendInterval:    conf().SendInterval,
 					SudoAuthMethods: mt.SRP,
 				})
 			} else {
@@ -439,7 +439,7 @@ func handleClt(cc *clientConn) {
 					cc.SendCmd(&mt.ToCltAcceptAuth{
 						PlayerPos:       mt.Pos{0, 5, 0},
 						MapSeed:         0,
-						SendInterval:    conf.SendInterval,
+						SendInterval:    conf().SendInterval,
 						SudoAuthMethods: mt.SRP,
 					})
 				}
@@ -499,28 +499,28 @@ func handleClt(cc *clientConn) {
 			cc.lang = cmd.Lang
 
 			var csmrf mt.CSMRestrictionFlags
-			if conf.CSMRF.NoCSMs {
+			if conf().CSMRF.NoCSMs {
 				csmrf |= mt.NoCSMs
 			}
-			if !conf.CSMRF.ChatMsgs {
+			if !conf().CSMRF.ChatMsgs {
 				csmrf |= mt.NoChatMsgs
 			}
-			if !conf.CSMRF.ItemDefs {
+			if !conf().CSMRF.ItemDefs {
 				csmrf |= mt.NoItemDefs
 			}
-			if !conf.CSMRF.NodeDefs {
+			if !conf().CSMRF.NodeDefs {
 				csmrf |= mt.NoNodeDefs
 			}
-			if !conf.CSMRF.NoLimitMapRange {
+			if !conf().CSMRF.NoLimitMapRange {
 				csmrf |= mt.LimitMapRange
 			}
-			if !conf.CSMRF.PlayerList {
+			if !conf().CSMRF.PlayerList {
 				csmrf |= mt.NoPlayerList
 			}
 
 			cc.SendCmd(&mt.ToCltCSMRestrictionFlags{
 				Flags:    csmrf,
-				MapRange: conf.MapRange,
+				MapRange: conf().MapRange,
 			})
 		case *mt.ToSrvReqMedia:
 			cc.sendMedia(cmd.Filenames)
@@ -550,7 +550,6 @@ func handleClt(cc *clientConn) {
 				cc.log("-->", "no server")
 				break
 			}
-			go cc.hop("Map2")
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {
