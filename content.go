@@ -77,6 +77,18 @@ func handleContent(cc *contentConn) {
 	defer close(cc.doneCh)
 
 	go func() {
+		init := make(chan struct{})
+		defer close(init)
+
+		go func(init <-chan struct{}) {
+			select {
+			case <-init:
+			case <-time.After(10 * time.Second):
+				cc.log("-->", "timeout")
+				cc.Close()
+			}
+		}(init)
+
 		for cc.state() == csCreated {
 			cc.SendCmd(&mt.ToSrvInit{
 				SerializeVer: latestSerializeVer,

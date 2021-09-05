@@ -40,21 +40,18 @@ func main() {
 
 	log.Print("{←|⇶} listen ", l.addr())
 
-	clts := make(map[*clientConn]struct{})
-	var mu sync.Mutex
-
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
 
-		mu.Lock()
-		defer mu.Unlock()
+		l.mu.Lock()
+		defer l.mu.Unlock()
 
 		var wg sync.WaitGroup
-		wg.Add(len(clts))
+		wg.Add(len(l.clts))
 
-		for cc := range clts {
+		for cc := range l.clts {
 			go func(cc *clientConn) {
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
 				select {
@@ -64,7 +61,10 @@ func main() {
 				}
 
 				<-cc.server().Closed()
+				cc.mu.Lock()
 				cc.srv = nil
+				cc.mu.Unlock()
+
 				wg.Done()
 			}(cc)
 		}
@@ -84,19 +84,6 @@ func main() {
 			log.Print("{←|⇶} ", err)
 			continue
 		}
-
-		mu.Lock()
-		clts[cc] = struct{}{}
-		mu.Unlock()
-
-		go func() {
-			<-cc.Closed()
-
-			mu.Lock()
-			defer mu.Unlock()
-
-			delete(clts, cc)
-		}()
 
 		go func() {
 			<-cc.init()

@@ -122,8 +122,11 @@ func handleClt(cc *clientConn) {
 				if cc.server() != nil {
 					cc.server().Close()
 
-					cc.mu.Lock()
+					cc.server().mu.Lock()
 					cc.server().clt = nil
+					cc.server().mu.Unlock()
+
+					cc.mu.Lock()
 					cc.srv = nil
 					cc.mu.Unlock()
 				}

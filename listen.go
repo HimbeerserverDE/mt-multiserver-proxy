@@ -3,17 +3,22 @@ package main
 import (
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/anon55555/mt"
 )
 
 type listener struct {
 	mtListener mt.Listener
+	mu         sync.Mutex
+
+	clts map[*clientConn]struct{}
 }
 
 func listen(pc net.PacketConn) *listener {
 	return &listener{
 		mtListener: mt.Listen(pc),
+		clts:       make(map[*clientConn]struct{}),
 	}
 }
 
@@ -34,6 +39,18 @@ func (l *listener) accept() (*clientConn, error) {
 		initCh: make(chan struct{}),
 		modChs: make(map[string]struct{}),
 	}
+
+	l.mu.Lock()
+	l.clts[cc] = struct{}{}
+	l.mu.Unlock()
+
+	go func() {
+		<-cc.Closed()
+		l.mu.Lock()
+		defer l.mu.Unlock()
+
+		delete(l.clts, cc)
+	}()
 
 	cc.log("-->", "connect")
 	go handleClt(cc)

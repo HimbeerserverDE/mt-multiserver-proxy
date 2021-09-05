@@ -83,11 +83,19 @@ func (sc *serverConn) log(dir string, v ...interface{}) {
 }
 
 func handleSrv(sc *serverConn) {
-	if sc.client() == nil {
-		sc.log("-->", "no associated client")
-	}
-
 	go func() {
+		init := make(chan struct{})
+		defer close(init)
+
+		go func(init <-chan struct{}) {
+			select {
+			case <-init:
+			case <-time.After(10 * time.Second):
+				sc.log("-->", "timeout")
+				sc.Close()
+			}
+		}(init)
+
 		for sc.state() == csCreated && sc.client() != nil {
 			sc.SendCmd(&mt.ToSrvInit{
 				SerializeVer: latestSerializeVer,
@@ -119,8 +127,14 @@ func handleSrv(sc *serverConn) {
 					case <-sc.client().Closed():
 					case <-ack:
 						sc.client().Close()
+
+						sc.client().mu.Lock()
 						sc.client().srv = nil
+						sc.client().mu.Unlock()
+
+						sc.mu.Lock()
 						sc.clt = nil
+						sc.mu.Unlock()
 					}
 				}
 
