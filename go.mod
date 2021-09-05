@@ -1,4 +1,4 @@
-module github.com/HimbeerserverDE/MTConnector
+module github.com/HimbeerserverDE/mt-multiserver-proxy
 
 go 1.17
 
