@@ -553,7 +553,49 @@ func handleClt(cc *clientConn) {
 				cc.log("-->", "no server")
 				break
 			}
-			cc.server().SendCmd(cmd)
+
+			var handled bool
+			if strings.HasPrefix(cmd.Msg, conf().CmdPrefix) {
+				substrs := strings.Split(cmd.Msg, " ")
+				cmdName := strings.Replace(substrs[0], conf().CmdPrefix, "", 1)
+
+				var args []string
+				if len(substrs) > 1 {
+					args = substrs[1:]
+				}
+
+				cc.log("-->", append([]string{"cmd", cmdName}, args...))
+
+				pluginsMu.RLock()
+				for _, p := range plugins {
+					sym, err := p.Lookup("HandleChatCmd")
+					if err != nil {
+						cc.log("-->", err)
+						continue
+					}
+
+					if handler, ok := sym.(func(string, []string) bool); ok {
+						if handler(cmdName, args) {
+							handled = true
+							break
+						}
+					}
+				}
+				pluginsMu.RUnlock()
+
+				if !handled {
+					cc.SendCmd(&mt.ToCltChatMsg{
+						Type:      mt.SysMsg,
+						Text:      "Command not found.",
+						Timestamp: time.Now().Unix(),
+					})
+					handled = true
+				}
+			}
+
+			if !handled {
+				cc.server().SendCmd(cmd)
+			}
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {
 				cc.log("-->", "no server")

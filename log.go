@@ -22,13 +22,13 @@ func (lw *LogWriter) Write(p []byte) (n int, err error) {
 func init() {
 	executable, err := os.Executable()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("{←|⇶} ", err)
 	}
 
 	path := filepath.Dir(executable) + "/latest.log"
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("{←|⇶} ", err)
 	}
 
 	go func() {

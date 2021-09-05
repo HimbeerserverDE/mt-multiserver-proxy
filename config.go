@@ -14,6 +14,7 @@ const maxPlayerNameLen = 20
 const playerNameChars = "^[a-zA-Z0-9-_]+$"
 const bytesPerMediaBunch = 5000
 
+const defaultCmdPrefix = ">"
 const defaultSendInterval = 0.09
 const defaultUserLimit = 10
 const defaultAuthBackend = "sqlite3"
@@ -23,6 +24,8 @@ var config Config
 var configMu sync.RWMutex
 
 type Config struct {
+	NoPlugins     bool
+	CmdPrefix     string
 	RequirePasswd bool
 	SendInterval  float32
 	UserLimit     int
@@ -56,6 +59,7 @@ func loadConfig() error {
 
 	oldConf := config
 
+	config.CmdPrefix = defaultCmdPrefix
 	config.SendInterval = defaultSendInterval
 	config.UserLimit = defaultUserLimit
 	config.AuthBackend = defaultAuthBackend

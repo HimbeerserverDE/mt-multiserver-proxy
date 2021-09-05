@@ -5,6 +5,13 @@ The file name is `config.json`.
 ## Format
 The configuration file contains JSON data. The fields are as follows.
 
+> `NoPlugins`
+```
+Type: bool
+Default: false
+Description: Plugins are not loaded if this is true.
+```
+
 > `RequirePasswd`
 ```
 Type: bool

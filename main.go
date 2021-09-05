@@ -17,6 +17,12 @@ func main() {
 		log.Fatal("{←|⇶} ", err)
 	}
 
+	if !conf().NoPlugins {
+		if err := loadPlugins(); err != nil {
+			log.Fatal("{←|⇶} ", err)
+		}
+	}
+
 	var err error
 	switch conf().AuthBackend {
 	case "sqlite3":
