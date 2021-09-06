@@ -49,13 +49,8 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 			args = substrs[1:]
 		}
 
-		if !ChatCmdExists(cmdName) {
-			cc.Log("-->", "unknown cmd", cmdName)
-			return "Command not found."
-		}
-
 		v := make([]interface{}, 2+len(args))
-		v[0] = "cmd"
+		v[0] = "command"
 		v[1] = cmdName
 
 		for i, arg := range args {
@@ -63,6 +58,11 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 		}
 
 		cc.Log("-->", v...)
+
+		if !ChatCmdExists(cmdName) {
+			cc.Log("<--", "unknown command", cmdName)
+			return "Command not found."
+		}
 
 		chatCmdsMu.RLock()
 		defer chatCmdsMu.RUnlock()
