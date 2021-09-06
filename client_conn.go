@@ -554,44 +554,8 @@ func handleClt(cc *ClientConn) {
 				break
 			}
 
-			var handled bool
-			if strings.HasPrefix(cmd.Msg, Conf().CmdPrefix) {
-				substrs := strings.Split(cmd.Msg, " ")
-				cmdName := strings.Replace(substrs[0], Conf().CmdPrefix, "", 1)
-
-				var args []string
-				if len(substrs) > 1 {
-					args = substrs[1:]
-				}
-
-				cc.Log("-->", append([]string{"cmd", cmdName}, args...))
-
-				for p := range plugins {
-					sym, err := p.Lookup("HandleChatCmd")
-					if err != nil {
-						cc.Log("-->", err)
-						continue
-					}
-
-					if handler, ok := sym.(func(*ClientConn, string, ...string) bool); ok {
-						if handler(cc, cmdName, args...) {
-							handled = true
-							break
-						}
-					}
-				}
-
-				if !handled {
-					cc.SendCmd(&mt.ToCltChatMsg{
-						Type:      mt.SysMsg,
-						Text:      "Command not found.",
-						Timestamp: time.Now().Unix(),
-					})
-					handled = true
-				}
-			}
-
-			if !handled {
+			onChatMsg(cc, cmd)
+			if cmd.Msg != "" {
 				cc.server().SendCmd(cmd)
 			}
 		case *mt.ToSrvDeletedBlks:
