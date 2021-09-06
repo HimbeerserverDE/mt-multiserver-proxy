@@ -37,7 +37,7 @@ func RegisterChatCmd(name string, cmd ChatCmd) bool {
 	return true
 }
 
-func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) {
+func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 	initChatCmds()
 
 	if strings.HasPrefix(cmd.Msg, Conf().CmdPrefix) {
@@ -49,19 +49,19 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) {
 			args = substrs[1:]
 		}
 
-		// cc.Log("-->", append([]string{"cmd", cmdName}, args...))
-		cc.Log("-->", []interface{}{}...)
+		cc.Log("-->", append([]string{"cmd", cmdName}, args...))
 
 		if !ChatCmdExists(cmdName) {
-			cmd.Msg = "Command not found."
-			return
+			return "Command not found."
 		}
 
 		chatCmdsMu.RLock()
 		defer chatCmdsMu.RUnlock()
 
-		cmd.Msg = chatCmds[cmdName](cc, args...)
+		return chatCmds[cmdName](cc, args...)
 	}
+
+	return ""
 }
 
 func initChatCmds() {
