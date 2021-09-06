@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"fmt"
@@ -8,33 +8,40 @@ import (
 	"github.com/anon55555/mt"
 )
 
-type listener struct {
-	mtListener mt.Listener
-	mu         sync.Mutex
+type Listener struct {
+	mt.Listener
+	mu         sync.RWMutex
 
-	clts map[*clientConn]struct{}
+	clts map[*ClientConn]struct{}
 }
 
-func listen(pc net.PacketConn) *listener {
-	return &listener{
-		mtListener: mt.Listen(pc),
-		clts:       make(map[*clientConn]struct{}),
+func Listen(pc net.PacketConn) *Listener {
+	return &Listener{
+		Listener: mt.Listen(pc),
+		clts:       make(map[*ClientConn]struct{}),
 	}
 }
 
-func (l *listener) close() error {
-	return l.mtListener.Close()
+func (l *Listener) Clts() map[*ClientConn]struct{} {
+	clts := make(map[*ClientConn]struct{})
+
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	for cc := range l.clts {
+		clts[cc] = struct{}{}
+	}
+
+	return clts
 }
 
-func (l *listener) addr() net.Addr { return l.mtListener.Addr() }
-
-func (l *listener) accept() (*clientConn, error) {
-	p, err := l.mtListener.Accept()
+func (l *Listener) Accept() (*ClientConn, error) {
+	p, err := l.Listener.Accept()
 	if err != nil {
 		return nil, err
 	}
 
-	cc := &clientConn{
+	cc := &ClientConn{
 		Peer:   p,
 		initCh: make(chan struct{}),
 		modChs: make(map[string]struct{}),
@@ -52,7 +59,7 @@ func (l *listener) accept() (*clientConn, error) {
 		delete(l.clts, cc)
 	}()
 
-	cc.log("-->", "connect")
+	cc.Log("-->", "connect")
 	go handleClt(cc)
 
 	select {

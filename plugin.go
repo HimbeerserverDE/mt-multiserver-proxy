@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"log"
@@ -11,7 +11,7 @@ import (
 var plugins []*plugin.Plugin
 var pluginsMu sync.RWMutex
 
-func loadPlugins() error {
+func LoadPlugins() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return err

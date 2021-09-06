@@ -4,7 +4,7 @@ multiple Minetest servers together. It is the successor to multiserver.
 ## Installation
 Go 1.17 or higher is required. Run
 
-`go install github.com/HimbeerserverDE/mt-multiserver-proxy`
+`go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver/proxy`
 
 to download and compile the project. A mt-multiserver-proxy executable
 will be created in your $GOBIN directory.

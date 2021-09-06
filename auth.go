@@ -1,8 +1,12 @@
-package main
+package proxy
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
-var authIface authBackend
+var authIface AuthBackend
+var ErrAuthBackendExists = errors.New("auth backend already set")
 
 type user struct {
 	name      string
@@ -11,11 +15,20 @@ type user struct {
 	timestamp time.Time
 }
 
-type authBackend interface {
+type AuthBackend interface {
 	Exists(name string) bool
 	Passwd(name string) (salt, verifier []byte, err error)
 	SetPasswd(name string, salt, verifier []byte) error
 	Timestamp(name string) (time.Time, error)
 	Import(data []user)
 	Export() ([]user, error)
+}
+
+func SetAuthBackend(ab AuthBackend) error {
+	if authIface != nil {
+		return ErrAuthBackendExists
+	}
+
+	authIface = ab
+	return nil
 }

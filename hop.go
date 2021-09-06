@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"fmt"
@@ -8,20 +8,20 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func (cc *clientConn) hop(serverName string) error {
+func (cc *ClientConn) hop(serverName string) error {
 	cc.hopMu.Lock()
 	defer cc.hopMu.Unlock()
 
-	cc.log("<->", "hop", serverName)
+	cc.Log("<->", "hop", serverName)
 
 	if cc.server() == nil {
 		err := fmt.Errorf("no server connection")
-		cc.log("<->", err)
+		cc.Log("<->", err)
 		return err
 	}
 
 	var strAddr string
-	for _, srv := range conf().Servers {
+	for _, srv := range Conf().Servers {
 		if srv.Name == serverName {
 			strAddr = srv.Addr
 			break
@@ -145,7 +145,7 @@ func (cc *clientConn) hop(serverName string) error {
 		return err
 	}
 
-	connect(conn, serverName, cc)
+	Connect(conn, serverName, cc)
 
 	for ch := range cc.modChs {
 		cc.server().SendCmd(&mt.ToSrvJoinModChan{Channel: ch})

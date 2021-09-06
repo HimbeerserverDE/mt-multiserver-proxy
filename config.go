@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"encoding/json"
@@ -46,14 +46,14 @@ type Config struct {
 	MapRange uint32
 }
 
-func conf() Config {
+func Conf() Config {
 	configMu.RLock()
 	defer configMu.RUnlock()
 
 	return config
 }
 
-func loadConfig() error {
+func LoadConfig() error {
 	configMu.Lock()
 	defer configMu.Unlock()
 

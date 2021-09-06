@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"crypto/subtle"
@@ -24,9 +24,9 @@ const (
 	csSudo
 )
 
-type clientConn struct {
+type ClientConn struct {
 	mt.Peer
-	srv *serverConn
+	srv *ServerConn
 	mu  sync.RWMutex
 
 	cstate   clientState
@@ -61,30 +61,30 @@ type clientConn struct {
 	modChs map[string]struct{}
 }
 
-func (cc *clientConn) server() *serverConn {
+func (cc *ClientConn) server() *ServerConn {
 	cc.mu.RLock()
 	defer cc.mu.RUnlock()
 
 	return cc.srv
 }
 
-func (cc *clientConn) state() clientState {
+func (cc *ClientConn) state() clientState {
 	cc.cstateMu.RLock()
 	defer cc.cstateMu.RUnlock()
 
 	return cc.cstate
 }
 
-func (cc *clientConn) setState(state clientState) {
+func (cc *ClientConn) setState(state clientState) {
 	cc.cstateMu.Lock()
 	defer cc.cstateMu.Unlock()
 
 	cc.cstate = state
 }
 
-func (cc *clientConn) init() <-chan struct{} { return cc.initCh }
+func (cc *ClientConn) Init() <-chan struct{} { return cc.initCh }
 
-func (cc *clientConn) log(dir string, v ...interface{}) {
+func (cc *ClientConn) Log(dir string, v ...interface{}) {
 	if cc.name != "" {
 		format := "{%s, %s} %s {←|⇶}"
 		format += strings.Repeat(" %v", len(v))
@@ -102,15 +102,15 @@ func (cc *clientConn) log(dir string, v ...interface{}) {
 	}
 }
 
-func handleClt(cc *clientConn) {
+func handleClt(cc *ClientConn) {
 	for {
 		pkt, err := cc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
-					cc.log("<->", "timeout")
+					cc.Log("<->", "timeout")
 				} else {
-					cc.log("<->", "disconnect")
+					cc.Log("<->", "disconnect")
 				}
 
 				if cc.name != "" {
@@ -134,20 +134,20 @@ func handleClt(cc *clientConn) {
 				break
 			}
 
-			cc.log("-->", err)
+			cc.Log("-->", err)
 			continue
 		}
 
 		switch cmd := pkt.Cmd.(type) {
 		case *mt.ToSrvInit:
 			if cc.state() > csCreated {
-				cc.log("-->", "duplicate init")
+				cc.Log("-->", "duplicate init")
 				break
 			}
 
 			cc.setState(csInit)
 			if cmd.SerializeVer != latestSerializeVer {
-				cc.log("<--", "invalid serializeVer")
+				cc.Log("<--", "invalid serializeVer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
 
 				select {
@@ -160,7 +160,7 @@ func handleClt(cc *clientConn) {
 			}
 
 			if cmd.MaxProtoVer < latestProtoVer {
-				cc.log("<--", "invalid protoVer")
+				cc.Log("<--", "invalid protoVer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
 
 				select {
@@ -173,7 +173,7 @@ func handleClt(cc *clientConn) {
 			}
 
 			if len(cmd.PlayerName) == 0 || len(cmd.PlayerName) > maxPlayerNameLen {
-				cc.log("<--", "invalid player name length")
+				cc.Log("<--", "invalid player name length")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
 
 				select {
@@ -186,7 +186,7 @@ func handleClt(cc *clientConn) {
 			}
 
 			if ok, _ := regexp.MatchString(playerNameChars, cmd.PlayerName); !ok {
-				cc.log("<--", "invalid player name")
+				cc.Log("<--", "invalid player name")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadNameChars})
 
 				select {
@@ -203,7 +203,7 @@ func handleClt(cc *clientConn) {
 			playersMu.Lock()
 			_, ok := players[cc.name]
 			if ok {
-				cc.log("<--", "already connected")
+				cc.Log("<--", "already connected")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.AlreadyConnected})
 
 				select {
@@ -220,7 +220,7 @@ func handleClt(cc *clientConn) {
 			playersMu.Unlock()
 
 			if cc.name == "singleplayer" {
-				cc.log("<--", "name is singleplayer")
+				cc.Log("<--", "name is singleplayer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
 
 				select {
@@ -233,8 +233,8 @@ func handleClt(cc *clientConn) {
 			}
 
 			// user limit
-			if len(players) >= conf().UserLimit {
-				cc.log("<--", "player limit reached")
+			if len(players) >= Conf().UserLimit {
+				cc.Log("<--", "player limit reached")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.TooManyClts})
 
 				select {
@@ -262,7 +262,7 @@ func handleClt(cc *clientConn) {
 		case *mt.ToSrvFirstSRP:
 			if cc.state() == csInit {
 				if cc.auth.method != mt.FirstSRP {
-					cc.log("-->", "unauthorized password change")
+					cc.Log("-->", "unauthorized password change")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
 
 					select {
@@ -279,8 +279,8 @@ func handleClt(cc *clientConn) {
 					salt, srpA, srpB, srpM, srpK []byte
 				}{}
 
-				if cmd.EmptyPasswd && conf().RequirePasswd {
-					cc.log("<--", "empty password disallowed")
+				if cmd.EmptyPasswd && Conf().RequirePasswd {
+					cc.Log("<--", "empty password disallowed")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.EmptyPasswd})
 
 					select {
@@ -293,7 +293,7 @@ func handleClt(cc *clientConn) {
 				}
 
 				if err := authIface.SetPasswd(cc.name, cmd.Salt, cmd.Verifier); err != nil {
-					cc.log("<--", "set password fail")
+					cc.Log("<--", "set password fail")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
 
 					select {
@@ -305,22 +305,22 @@ func handleClt(cc *clientConn) {
 					break
 				}
 
-				cc.log("-->", "set password")
+				cc.Log("-->", "set password")
 				cc.SendCmd(&mt.ToCltAcceptAuth{
 					PlayerPos:       mt.Pos{0, 5, 0},
 					MapSeed:         0,
-					SendInterval:    conf().SendInterval,
+					SendInterval:    Conf().SendInterval,
 					SudoAuthMethods: mt.SRP,
 				})
 			} else {
 				if cc.state() < csSudo {
-					cc.log("-->", "unauthorized sudo action")
+					cc.Log("-->", "unauthorized sudo action")
 					break
 				}
 
 				cc.setState(cc.state() - 1)
 				if err := authIface.SetPasswd(cc.name, cmd.Salt, cmd.Verifier); err != nil {
-					cc.log("<--", "change password fail")
+					cc.Log("<--", "change password fail")
 					cc.SendCmd(&mt.ToCltChatMsg{
 						Type:      mt.SysMsg,
 						Text:      "Password change failed or unavailable.",
@@ -329,7 +329,7 @@ func handleClt(cc *clientConn) {
 					break
 				}
 
-				cc.log("-->", "change password")
+				cc.Log("-->", "change password")
 				cc.SendCmd(&mt.ToCltChatMsg{
 					Type:      mt.SysMsg,
 					Text:      "Password change successful.",
@@ -340,12 +340,12 @@ func handleClt(cc *clientConn) {
 			wantSudo := cc.state() == csActive
 
 			if cc.state() != csInit && cc.state() != csActive {
-				cc.log("-->", "unexpected authentication")
+				cc.Log("-->", "unexpected authentication")
 				break
 			}
 
 			if !wantSudo && cc.auth.method != mt.SRP {
-				cc.log("<--", "multiple authentication attempts")
+				cc.Log("<--", "multiple authentication attempts")
 				if wantSudo {
 					cc.SendCmd(&mt.ToCltDenySudoMode{})
 					break
@@ -362,7 +362,7 @@ func handleClt(cc *clientConn) {
 			}
 
 			if !cmd.NoSHA1 {
-				cc.log("<--", "unsupported SHA1 auth")
+				cc.Log("<--", "unsupported SHA1 auth")
 				break
 			}
 
@@ -370,7 +370,7 @@ func handleClt(cc *clientConn) {
 
 			salt, verifier, err := authIface.Passwd(cc.name)
 			if err != nil {
-				cc.log("<--", "SRP data retrieval fail")
+				cc.Log("<--", "SRP data retrieval fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
 
 				select {
@@ -386,7 +386,7 @@ func handleClt(cc *clientConn) {
 			cc.auth.srpA = cmd.A
 			cc.auth.srpB, _, cc.auth.srpK, err = srp.Handshake(cc.auth.srpA, verifier)
 			if err != nil || cc.auth.srpB == nil {
-				cc.log("<--", "SRP safety check fail")
+				cc.Log("<--", "SRP safety check fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
 
 				select {
@@ -406,12 +406,12 @@ func handleClt(cc *clientConn) {
 			wantSudo := cc.state() == csActive
 
 			if cc.state() != csInit && cc.state() != csActive {
-				cc.log("-->", "unexpected authentication")
+				cc.Log("-->", "unexpected authentication")
 				break
 			}
 
 			if cc.auth.method != mt.SRP {
-				cc.log("<--", "multiple authentication attempts")
+				cc.Log("<--", "multiple authentication attempts")
 				if wantSudo {
 					cc.SendCmd(&mt.ToCltDenySudoMode{})
 					break
@@ -442,18 +442,18 @@ func handleClt(cc *clientConn) {
 					cc.SendCmd(&mt.ToCltAcceptAuth{
 						PlayerPos:       mt.Pos{0, 5, 0},
 						MapSeed:         0,
-						SendInterval:    conf().SendInterval,
+						SendInterval:    Conf().SendInterval,
 						SudoAuthMethods: mt.SRP,
 					})
 				}
 			} else {
 				if wantSudo {
-					cc.log("<--", "invalid password (sudo)")
+					cc.Log("<--", "invalid password (sudo)")
 					cc.SendCmd(&mt.ToCltDenySudoMode{})
 					break
 				}
 
-				cc.log("<--", "invalid password")
+				cc.Log("<--", "invalid password")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.WrongPasswd})
 
 				select {
@@ -467,7 +467,7 @@ func handleClt(cc *clientConn) {
 		case *mt.ToSrvInit2:
 			cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.name)
 			if err != nil {
-				cc.log("<--", err.Error())
+				cc.Log("<--", err.Error())
 
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
@@ -502,28 +502,28 @@ func handleClt(cc *clientConn) {
 			cc.lang = cmd.Lang
 
 			var csmrf mt.CSMRestrictionFlags
-			if conf().CSMRF.NoCSMs {
+			if Conf().CSMRF.NoCSMs {
 				csmrf |= mt.NoCSMs
 			}
-			if !conf().CSMRF.ChatMsgs {
+			if !Conf().CSMRF.ChatMsgs {
 				csmrf |= mt.NoChatMsgs
 			}
-			if !conf().CSMRF.ItemDefs {
+			if !Conf().CSMRF.ItemDefs {
 				csmrf |= mt.NoItemDefs
 			}
-			if !conf().CSMRF.NodeDefs {
+			if !Conf().CSMRF.NodeDefs {
 				csmrf |= mt.NoNodeDefs
 			}
-			if !conf().CSMRF.NoLimitMapRange {
+			if !Conf().CSMRF.NoLimitMapRange {
 				csmrf |= mt.LimitMapRange
 			}
-			if !conf().CSMRF.PlayerList {
+			if !Conf().CSMRF.PlayerList {
 				csmrf |= mt.NoPlayerList
 			}
 
 			cc.SendCmd(&mt.ToCltCSMRestrictionFlags{
 				Flags:    csmrf,
-				MapRange: conf().MapRange,
+				MapRange: Conf().MapRange,
 			})
 		case *mt.ToSrvReqMedia:
 			cc.sendMedia(cmd.Filenames)
@@ -539,7 +539,7 @@ func handleClt(cc *clientConn) {
 			close(cc.initCh)
 		case *mt.ToSrvInteract:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 
@@ -550,32 +550,32 @@ func handleClt(cc *clientConn) {
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvChatMsg:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 
 			var handled bool
-			if strings.HasPrefix(cmd.Msg, conf().CmdPrefix) {
+			if strings.HasPrefix(cmd.Msg, Conf().CmdPrefix) {
 				substrs := strings.Split(cmd.Msg, " ")
-				cmdName := strings.Replace(substrs[0], conf().CmdPrefix, "", 1)
+				cmdName := strings.Replace(substrs[0], Conf().CmdPrefix, "", 1)
 
 				var args []string
 				if len(substrs) > 1 {
 					args = substrs[1:]
 				}
 
-				cc.log("-->", append([]string{"cmd", cmdName}, args...))
+				cc.Log("-->", append([]string{"cmd", cmdName}, args...))
 
 				pluginsMu.RLock()
 				for _, p := range plugins {
 					sym, err := p.Lookup("HandleChatCmd")
 					if err != nil {
-						cc.log("-->", err)
+						cc.Log("-->", err)
 						continue
 					}
 
-					if handler, ok := sym.(func(string, []string) bool); ok {
-						if handler(cmdName, args) {
+					if handler, ok := sym.(func(*ClientConn, string, ...string) bool); ok {
+						if handler(cc, cmdName, args...) {
 							handled = true
 							break
 						}
@@ -598,73 +598,73 @@ func handleClt(cc *clientConn) {
 			}
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvFallDmg:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvGotBlks:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvJoinModChan:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvLeaveModChan:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvMsgModChan:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvNodeMetaFields:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvPlayerPos:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvRespawn:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvInvAction:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvInvFields:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)
 		case *mt.ToSrvSelectItem:
 			if cc.server() == nil {
-				cc.log("-->", "no server")
+				cc.Log("-->", "no server")
 				break
 			}
 			cc.server().SendCmd(cmd)

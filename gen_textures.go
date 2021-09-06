@@ -23,7 +23,7 @@ func main() {
 	}
 	defer f.Close()
 
-	f.WriteString("package main\n")
+	f.WriteString("package proxy\n")
 	f.WriteString("\n")
 	f.WriteString("var defaultTextures = []mediaFile{\n")
 

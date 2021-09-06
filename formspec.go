@@ -1,11 +1,11 @@
-package main
+package proxy
 
 import (
 	"regexp"
 	"strings"
 )
 
-func (sc *serverConn) prependFormspec(fs *string) {
+func (sc *ServerConn) prependFormspec(fs *string) {
 	reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
 	reg2 := regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z-_.]+")
 	subs := reg.Split(*fs, -1)

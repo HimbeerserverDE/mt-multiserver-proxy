@@ -1,4 +1,4 @@
-package main
+package proxy
 
 var defaultTextures = []mediaFile{
 	mediaFile{

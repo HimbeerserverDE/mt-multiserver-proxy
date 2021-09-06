@@ -9,29 +9,30 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/HimbeerserverDE/mt-multiserver-proxy"
 	"github.com/anon55555/mt"
 )
 
 func main() {
-	if err := loadConfig(); err != nil {
+	if err := proxy.LoadConfig(); err != nil {
 		log.Fatal("{←|⇶} ", err)
 	}
 
-	if !conf().NoPlugins {
-		if err := loadPlugins(); err != nil {
+	if !proxy.Conf().NoPlugins {
+		if err := proxy.LoadPlugins(); err != nil {
 			log.Fatal("{←|⇶} ", err)
 		}
 	}
 
 	var err error
-	switch conf().AuthBackend {
+	switch proxy.Conf().AuthBackend {
 	case "sqlite3":
-		authIface = authSQLite3{}
+		proxy.SetAuthBackend(proxy.AuthSQLite3{})
 	default:
 		log.Fatal("{←|⇶} invalid auth backend")
 	}
 
-	addr, err := net.ResolveUDPAddr("udp", conf().BindAddr)
+	addr, err := net.ResolveUDPAddr("udp", proxy.Conf().BindAddr)
 	if err != nil {
 		log.Fatal("{←|⇶} ", err)
 	}
@@ -41,35 +42,29 @@ func main() {
 		log.Fatal("{←|⇶} ", err)
 	}
 
-	l := listen(pc)
-	defer l.close()
+	l := proxy.Listen(pc)
+	defer l.Close()
 
-	log.Print("{←|⇶} listen ", l.addr())
+	log.Print("{←|⇶} listen ", l.Addr())
 
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
 
-		l.mu.Lock()
-		defer l.mu.Unlock()
+		clts := l.Clts()
 
 		var wg sync.WaitGroup
-		wg.Add(len(l.clts))
+		wg.Add(len(clts))
 
-		for cc := range l.clts {
-			go func(cc *clientConn) {
+		for cc := range clts {
+			go func(cc *proxy.ClientConn) {
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
 				select {
 				case <-cc.Closed():
 				case <-ack:
 					cc.Close()
 				}
-
-				<-cc.server().Closed()
-				cc.mu.Lock()
-				cc.srv = nil
-				cc.mu.Unlock()
 
 				wg.Done()
 			}(cc)
@@ -80,7 +75,7 @@ func main() {
 	}()
 
 	for {
-		cc, err := l.accept()
+		cc, err := l.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				log.Print("{←|⇶} stop listening")
@@ -92,11 +87,11 @@ func main() {
 		}
 
 		go func() {
-			<-cc.init()
-			cc.log("<->", "handshake completed")
+			<-cc.Init()
+			cc.Log("<->", "handshake completed")
 
-			if len(conf().Servers) == 0 {
-				cc.log("<--", "no servers")
+			if len(proxy.Conf().Servers) == 0 {
+				cc.Log("<--", "no servers")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
 					Custom: "No servers are configured.",
@@ -110,9 +105,9 @@ func main() {
 				return
 			}
 
-			addr, err := net.ResolveUDPAddr("udp", conf().Servers[0].Addr)
+			addr, err := net.ResolveUDPAddr("udp", proxy.Conf().Servers[0].Addr)
 			if err != nil {
-				cc.log("<--", "address resolution fail")
+				cc.Log("<--", "address resolution fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
 					Custom: "Server address resolution failed.",
@@ -128,7 +123,7 @@ func main() {
 
 			conn, err := net.DialUDP("udp", nil, addr)
 			if err != nil {
-				cc.log("<--", "connection fail")
+				cc.Log("<--", "connection fail")
 
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{
 					Reason: mt.Custom,
@@ -144,7 +139,7 @@ func main() {
 				return
 			}
 
-			connect(conn, conf().Servers[0].Name, cc)
+			proxy.Connect(conn, proxy.Conf().Servers[0].Name, cc)
 		}()
 	}
 

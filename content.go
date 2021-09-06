@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"encoding/base64"
@@ -235,7 +235,7 @@ func handleContent(cc *contentConn) {
 	}
 }
 
-func (cc *clientConn) sendMedia(filenames []string) {
+func (cc *ClientConn) sendMedia(filenames []string) {
 	var bunches [][]struct {
 		Name string
 		Data []byte
@@ -274,7 +274,7 @@ func (cc *clientConn) sendMedia(filenames []string) {
 		}
 
 		if !known {
-			cc.log("-->", "request unknown media file")
+			cc.Log("-->", "request unknown media file")
 			continue
 		}
 	}
@@ -435,7 +435,7 @@ func muxMedia(conns []*contentConn) []mediaFile {
 
 func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, err error) {
 	var conns []*contentConn
-	for _, srv := range conf().Servers {
+	for _, srv := range Conf().Servers {
 		var addr *net.UDPAddr
 		addr, err = net.ResolveUDPAddr("udp", srv.Addr)
 		if err != nil {
@@ -464,7 +464,7 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 	return
 }
 
-func (sc *serverConn) globalParam0(p0 *mt.Content) {
+func (sc *ServerConn) globalParam0(p0 *mt.Content) {
 	clt := sc.client()
 	if clt != nil && clt.p0Map != nil {
 		if clt.p0Map[sc.name] != nil {
@@ -473,7 +473,7 @@ func (sc *serverConn) globalParam0(p0 *mt.Content) {
 	}
 }
 
-func (cc *clientConn) srvParam0(p0 *mt.Content) string {
+func (cc *ClientConn) srvParam0(p0 *mt.Content) string {
 	if cc.p0SrvMap != nil {
 		srv := cc.p0SrvMap[*p0]
 		*p0 = srv.param0
@@ -532,7 +532,7 @@ func prependTexture(prep string, t *mt.Texture) {
 	*t = mt.Texture(s)
 }
 
-func (sc *serverConn) prependInv(inv mt.Inv) {
+func (sc *ServerConn) prependInv(inv mt.Inv) {
 	for k, l := range inv {
 		for i := range l.Stacks {
 			prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
@@ -540,7 +540,7 @@ func (sc *serverConn) prependInv(inv mt.Inv) {
 	}
 }
 
-func (sc *serverConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
+func (sc *ServerConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
 	pa := func(cmd *mt.ToCltAddHUD) {
 		switch t {
 		case mt.StatbarHUD:

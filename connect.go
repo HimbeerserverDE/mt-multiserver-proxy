@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"net"
@@ -6,8 +6,16 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
-	sc := &serverConn{
+func Connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
+	cc.mu.RLock()
+	if cc.srv != nil {
+		cc.Log("<->", "already connected to server")
+		cc.mu.RUnlock()
+		return nil
+	}
+	cc.mu.RUnlock()
+
+	sc := &ServerConn{
 		Peer:             mt.Connect(conn),
 		initCh:           make(chan struct{}),
 		clt:              cc,
@@ -18,7 +26,7 @@ func connect(conn net.Conn, name string, cc *clientConn) *serverConn {
 		huds:             make(map[mt.HUDID]mt.HUDType),
 		playerList:       make(map[string]struct{}),
 	}
-	sc.log("-->", "connect")
+	sc.Log("-->", "connect")
 
 	cc.mu.Lock()
 	cc.srv = sc

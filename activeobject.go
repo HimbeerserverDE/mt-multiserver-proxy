@@ -1,8 +1,8 @@
-package main
+package proxy
 
 import "github.com/anon55555/mt"
 
-func (sc *serverConn) swapAOID(ao *mt.AOID) {
+func (sc *ServerConn) swapAOID(ao *mt.AOID) {
 	if sc.client() != nil {
 		if *ao == sc.client().playerCAO {
 			*ao = sc.client().currentCAO
@@ -12,7 +12,7 @@ func (sc *serverConn) swapAOID(ao *mt.AOID) {
 	}
 }
 
-func (sc *serverConn) handleAOMsg(aoMsg mt.AOMsg) {
+func (sc *ServerConn) handleAOMsg(aoMsg mt.AOMsg) {
 	switch msg := aoMsg.(type) {
 	case *mt.AOCmdAttach:
 		sc.swapAOID(&msg.Attach.ParentID)

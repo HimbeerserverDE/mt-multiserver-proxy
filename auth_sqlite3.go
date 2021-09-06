@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"database/sql"
@@ -9,11 +9,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type authSQLite3 struct {
+type AuthSQLite3 struct {
 	db *sql.DB
 }
 
-func (a authSQLite3) Exists(name string) bool {
+func (a AuthSQLite3) Exists(name string) bool {
 	if err := a.init(); err != nil {
 		return false
 	}
@@ -24,7 +24,7 @@ func (a authSQLite3) Exists(name string) bool {
 	return err == nil
 }
 
-func (a authSQLite3) Passwd(name string) (salt, verifier []byte, err error) {
+func (a AuthSQLite3) Passwd(name string) (salt, verifier []byte, err error) {
 	if err = a.init(); err != nil {
 		return
 	}
@@ -35,7 +35,7 @@ func (a authSQLite3) Passwd(name string) (salt, verifier []byte, err error) {
 	return
 }
 
-func (a authSQLite3) SetPasswd(name string, salt, verifier []byte) error {
+func (a AuthSQLite3) SetPasswd(name string, salt, verifier []byte) error {
 	if err := a.init(); err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (a authSQLite3) SetPasswd(name string, salt, verifier []byte) error {
 	return nil
 }
 
-func (a authSQLite3) Timestamp(name string) (time.Time, error) {
+func (a AuthSQLite3) Timestamp(name string) (time.Time, error) {
 	if err := a.init(); err != nil {
 		return time.Time{}, err
 	}
@@ -65,7 +65,7 @@ func (a authSQLite3) Timestamp(name string) (time.Time, error) {
 	return time.Parse("2006-01-02 15:04:05", tstr)
 }
 
-func (a authSQLite3) Import(in []user) {
+func (a AuthSQLite3) Import(in []user) {
 	if err := a.init(); err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func (a authSQLite3) Import(in []user) {
 	}
 }
 
-func (a authSQLite3) Export() ([]user, error) {
+func (a AuthSQLite3) Export() ([]user, error) {
 	if err := a.init(); err != nil {
 		return nil, err
 	}
@@ -119,11 +119,11 @@ func (a authSQLite3) Export() ([]user, error) {
 	return out, nil
 }
 
-func (a authSQLite3) updateTimestamp(name string) {
+func (a AuthSQLite3) updateTimestamp(name string) {
 	a.db.Exec(`UPDATE user SET timestamp = datetime("now") WHERE name = ?;`, name)
 }
 
-func (a *authSQLite3) init() error {
+func (a *AuthSQLite3) init() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return err
@@ -148,6 +148,6 @@ func (a *authSQLite3) init() error {
 	return nil
 }
 
-func (a authSQLite3) close() error {
+func (a AuthSQLite3) close() error {
 	return a.db.Close()
 }
