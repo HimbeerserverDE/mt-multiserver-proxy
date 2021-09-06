@@ -8,13 +8,17 @@ import (
 	"sync"
 )
 
-var plugins []*plugin.Plugin
-var pluginsMu sync.RWMutex
+var plugins map[*plugin.Plugin]struct{}
+var pluginsOnce sync.Once
 
-func LoadPlugins() error {
+func LoadPlugins() {
+	pluginsOnce.Do(loadPlugins)
+}
+
+func loadPlugins() {
 	executable, err := os.Executable()
 	if err != nil {
-		return err
+		log.Fatal("{←|⇶} ", err)
 	}
 
 	path := filepath.Dir(executable) + "/plugins"
@@ -22,14 +26,10 @@ func LoadPlugins() error {
 
 	dir, err := os.ReadDir(path)
 	if err != nil {
-		return err
+		log.Fatal("{←|⇶} ", err)
 	}
 
-	pluginsMu.Lock()
-	defer pluginsMu.Unlock()
-
-	plugins = []*plugin.Plugin{}
-
+	plugins = make(map[*plugin.Plugin]struct{})
 	for _, file := range dir {
 		p, err := plugin.Open(path + "/" + file.Name())
 		if err != nil {
@@ -37,9 +37,8 @@ func LoadPlugins() error {
 			continue
 		}
 
-		plugins = append(plugins, p)
+		plugins[p] = struct{}{}
 	}
 
 	log.Print("{←|⇶} load plugins")
-	return nil
 }

@@ -566,8 +566,7 @@ func handleClt(cc *ClientConn) {
 
 				cc.Log("-->", append([]string{"cmd", cmdName}, args...))
 
-				pluginsMu.RLock()
-				for _, p := range plugins {
+				for p := range plugins {
 					sym, err := p.Lookup("HandleChatCmd")
 					if err != nil {
 						cc.Log("-->", err)
@@ -581,7 +580,6 @@ func handleClt(cc *ClientConn) {
 						}
 					}
 				}
-				pluginsMu.RUnlock()
 
 				if !handled {
 					cc.SendCmd(&mt.ToCltChatMsg{

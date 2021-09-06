@@ -10,7 +10,7 @@ import (
 
 type Listener struct {
 	mt.Listener
-	mu         sync.RWMutex
+	mu sync.RWMutex
 
 	clts map[*ClientConn]struct{}
 }
@@ -18,7 +18,7 @@ type Listener struct {
 func Listen(pc net.PacketConn) *Listener {
 	return &Listener{
 		Listener: mt.Listen(pc),
-		clts:       make(map[*ClientConn]struct{}),
+		clts:     make(map[*ClientConn]struct{}),
 	}
 }
 

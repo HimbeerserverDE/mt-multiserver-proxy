@@ -19,9 +19,7 @@ func main() {
 	}
 
 	if !proxy.Conf().NoPlugins {
-		if err := proxy.LoadPlugins(); err != nil {
-			log.Fatal("{←|⇶} ", err)
-		}
+		proxy.LoadPlugins()
 	}
 
 	var err error
