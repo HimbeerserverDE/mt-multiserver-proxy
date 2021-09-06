@@ -8,7 +8,6 @@ import (
 	"sync"
 )
 
-var plugins map[*plugin.Plugin]struct{}
 var pluginsOnce sync.Once
 
 func LoadPlugins() {
@@ -29,15 +28,12 @@ func loadPlugins() {
 		log.Fatal("{←|⇶} ", err)
 	}
 
-	plugins = make(map[*plugin.Plugin]struct{})
 	for _, file := range dir {
-		p, err := plugin.Open(path + "/" + file.Name())
+		_, err := plugin.Open(path + "/" + file.Name())
 		if err != nil {
 			log.Print("{←|⇶} ", err)
 			continue
 		}
-
-		plugins[p] = struct{}{}
 	}
 
 	log.Print("{←|⇶} load plugins")
