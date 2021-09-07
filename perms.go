@@ -7,7 +7,11 @@ func (cc *ClientConn) Perms() []string {
 		return []string{}
 	}
 
-	grp := Conf().UserGroups[cc.name]
+	grp, ok := Conf().UserGroups[cc.name]
+	if !ok {
+		grp = "default"
+	}
+
 	if perms, ok := Conf().Groups[grp]; ok {
 		return perms
 	}

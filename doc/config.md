@@ -160,6 +160,6 @@ Description: This sets the group of a user.
 > `UserGroups[k]`
 ```
 Type: string
-Default: ""
+Default: "default"
 Description: The group of the user.
 ```
