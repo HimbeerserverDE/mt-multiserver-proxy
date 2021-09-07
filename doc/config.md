@@ -12,6 +12,13 @@ Default: false
 Description: Plugins are not loaded if this is true.
 ```
 
+> `CmdPrefix`
+```
+Type: string
+Default: ">"
+Description: A chat message is handled as a chat command if it is prefixed by this.
+```
+
 > `RequirePasswd`
 ```
 Type: bool
@@ -36,8 +43,8 @@ Description: The maximum number of players that can be connected to the proxy at
 > `AuthBackend`
 ```
 Type: string
-Default: sqlite3
-Values: sqlite3
+Default: "sqlite3"
+Values: "sqlite3"
 Description: The authentication backend to use. Only SQLite3 is available at the moment.
 ```
 
@@ -127,4 +134,32 @@ Description: CSMs can access the player list.
 Type: uint32
 Default: 0
 Description: The maximum distance from which CSMs can read the map.
+```
+
+> `Groups`
+```
+Type: map[string][]string
+Default: map[string][]string{}
+Description: The list of permission groups.
+```
+
+> `Groups[k]`
+```
+Type: []string
+Default: []string{}
+Description: The list of permissions the group has.
+```
+
+> `UserGroups`
+```
+Type: map[string]string
+Default: map[string]string{}
+Description: This sets the group of a user.
+```
+
+> `UserGroups[k]`
+```
+Type: string
+Default: ""
+Description: The group of the user.
 ```

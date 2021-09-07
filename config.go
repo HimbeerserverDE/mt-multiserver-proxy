@@ -43,7 +43,9 @@ type Config struct {
 		NoLimitMapRange bool
 		PlayerList      bool
 	}
-	MapRange uint32
+	MapRange   uint32
+	Groups     map[string][]string
+	UserGroups map[string]string
 }
 
 func Conf() Config {
@@ -64,6 +66,8 @@ func LoadConfig() error {
 	config.UserLimit = defaultUserLimit
 	config.AuthBackend = defaultAuthBackend
 	config.BindAddr = defaultBindAddr
+	config.Groups = make(map[string][]string)
+	config.UserGroups = make(map[string]string)
 
 	executable, err := os.Executable()
 	if err != nil {
