@@ -42,7 +42,7 @@ func RegisterChatCmd(cmd ChatCmd) bool {
 	return true
 }
 
-func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
+func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 	initChatCmds()
 
 	if strings.HasPrefix(cmd.Msg, Conf().CmdPrefix) {
@@ -66,7 +66,7 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 
 		if !ChatCmdExists(cmdName) {
 			cc.Log("<--", "unknown command", cmdName)
-			return "Command not found."
+			return "Command not found.", true
 		}
 
 		chatCmdsMu.RLock()
@@ -76,13 +76,13 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 
 		if !cc.HasPerms(cmd.Perm) {
 			cc.Log("<--", "deny command", cmdName)
-			return fmt.Sprintf("Missing permission %s.", cmd.Perm)
+			return fmt.Sprintf("Missing permission %s.", cmd.Perm), true
 		}
 
-		return cmd.Handler(cc, args...)
+		return cmd.Handler(cc, args...), true
 	}
 
-	return ""
+	return "", false
 }
 
 func initChatCmds() {

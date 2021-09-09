@@ -563,15 +563,15 @@ func handleClt(cc *ClientConn) {
 				break
 			}
 
-			result := onChatMsg(cc, cmd)
-			if result != "" {
+			result, isCmd := onChatMsg(cc, cmd)
+			if !isCmd {
+				cc.server().SendCmd(cmd)
+			} else if result != "" {
 				cc.SendCmd(&mt.ToCltChatMsg{
 					Type:      mt.SysMsg,
 					Text:      result,
 					Timestamp: time.Now().Unix(),
 				})
-			} else {
-				cc.server().SendCmd(cmd)
 			}
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {
