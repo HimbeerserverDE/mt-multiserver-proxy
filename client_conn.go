@@ -61,6 +61,8 @@ type ClientConn struct {
 	modChs map[string]struct{}
 }
 
+func (cc *ClientConn) Name() string { return cc.name }
+
 func (cc *ClientConn) server() *ServerConn {
 	cc.mu.RLock()
 	defer cc.mu.RUnlock()
