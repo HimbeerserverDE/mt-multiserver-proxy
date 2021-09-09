@@ -28,3 +28,13 @@ func Clts() map[*ClientConn]struct{} {
 
 	return clts
 }
+
+func Find(name string) *ClientConn {
+	for clt := range Clts() {
+		if clt.Name() == name {
+			return clt
+		}
+	}
+
+	return nil
+}
