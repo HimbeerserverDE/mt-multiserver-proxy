@@ -68,6 +68,15 @@ func (cc *ClientConn) server() *ServerConn {
 	return cc.srv
 }
 
+func (cc *ClientConn) ServerName() string {
+	srv := cc.server()
+	if srv != nil {
+		return srv.name
+	}
+
+	return ""
+}
+
 func (cc *ClientConn) state() clientState {
 	cc.cstateMu.RLock()
 	defer cc.cstateMu.RUnlock()
