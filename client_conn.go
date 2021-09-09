@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
@@ -332,20 +331,12 @@ func handleClt(cc *ClientConn) {
 				cc.setState(cc.state() - 1)
 				if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 					cc.Log("<--", "change password fail")
-					cc.SendCmd(&mt.ToCltChatMsg{
-						Type:      mt.SysMsg,
-						Text:      "Password change failed or unavailable.",
-						Timestamp: time.Now().Unix(),
-					})
+					cc.SendChatMsg("Password change failed or unavailable.")
 					break
 				}
 
 				cc.Log("-->", "change password")
-				cc.SendCmd(&mt.ToCltChatMsg{
-					Type:      mt.SysMsg,
-					Text:      "Password change successful.",
-					Timestamp: time.Now().Unix(),
-				})
+				cc.SendChatMsg("Password change successful.")
 			}
 		case *mt.ToSrvSRPBytesA:
 			wantSudo := cc.state() == csActive
@@ -569,11 +560,7 @@ func handleClt(cc *ClientConn) {
 			if !isCmd {
 				cc.server().SendCmd(cmd)
 			} else if result != "" {
-				cc.SendCmd(&mt.ToCltChatMsg{
-					Type:      mt.SysMsg,
-					Text:      result,
-					Timestamp: time.Now().Unix(),
-				})
+				cc.SendChatMsg(result)
 			}
 		case *mt.ToSrvDeletedBlks:
 			if cc.server() == nil {
