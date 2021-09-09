@@ -71,7 +71,7 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 		chatCmdsMu.RLock()
 		defer chatCmdsMu.RUnlock()
 
-		return chatCmds[cmdName](cc, args...)
+		return chatCmds[cmdName].Handler(cc, args...)
 	}
 
 	return ""

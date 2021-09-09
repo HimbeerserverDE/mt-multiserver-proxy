@@ -10,11 +10,11 @@ import (
 
 var pluginsOnce sync.Once
 
-func LoadPlugins() {
-	pluginsOnce.Do(loadPlugins)
+func loadPlugins() {
+	pluginsOnce.Do(openPlugins)
 }
 
-func loadPlugins() {
+func openPlugins() {
 	executable, err := os.Executable()
 	if err != nil {
 		log.Fatal("{←|⇶} ", err)
