@@ -8,10 +8,10 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func (cc *ClientConn) SendChatMsg(msg string) {
+func (cc *ClientConn) SendChatMsg(msg ...string) {
 	cc.SendCmd(&mt.ToCltChatMsg{
 		Type:      mt.SysMsg,
-		Text:      msg,
+		Text:      strings.Join(msg, " "),
 		Timestamp: time.Now().Unix(),
 	})
 }
