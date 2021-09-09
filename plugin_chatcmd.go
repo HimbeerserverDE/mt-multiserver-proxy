@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -9,7 +10,7 @@ import (
 
 type ChatCmd struct {
 	Name    string
-	Perms   []string
+	Perm    string
 	Handler func(*ClientConn, ...string) string
 }
 
@@ -71,7 +72,14 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) string {
 		chatCmdsMu.RLock()
 		defer chatCmdsMu.RUnlock()
 
-		return chatCmds[cmdName].Handler(cc, args...)
+		cmd := chatCmds[cmdName]
+
+		if !cc.HasPerms(cmd.Perm) {
+			cc.Log("<--", "deny command", cmdName)
+			return fmt.Sprintf("Missing permission %s.", cmd.Perm)
+		}
+
+		return cmd.Handler(cc, args...)
 	}
 
 	return ""
