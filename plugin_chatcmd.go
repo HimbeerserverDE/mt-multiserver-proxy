@@ -7,7 +7,11 @@ import (
 	"github.com/anon55555/mt"
 )
 
-type ChatCmd func(*ClientConn, ...string) string
+type ChatCmd struct {
+	Name    string
+	Perms   []string
+	Handler func(*ClientConn, ...string) string
+}
 
 var chatCmds map[string]ChatCmd
 var chatCmdsMu sync.RWMutex
@@ -23,17 +27,17 @@ func ChatCmdExists(name string) bool {
 	return ok
 }
 
-func RegisterChatCmd(name string, cmd ChatCmd) bool {
+func RegisterChatCmd(cmd ChatCmd) bool {
 	initChatCmds()
 
-	if ChatCmdExists(name) {
+	if ChatCmdExists(cmd.Name) {
 		return false
 	}
 
 	chatCmdsMu.Lock()
 	defer chatCmdsMu.Unlock()
 
-	chatCmds[name] = cmd
+	chatCmds[cmd.Name] = cmd
 	return true
 }
 
