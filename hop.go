@@ -8,7 +8,7 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func (cc *ClientConn) hop(serverName string) error {
+func (cc *ClientConn) Hop(serverName string) error {
 	cc.hopMu.Lock()
 	defer cc.hopMu.Unlock()
 
