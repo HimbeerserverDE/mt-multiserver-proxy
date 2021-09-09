@@ -3,11 +3,11 @@ package proxy
 import ()
 
 func (cc *ClientConn) Perms() []string {
-	if cc.name == "" {
+	if cc.Name() == "" {
 		return []string{}
 	}
 
-	grp, ok := Conf().UserGroups[cc.name]
+	grp, ok := Conf().UserGroups[cc.Name()]
 	if !ok {
 		grp = "default"
 	}

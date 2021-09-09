@@ -101,7 +101,7 @@ func handleSrv(sc *ServerConn) {
 				SerializeVer: latestSerializeVer,
 				MinProtoVer:  latestProtoVer,
 				MaxProtoVer:  latestProtoVer,
-				PlayerName:   sc.client().name,
+				PlayerName:   sc.client().Name(),
 			})
 			time.Sleep(500 * time.Millisecond)
 		}

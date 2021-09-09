@@ -61,7 +61,7 @@ type ClientConn struct {
 	modChs map[string]struct{}
 }
 
-func (cc *ClientConn) Name() string { return cc.name }
+func (cc *ClientConn) Name() string { return cc.Name() }
 
 func (cc *ClientConn) server() *ServerConn {
 	cc.mu.RLock()
@@ -96,12 +96,12 @@ func (cc *ClientConn) setState(state clientState) {
 func (cc *ClientConn) Init() <-chan struct{} { return cc.initCh }
 
 func (cc *ClientConn) Log(dir string, v ...interface{}) {
-	if cc.name != "" {
+	if cc.Name() != "" {
 		format := "{%s, %s} %s {←|⇶}"
 		format += strings.Repeat(" %v", len(v))
 
 		log.Printf(format, append([]interface{}{
-			cc.name,
+			cc.Name(),
 			cc.RemoteAddr(),
 			dir,
 		}, v...)...)
@@ -124,9 +124,9 @@ func handleClt(cc *ClientConn) {
 					cc.Log("<->", "disconnect")
 				}
 
-				if cc.name != "" {
+				if cc.Name() != "" {
 					playersMu.Lock()
-					delete(players, cc.name)
+					delete(players, cc.Name())
 					playersMu.Unlock()
 				}
 
@@ -212,7 +212,7 @@ func handleClt(cc *ClientConn) {
 			cc.name = cmd.PlayerName
 
 			playersMu.Lock()
-			_, ok := players[cc.name]
+			_, ok := players[cc.Name()]
 			if ok {
 				cc.Log("<--", "already connected")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.AlreadyConnected})
@@ -227,10 +227,10 @@ func handleClt(cc *ClientConn) {
 				break
 			}
 
-			players[cc.name] = struct{}{}
+			players[cc.Name()] = struct{}{}
 			playersMu.Unlock()
 
-			if cc.name == "singleplayer" {
+			if cc.Name() == "singleplayer" {
 				cc.Log("<--", "name is singleplayer")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
 
@@ -258,7 +258,7 @@ func handleClt(cc *ClientConn) {
 			}
 
 			// reply
-			if authIface.Exists(cc.name) {
+			if authIface.Exists(cc.Name()) {
 				cc.auth.method = mt.SRP
 			} else {
 				cc.auth.method = mt.FirstSRP
@@ -268,7 +268,7 @@ func handleClt(cc *ClientConn) {
 				SerializeVer: latestSerializeVer,
 				ProtoVer:     latestProtoVer,
 				AuthMethods:  cc.auth.method,
-				Username:     cc.name,
+				Username:     cc.Name(),
 			})
 		case *mt.ToSrvFirstSRP:
 			if cc.state() == csInit {
@@ -303,7 +303,7 @@ func handleClt(cc *ClientConn) {
 					break
 				}
 
-				if err := authIface.SetPasswd(cc.name, cmd.Salt, cmd.Verifier); err != nil {
+				if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 					cc.Log("<--", "set password fail")
 					ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
 
@@ -330,7 +330,7 @@ func handleClt(cc *ClientConn) {
 				}
 
 				cc.setState(cc.state() - 1)
-				if err := authIface.SetPasswd(cc.name, cmd.Salt, cmd.Verifier); err != nil {
+				if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 					cc.Log("<--", "change password fail")
 					cc.SendCmd(&mt.ToCltChatMsg{
 						Type:      mt.SysMsg,
@@ -379,7 +379,7 @@ func handleClt(cc *ClientConn) {
 
 			cc.auth.method = mt.SRP
 
-			salt, verifier, err := authIface.Passwd(cc.name)
+			salt, verifier, err := authIface.Passwd(cc.Name())
 			if err != nil {
 				cc.Log("<--", "SRP data retrieval fail")
 				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
@@ -439,7 +439,7 @@ func handleClt(cc *ClientConn) {
 				break
 			}
 
-			M := srp.ClientProof([]byte(cc.name), cc.auth.salt, cc.auth.srpA, cc.auth.srpB, cc.auth.srpK)
+			M := srp.ClientProof([]byte(cc.Name()), cc.auth.salt, cc.auth.srpA, cc.auth.srpB, cc.auth.srpK)
 			if subtle.ConstantTimeCompare(cmd.M, M) == 1 {
 				cc.auth = struct {
 					method                       mt.AuthMethods
@@ -476,7 +476,7 @@ func handleClt(cc *ClientConn) {
 				break
 			}
 		case *mt.ToSrvInit2:
-			cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.name)
+			cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.Name())
 			if err != nil {
 				cc.Log("<--", err.Error())
 
