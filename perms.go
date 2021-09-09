@@ -18,3 +18,18 @@ func (cc *ClientConn) Perms() []string {
 
 	return []string{}
 }
+
+func (cc *ClientConn) HasPerms(want ...string) bool {
+	has := make(map[string]struct{})
+	for _, perm := range cc.Perms() {
+		has[perm] = struct{}{}
+	}
+
+	for _, perm := range want {
+		if _, ok := has[perm]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
