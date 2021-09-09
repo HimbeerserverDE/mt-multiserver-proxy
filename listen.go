@@ -8,6 +8,23 @@ import (
 	"github.com/anon55555/mt"
 )
 
+var listeners map[*Listener]struct{}
+var listenersMu sync.RWMutex
+var listenersOnce sync.Once
+
+func Listeners() map[*Listener]struct{} {
+	lm := make(map[*Listener]struct{})
+
+	listenersMu.RLock()
+	defer listenersMu.RUnlock()
+
+	for l := range listeners {
+		lm[l] = struct{}{}
+	}
+
+	return lm
+}
+
 type Listener struct {
 	mt.Listener
 	mu sync.RWMutex
@@ -16,10 +33,20 @@ type Listener struct {
 }
 
 func Listen(pc net.PacketConn) *Listener {
-	return &Listener{
+	l := &Listener{
 		Listener: mt.Listen(pc),
 		clts:     make(map[*ClientConn]struct{}),
 	}
+
+	listenersMu.Lock()
+	defer listenersMu.Unlock()
+
+	listenersOnce.Do(func() {
+		listeners = make(map[*Listener]struct{})
+	})
+
+	listeners[l] = struct{}{}
+	return l
 }
 
 func (l *Listener) Clts() map[*ClientConn]struct{} {
