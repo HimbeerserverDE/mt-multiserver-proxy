@@ -8,12 +8,12 @@ import (
 	"github.com/anon55555/mt"
 )
 
-var listeners map[*Listener]struct{}
+var listeners map[*listener]struct{}
 var listenersMu sync.RWMutex
 var listenersOnce sync.Once
 
-func Listeners() map[*Listener]struct{} {
-	lm := make(map[*Listener]struct{})
+func allListeners() map[*listener]struct{} {
+	lm := make(map[*listener]struct{})
 
 	listenersMu.RLock()
 	defer listenersMu.RUnlock()
@@ -25,15 +25,15 @@ func Listeners() map[*Listener]struct{} {
 	return lm
 }
 
-type Listener struct {
+type listener struct {
 	mt.Listener
 	mu sync.RWMutex
 
 	clts map[*ClientConn]struct{}
 }
 
-func Listen(pc net.PacketConn) *Listener {
-	l := &Listener{
+func Listen(pc net.PacketConn) *listener {
+	l := &listener{
 		Listener: mt.Listen(pc),
 		clts:     make(map[*ClientConn]struct{}),
 	}
@@ -42,14 +42,14 @@ func Listen(pc net.PacketConn) *Listener {
 	defer listenersMu.Unlock()
 
 	listenersOnce.Do(func() {
-		listeners = make(map[*Listener]struct{})
+		listeners = make(map[*listener]struct{})
 	})
 
 	listeners[l] = struct{}{}
 	return l
 }
 
-func (l *Listener) Clts() map[*ClientConn]struct{} {
+func (l *listener) Clts() map[*ClientConn]struct{} {
 	clts := make(map[*ClientConn]struct{})
 
 	l.mu.RLock()
@@ -62,7 +62,7 @@ func (l *Listener) Clts() map[*ClientConn]struct{} {
 	return clts
 }
 
-func (l *Listener) Accept() (*ClientConn, error) {
+func (l *listener) Accept() (*ClientConn, error) {
 	p, err := l.Listener.Accept()
 	if err != nil {
 		return nil, err

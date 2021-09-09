@@ -16,3 +16,15 @@ func Players() map[string]struct{} {
 
 	return p
 }
+
+func Clts() map[*ClientConn]struct{} {
+	clts := make(map[*ClientConn]struct{})
+	lm := allListeners()
+	for l := range lm {
+		for clt := range l.Clts() {
+			clts[clt] = struct{}{}
+		}
+	}
+
+	return clts
+}
