@@ -56,7 +56,10 @@ func Run() {
 
 		for cc := range clts {
 			go func(cc *ClientConn) {
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.Shutdown})
+				ack, _ := cc.SendCmd(&mt.ToCltDisco{
+					Reason: mt.Custom,
+					Custom: "Proxy shutting down.",
+				})
 				select {
 				case <-cc.Closed():
 				case <-ack:
