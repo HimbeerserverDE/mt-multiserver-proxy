@@ -1,6 +1,8 @@
 # mt-multiserver-proxy
 mt-multiserver-proxy is a reverse proxy designed for linking
 multiple Minetest servers together. It is the successor to multiserver.
+# mt
+This project was made possible by [anon55555's mt module](https://github.com/anon55555/mt).
 ## Installation
 Go 1.17 or higher is required. Run
 
@@ -25,4 +27,4 @@ they have timed out.
 The configuration file name and format are described in [doc/config.md](doc/config.md)
 **All internal servers need to allow empty passwords and must not be reachable from the internet!**
 ## Chat commands
-The default chat commands can be installed as a (plugin)[https://github.com/HimbeerserverDE/mt-multiserver-chatcommands].
+The default chat commands can be installed as a [plugin](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands).
