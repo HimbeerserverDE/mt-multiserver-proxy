@@ -345,8 +345,10 @@ func handleSrv(sc *ServerConn) {
 
 			clt.SendCmd(resp)
 		case *mt.ToCltCSMRestrictionFlags:
-			cmd.Flags &= ^mt.NoCSMs
-			clt.SendCmd(cmd)
+			if !Conf().DropCSMRF {
+				cmd.Flags &= ^mt.NoCSMs
+				clt.SendCmd(cmd)
+			}
 		case *mt.ToCltDetachedInv:
 			var inv mt.Inv
 			inv.Deserialize(strings.NewReader(cmd.Inv))

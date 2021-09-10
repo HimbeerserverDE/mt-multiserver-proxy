@@ -136,6 +136,13 @@ Default: 0
 Description: The maximum distance from which CSMs can read the map.
 ```
 
+> `DropCSMRF`
+```
+Type: bool
+Default: false
+Description: Servers cannot override CSM Restriction Flags if this is true.
+```
+
 > `Groups`
 ```
 Type: map[string][]string

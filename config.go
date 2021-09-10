@@ -40,6 +40,7 @@ type Config struct {
 		PlayerList      bool
 	}
 	MapRange   uint32
+	DropCSMRF  bool
 	Groups     map[string][]string
 	UserGroups map[string]string
 }

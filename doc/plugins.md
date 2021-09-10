@@ -18,6 +18,7 @@ github.com/HimbeerserverDE/mt-multiserver-proxy
 ```
 and use the exported symbols to control the behavior of the proxy.
 The API is documented [here](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy).
+**The plugin API may change at any time without warning.**
 ## Common issues
 If mt-multiserver-proxy prints an error like this:
 ```
