@@ -12,13 +12,23 @@ var chatCmds map[string]ChatCmd
 var chatCmdsMu sync.RWMutex
 var chatCmdsOnce sync.Once
 
-func ChatCmdExists(name string) bool {
+func ChatCmds() map[string]ChatCmd {
 	initChatCmds()
 
 	chatCmdsMu.RLock()
 	defer chatCmdsMu.RUnlock()
 
-	_, ok := chatCmds[name]
+	cmds := make(map[string]ChatCmd)
+	for name, cmd := range chatCmds {
+		cmds[name] = cmd
+	}
+
+	return cmds
+}
+
+func ChatCmdExists(name string) bool {
+	cmds := ChatCmds()
+	_, ok := cmds[name]
 	return ok
 }
 
