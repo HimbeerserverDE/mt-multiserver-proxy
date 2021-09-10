@@ -4,10 +4,12 @@ multiple Minetest servers together. It is the successor to multiserver.
 ## Installation
 Go 1.17 or higher is required. Run
 
-`go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver/proxy`
+`go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver/proxy@latest`
 
 to download and compile the project. A mt-multiserver-proxy executable
-will be created in your $GOBIN directory.
+will be created in your $GOBIN directory. The same command is also
+used to upgrade to the latest version. You will need to recompile
+all plugins after upgrading.
 ## Usage
 ### Starting
 Run `$GOBIN/mt-multiserver-proxy`. The configuration file and other required
@@ -22,3 +24,5 @@ they have timed out.
 ## Configuration
 The configuration file name and format are described in [doc/config.md](doc/config.md)
 **All internal servers need to allow empty passwords and must not be reachable from the internet!**
+## Chat commands
+The default chat commands can be installed as a (plugin)[https://github.com/HimbeerserverDE/mt-multiserver-chatcommands].
