@@ -1,7 +1,7 @@
 # mt-multiserver-proxy
 mt-multiserver-proxy is a reverse proxy designed for linking
 multiple Minetest servers together. It is the successor to multiserver.
-# mt
+## mt
 This project was made possible by [anon55555's mt module](https://github.com/anon55555/mt).
 ## Installation
 Go 1.17 or higher is required. Run
