@@ -16,6 +16,10 @@ func (cc *ClientConn) SendChatMsg(msg ...string) {
 	})
 }
 
+func Colorize(text, color string) string {
+	return string(0x1b) + "(c@" + color + ")" + text + string(0x1b) + "(c@#FFF)"
+}
+
 func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 	initChatCmds()
 
