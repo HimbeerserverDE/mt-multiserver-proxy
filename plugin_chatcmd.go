@@ -5,6 +5,8 @@ import "sync"
 type ChatCmd struct {
 	Name    string
 	Perm    string
+	Help    string
+	Usage   string
 	Handler func(*ClientConn, ...string) string
 }
 
