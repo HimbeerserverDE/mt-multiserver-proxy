@@ -2,6 +2,7 @@ package proxy
 
 import "sync"
 
+// A ChatCmd holds information on how to handle a chat command.
 type ChatCmd struct {
 	Name    string
 	Perm    string
@@ -14,6 +15,7 @@ var chatCmds map[string]ChatCmd
 var chatCmdsMu sync.RWMutex
 var chatCmdsOnce sync.Once
 
+// ChatCmds returns a map of all ChatCmds indexed by their names.
 func ChatCmds() map[string]ChatCmd {
 	initChatCmds()
 
@@ -28,12 +30,14 @@ func ChatCmds() map[string]ChatCmd {
 	return cmds
 }
 
+// ChatCmdExists reports if a ChatCmd exists.
 func ChatCmdExists(name string) bool {
-	cmds := ChatCmds()
-	_, ok := cmds[name]
+	_, ok := ChatCmds()[name]
 	return ok
 }
 
+// RegisterChatCmd adds a new ChatCmd. It returns true on success
+// and false if a command with the same name already exists.
 func RegisterChatCmd(cmd ChatCmd) bool {
 	initChatCmds()
 

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var authIface AuthBackend
+var authIface authBackend
 var ErrAuthBackendExists = errors.New("auth backend already set")
 
 type user struct {
@@ -15,7 +15,7 @@ type user struct {
 	timestamp time.Time
 }
 
-type AuthBackend interface {
+type authBackend interface {
 	Exists(name string) bool
 	Passwd(name string) (salt, verifier []byte, err error)
 	SetPasswd(name string, salt, verifier []byte) error
@@ -24,7 +24,7 @@ type AuthBackend interface {
 	Export() ([]user, error)
 }
 
-func SetAuthBackend(ab AuthBackend) error {
+func setAuthBackend(ab authBackend) error {
 	if authIface != nil {
 		return ErrAuthBackendExists
 	}

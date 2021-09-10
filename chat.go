@@ -8,6 +8,7 @@ import (
 	"github.com/anon55555/mt"
 )
 
+// SendChatMsg sends a chat message to the ClientConn.
 func (cc *ClientConn) SendChatMsg(msg ...string) {
 	cc.SendCmd(&mt.ToCltChatMsg{
 		Type:      mt.SysMsg,
@@ -16,6 +17,7 @@ func (cc *ClientConn) SendChatMsg(msg ...string) {
 	})
 }
 
+// Colorize returns the minetest-colorized version of the input.
 func Colorize(text, color string) string {
 	return string(0x1b) + "(c@" + color + ")" + text + string(0x1b) + "(c@#FFF)"
 }

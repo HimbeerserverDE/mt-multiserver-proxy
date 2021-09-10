@@ -6,7 +6,7 @@ import (
 	"github.com/anon55555/mt"
 )
 
-func Connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
+func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	cc.mu.RLock()
 	if cc.srv != nil {
 		cc.Log("<->", "already connected to server")

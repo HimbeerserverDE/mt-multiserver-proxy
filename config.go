@@ -8,12 +8,6 @@ import (
 	"sync"
 )
 
-const latestSerializeVer = 28
-const latestProtoVer = 39
-const maxPlayerNameLen = 20
-const playerNameChars = "^[a-zA-Z0-9-_]+$"
-const bytesPerMediaBunch = 5000
-
 const defaultCmdPrefix = ">"
 const defaultSendInterval = 0.09
 const defaultUserLimit = 10
@@ -23,6 +17,8 @@ const defaultBindAddr = ":40000"
 var config Config
 var configMu sync.RWMutex
 
+// A Config contains information from the configuration file
+// that affects the way the proxy works.
 type Config struct {
 	NoPlugins     bool
 	CmdPrefix     string
@@ -48,6 +44,8 @@ type Config struct {
 	UserGroups map[string]string
 }
 
+// Conf returns a copy of the Config used by the proxy.
+// Any modifications will not affect the original Config.
 func Conf() Config {
 	configMu.RLock()
 	defer configMu.RUnlock()
@@ -55,6 +53,9 @@ func Conf() Config {
 	return config
 }
 
+// LoadConfig attempts to parse the configuration file.
+// It leaves the config unchanged if there is an error
+// and returns the error.
 func LoadConfig() error {
 	configMu.Lock()
 	defer configMu.Unlock()

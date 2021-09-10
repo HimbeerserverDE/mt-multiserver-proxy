@@ -32,7 +32,7 @@ type listener struct {
 	clts map[*ClientConn]struct{}
 }
 
-func Listen(pc net.PacketConn) *listener {
+func listen(pc net.PacketConn) *listener {
 	l := &listener{
 		Listener: mt.Listen(pc),
 		clts:     make(map[*ClientConn]struct{}),
@@ -49,7 +49,7 @@ func Listen(pc net.PacketConn) *listener {
 	return l
 }
 
-func (l *listener) Clts() map[*ClientConn]struct{} {
+func (l *listener) clients() map[*ClientConn]struct{} {
 	clts := make(map[*ClientConn]struct{})
 
 	l.mu.RLock()
@@ -62,7 +62,7 @@ func (l *listener) Clts() map[*ClientConn]struct{} {
 	return clts
 }
 
-func (l *listener) Accept() (*ClientConn, error) {
+func (l *listener) accept() (*ClientConn, error) {
 	p, err := l.Listener.Accept()
 	if err != nil {
 		return nil, err

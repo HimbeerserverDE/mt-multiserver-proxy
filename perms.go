@@ -1,7 +1,6 @@
 package proxy
 
-import ()
-
+// Perms returns the permissions of the ClientConn.
 func (cc *ClientConn) Perms() []string {
 	if cc.Name() == "" {
 		return []string{}
@@ -19,6 +18,8 @@ func (cc *ClientConn) Perms() []string {
 	return []string{}
 }
 
+// HasPerms returns true if the ClientConn has all
+// of the specified permissions. Otherwise it returns false.
 func (cc *ClientConn) HasPerms(want ...string) bool {
 	has := make(map[string]struct{})
 	for _, perm := range cc.Perms() {

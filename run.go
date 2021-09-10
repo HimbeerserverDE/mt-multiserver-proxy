@@ -12,6 +12,8 @@ import (
 	"github.com/anon55555/mt"
 )
 
+// Run initializes the proxy andstarts the main listener loop.
+// It blocks forever.
 func Run() {
 	if err := LoadConfig(); err != nil {
 		log.Fatal("{←|⇶} ", err)
@@ -24,7 +26,7 @@ func Run() {
 	var err error
 	switch Conf().AuthBackend {
 	case "sqlite3":
-		SetAuthBackend(AuthSQLite3{})
+		setAuthBackend(authSQLite3{})
 	default:
 		log.Fatal("{←|⇶} invalid auth backend")
 	}
@@ -39,7 +41,7 @@ func Run() {
 		log.Fatal("{←|⇶} ", err)
 	}
 
-	l := Listen(pc)
+	l := listen(pc)
 	defer l.Close()
 
 	log.Print("{←|⇶} listen ", l.Addr())
@@ -49,7 +51,7 @@ func Run() {
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
 
-		clts := l.Clts()
+		clts := l.clients()
 
 		var wg sync.WaitGroup
 		wg.Add(len(clts))
@@ -75,7 +77,7 @@ func Run() {
 	}()
 
 	for {
-		cc, err := l.Accept()
+		cc, err := l.accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				log.Print("{←|⇶} stop listening")
@@ -139,7 +141,7 @@ func Run() {
 				return
 			}
 
-			Connect(conn, Conf().Servers[0].Name, cc)
+			connect(conn, Conf().Servers[0].Name, cc)
 		}()
 	}
 

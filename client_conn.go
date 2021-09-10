@@ -23,6 +23,7 @@ const (
 	csSudo
 )
 
+// A ClientConn is a connection to a minetest client.
 type ClientConn struct {
 	mt.Peer
 	srv *ServerConn
@@ -60,6 +61,7 @@ type ClientConn struct {
 	modChs map[string]struct{}
 }
 
+// Name returns the player name of the ClientConn.
 func (cc *ClientConn) Name() string { return cc.name }
 
 func (cc *ClientConn) server() *ServerConn {
@@ -69,6 +71,8 @@ func (cc *ClientConn) server() *ServerConn {
 	return cc.srv
 }
 
+// ServerName returns the name of the current upstream server
+// of the ClientConn. It is empty if there is no upstream connection.
 func (cc *ClientConn) ServerName() string {
 	srv := cc.server()
 	if srv != nil {
@@ -92,8 +96,12 @@ func (cc *ClientConn) setState(state clientState) {
 	cc.cstate = state
 }
 
+// Init returns a channel that is closed
+// when the ClientConn enters the csActive state.
 func (cc *ClientConn) Init() <-chan struct{} { return cc.initCh }
 
+// Log logs an interaction with the ClientConn.
+// dir indicates the direction of the interaction.
 func (cc *ClientConn) Log(dir string, v ...interface{}) {
 	if cc.Name() != "" {
 		format := "{%s, %s} %s {←|⇶}"

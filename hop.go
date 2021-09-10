@@ -8,6 +8,9 @@ import (
 	"github.com/anon55555/mt"
 )
 
+// Hop connects the ClientConn to the specified upstream server.
+// At the moment the ClientConn is NOT fixed if an error occurs
+// so the player may have to reconnect.
 func (cc *ClientConn) Hop(serverName string) error {
 	cc.hopMu.Lock()
 	defer cc.hopMu.Unlock()
@@ -32,7 +35,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 		return fmt.Errorf("inexistent server")
 	}
 
-	// This needs to be done before the serverConn is closed
+	// This needs to be done before the ServerConn is closed
 	// so the clientConn isn't closed by the packet handler
 	cc.server().mu.Lock()
 	cc.server().clt = nil
@@ -144,7 +147,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 		return err
 	}
 
-	Connect(conn, serverName, cc)
+	connect(conn, serverName, cc)
 
 	for ch := range cc.modChs {
 		cc.server().SendCmd(&mt.ToSrvJoinModChan{Channel: ch})

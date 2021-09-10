@@ -10,6 +10,8 @@ type LogWriter struct {
 	f *os.File
 }
 
+// Write writes the input data to os.Stderr and the log file.
+// It returns the number of bytes written and an error.
 func (lw *LogWriter) Write(p []byte) (n int, err error) {
 	n, err = os.Stderr.Write(p)
 	if err != nil {

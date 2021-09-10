@@ -14,6 +14,7 @@ import (
 	"github.com/anon55555/mt/rudp"
 )
 
+// A ServerConn is a connection to a minetest server.
 type ServerConn struct {
 	mt.Peer
 	clt *ClientConn
@@ -63,8 +64,12 @@ func (sc *ServerConn) setState(state clientState) {
 	sc.cstate = state
 }
 
+// Init returns a channel that is closed
+// when the ServerConn enters the csActive state.
 func (sc *ServerConn) Init() <-chan struct{} { return sc.initCh }
 
+// Log logs an interaction with the ServerConn.
+// dir indicates the direction of the interaction.
 func (sc *ServerConn) Log(dir string, v ...interface{}) {
 	if sc.client() != nil {
 		format := "%s {%s}"
