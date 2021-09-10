@@ -75,8 +75,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltHP{})
 	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0)})
 	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
-	// An issue in the mt package breaks this
-	// cc.SendCmd(&mt.ToCltMinimapModes{})
+	cc.SendCmd(&mt.ToCltMinimapModes{})
 
 	cc.SendCmd(&mt.ToCltMoonParams{
 		Visible: true,

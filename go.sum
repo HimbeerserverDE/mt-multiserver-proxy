@@ -1,6 +1,6 @@
 github.com/HimbeerserverDE/srp v0.0.0-20210331172529-2b5dbec6b82b h1:xqNC1S76U5U+eFyzr5Ld+8aPOLaDFCw6f1uddjui+h8=
 github.com/HimbeerserverDE/srp v0.0.0-20210331172529-2b5dbec6b82b/go.mod h1:pxNH8S2nh4n2DWE0ToX5GnnDr/uEAuaAhJsCpkDLIWw=
-github.com/anon55555/mt v0.0.0-20210623155243-152b6697e62c h1:+T4M4zm8QMMnH56jopsKcCBxItSsb6jtulB3ZKFYETU=
-github.com/anon55555/mt v0.0.0-20210623155243-152b6697e62c/go.mod h1:jH4ER+ahjl7H6TczzK+q4V9sXY++U2Geh6/vt3r4Xvs=
+github.com/anon55555/mt v0.0.0-20210909184202-d6ba88b091f6 h1:JcKyABhWe6hGGA4IUqoCidNiKT1CCT6Sgp4D0VY7ako=
+github.com/anon55555/mt v0.0.0-20210909184202-d6ba88b091f6/go.mod h1:jH4ER+ahjl7H6TczzK+q4V9sXY++U2Geh6/vt3r4Xvs=
 github.com/mattn/go-sqlite3 v1.14.8 h1:gDp86IdQsN/xWjIEmr9MF6o9mpksUgh0fu+9ByFxzIU=
 github.com/mattn/go-sqlite3 v1.14.8/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
