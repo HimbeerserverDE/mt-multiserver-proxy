@@ -78,7 +78,45 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltHP{})
 	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0)})
 	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
-	cc.SendCmd(&mt.ToCltMinimapModes{})
+
+	cc.SendCmd(&mt.ToCltMinimapModes{
+		Modes: []mt.MinimapMode{
+			mt.MinimapMode{
+				Type:  mt.NoMinimap,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.SurfaceMinimap,
+				Size:  256,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.SurfaceMinimap,
+				Size:  128,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.SurfaceMinimap,
+				Size:  64,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.RadarMinimap,
+				Size:  512,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.RadarMinimap,
+				Size:  256,
+				Scale: 1,
+			},
+			mt.MinimapMode{
+				Type:  mt.RadarMinimap,
+				Size:  128,
+				Scale: 1,
+			},
+		},
+	})
 
 	cc.SendCmd(&mt.ToCltMoonParams{
 		Visible: true,
