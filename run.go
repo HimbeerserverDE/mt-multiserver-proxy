@@ -49,6 +49,12 @@ func Run() {
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
 
+		if Conf().List.Enable {
+			if err := announce(listRm); err != nil {
+				log.Print("{←|⇶} ", err)
+			}
+		}
+
 		clts := l.clients()
 
 		var wg sync.WaitGroup

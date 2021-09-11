@@ -43,6 +43,21 @@ type Config struct {
 	DropCSMRF  bool
 	Groups     map[string][]string
 	UserGroups map[string]string
+	List       struct {
+		Enable   bool
+		Addr     string
+		Interval int
+
+		Name     string
+		Desc     string
+		URL      string
+		Creative bool
+		Dmg      bool
+		PvP      bool
+		Game     string
+		FarNames bool
+		Mods     []string
+	}
 }
 
 // Conf returns a copy of the Config used by the proxy.
