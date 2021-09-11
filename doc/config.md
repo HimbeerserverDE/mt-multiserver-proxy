@@ -170,3 +170,95 @@ Type: string
 Default: "default"
 Description: The group of the user.
 ```
+
+> `List`
+```
+Type: List
+Default: List{}
+Description: This contains information on how to announce to the server list.
+```
+
+> `List.Enable`
+```
+Type: bool
+Default: false
+Description: If this is set to true server list announcements are sent.
+```
+
+> `List.Addr`
+```
+Type: string
+Default: ""
+Description: The base URL of the list server.
+```
+
+> `List.Interval`
+```
+Type: int
+Default: 300
+Description: The interval between server list announcements.
+```
+
+> `List.Name`
+```
+Type: string
+Default: ""
+Values: Any non-zero string
+Description: The name to be displayed on the server list.
+```
+
+> `List.Desc`
+```
+Type: string
+Default: ""
+Description: The description for the server list.
+```
+
+> `List.URL`
+```
+Type: string
+Default: ""
+Description: The website for this server.
+```
+
+> `List.Creative`
+```
+Type: bool
+Default: false
+Description: The creative server list flag.
+```
+
+> `List.Dmg`
+```
+Type: bool
+Default: false
+Description: The damage server list flag.
+```
+
+> `List.PvP`
+```
+Type: bool
+Default: false
+Description: The PvP server list flag.
+```
+
+> `List.Game`
+```
+Type: string
+Default: ""
+Description: The subgame displayed on the server list.
+```
+
+> `List.FarNames`
+```
+Type: bool
+Default: false
+Description: The server list flag that shows whether far players are visible.
+```
+
+> `List.Mods`
+```
+Type: []string
+Default: []string{}
+Description: The list of mods to be displayed on the server list.
+```

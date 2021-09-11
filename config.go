@@ -13,6 +13,7 @@ const defaultSendInterval = 0.09
 const defaultUserLimit = 10
 const defaultAuthBackend = "sqlite3"
 const defaultBindAddr = ":40000"
+const defaultListInterval = 300
 
 var config Config
 var configMu sync.RWMutex
@@ -85,6 +86,7 @@ func LoadConfig() error {
 	config.BindAddr = defaultBindAddr
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
+	config.List.Interval = defaultListInterval
 
 	executable, err := os.Executable()
 	if err != nil {
