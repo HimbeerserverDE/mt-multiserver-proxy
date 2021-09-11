@@ -160,7 +160,7 @@ func (a authSQLite3) Unban(id string) error {
 	return nil
 }
 
-// Banned reports whether a network address is banned
+// Banned reports whether a network address is banned.
 func (a authSQLite3) Banned(addr *net.UDPAddr) bool {
 	if err := a.init(); err != nil {
 		return true
@@ -168,7 +168,7 @@ func (a authSQLite3) Banned(addr *net.UDPAddr) bool {
 	defer a.close()
 
 	var name string
-	if err := a.db.QueryRow(`SELECT name FROM ban WHERE addr = ?;`, addr.String()).Scan(&name); err != nil {
+	if err := a.db.QueryRow(`SELECT name FROM ban WHERE addr = ?;`, addr.IP.String()).Scan(&name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false
 		}
