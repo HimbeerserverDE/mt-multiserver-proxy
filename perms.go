@@ -21,7 +21,10 @@ func (cc *ClientConn) Perms() []string {
 // HasPerms returns true if the ClientConn has all
 // of the specified permissions. Otherwise it returns false.
 func (cc *ClientConn) HasPerms(want ...string) bool {
-	has := make(map[string]struct{})
+	has := map[string]struct{}{
+		"": struct{}{},
+	}
+
 	for _, perm := range cc.Perms() {
 		has[perm] = struct{}{}
 	}
