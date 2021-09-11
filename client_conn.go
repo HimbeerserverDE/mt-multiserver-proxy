@@ -218,6 +218,12 @@ func handleClt(cc *ClientConn) {
 
 			cc.name = cmd.PlayerName
 
+			if authIface.Banned(cc.RemoteAddr().(*net.IPAddr)) {
+				cc.Log("<--", "banned")
+				cc.Kick("Banned by proxy.")
+				break
+			}
+
 			playersMu.Lock()
 			_, ok := players[cc.Name()]
 			if ok {

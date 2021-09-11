@@ -2,6 +2,8 @@ package proxy
 
 import (
 	"database/sql"
+	"errors"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -71,7 +73,7 @@ func (a authSQLite3) Timestamp(name string) (time.Time, error) {
 	return time.Parse("2006-01-02 15:04:05", tstr)
 }
 
-// Import clears the database and and refills it with the passed
+// Import deletes all users and and adds the passed
 // users.
 func (a authSQLite3) Import(in []user) {
 	if err := a.init(); err != nil {
@@ -129,6 +131,94 @@ func (a authSQLite3) Export() ([]user, error) {
 	return out, nil
 }
 
+// Ban adds a ban entry for a network address and an associated name.
+func (a authSQLite3) Ban(addr, name string) error {
+	if err := a.init(); err != nil {
+		return err
+	}
+	defer a.close()
+
+	if _, err := a.db.Exec(`INSERT INTO ban (addr, name) VALUES (?, ?);`, addr, name); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Unban deletes a ban entry. It accepts both network addresses
+// and player names.
+func (a authSQLite3) Unban(id string) error {
+	if err := a.init(); err != nil {
+		return err
+	}
+	defer a.close()
+
+	if _, err := a.db.Exec(`DELETE FROM ban WHERE addr = ? OR name = ?;`, id, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Banned reports whether a network address is banned
+func (a authSQLite3) Banned(addr *net.IPAddr) bool {
+	if err := a.init(); err != nil {
+		return true
+	}
+	defer a.close()
+
+	var name string
+	if err := a.db.QueryRow(`SELECT name FROM ban WHERE addr = ?;`, addr.String()).Scan(&name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false
+		}
+
+		return true
+	}
+
+	return true
+}
+
+// ImportBans deletes all ban entries and adds the passed entries.
+func (a authSQLite3) ImportBans(in []ban) {
+	if err := a.init(); err != nil {
+		return
+	}
+	defer a.close()
+
+	a.db.Exec(`DELETE FROM ban;`)
+	for _, b := range in {
+		a.Ban(b.addr, b.name)
+	}
+}
+
+// ExportBans returns data that can be processed by ImportBans
+// or an error.
+func (a authSQLite3) ExportBans() ([]ban, error) {
+	if err := a.init(); err != nil {
+		return nil, err
+	}
+	defer a.close()
+
+	rows, err := a.db.Query(`SELECT * FROM ban;`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []ban
+	for rows.Next() {
+		var b ban
+		if err := rows.Scan(&b.addr, &b.name); err != nil {
+			return nil, err
+		}
+
+		out = append(out, b)
+	}
+
+	return out, nil
+}
+
 func (a authSQLite3) updateTimestamp(name string) {
 	a.db.Exec(`UPDATE user SET timestamp = datetime("now") WHERE name = ?;`, name)
 }
@@ -149,7 +239,10 @@ func (a *authSQLite3) init() error {
 	name VARCHAR(20) PRIMARY KEY NOT NULL,
 	salt BLOB NOT NULL,
 	verifier BLOB NOT NULL,
-	timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);`
+	timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS ban (
+	addr VARCHAR(39) PRIMARY KEY NOT NULL,
+	name VARCHAR(20));`
 
 	if _, err := a.db.Exec(init); err != nil {
 		return err

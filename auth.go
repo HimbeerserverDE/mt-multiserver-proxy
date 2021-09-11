@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"errors"
+	"net"
 	"time"
 )
 
@@ -15,13 +16,24 @@ type user struct {
 	timestamp time.Time
 }
 
+type ban struct {
+	addr string
+	name string
+}
+
 type authBackend interface {
 	Exists(name string) bool
 	Passwd(name string) (salt, verifier []byte, err error)
 	SetPasswd(name string, salt, verifier []byte) error
 	Timestamp(name string) (time.Time, error)
-	Import(data []user)
+	Import(in []user)
 	Export() ([]user, error)
+
+	Ban(addr, name string) error
+	Unban(id string) error
+	Banned(addr *net.IPAddr) bool
+	ImportBans(in []ban)
+	ExportBans() ([]ban, error)
 }
 
 func setAuthBackend(ab authBackend) error {
