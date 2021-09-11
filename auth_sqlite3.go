@@ -161,7 +161,7 @@ func (a authSQLite3) Unban(id string) error {
 }
 
 // Banned reports whether a network address is banned
-func (a authSQLite3) Banned(addr *net.IPAddr) bool {
+func (a authSQLite3) Banned(addr *net.UDPAddr) bool {
 	if err := a.init(); err != nil {
 		return true
 	}

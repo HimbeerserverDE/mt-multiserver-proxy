@@ -31,7 +31,7 @@ type authBackend interface {
 
 	Ban(addr, name string) error
 	Unban(id string) error
-	Banned(addr *net.IPAddr) bool
+	Banned(addr *net.UDPAddr) bool
 	ImportBans(in []ban)
 	ExportBans() ([]ban, error)
 }
