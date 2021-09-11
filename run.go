@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-
-	"github.com/anon55555/mt"
 )
 
 // Run initializes the proxy andstarts the main listener loop.
@@ -58,16 +56,7 @@ func Run() {
 
 		for cc := range clts {
 			go func(cc *ClientConn) {
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{
-					Reason: mt.Custom,
-					Custom: "Proxy shutting down.",
-				})
-				select {
-				case <-cc.Closed():
-				case <-ack:
-					cc.Close()
-				}
-
+				cc.Kick("Proxy shutting down.")
 				wg.Done()
 			}(cc)
 		}
@@ -94,50 +83,21 @@ func Run() {
 
 			if len(Conf().Servers) == 0 {
 				cc.Log("<--", "no servers")
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{
-					Reason: mt.Custom,
-					Custom: "No servers are configured.",
-				})
-				select {
-				case <-cc.Closed():
-				case <-ack:
-					cc.Close()
-				}
-
+				cc.Kick("No servers are configured.")
 				return
 			}
 
 			addr, err := net.ResolveUDPAddr("udp", Conf().Servers[0].Addr)
 			if err != nil {
 				cc.Log("<--", "address resolution fail")
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{
-					Reason: mt.Custom,
-					Custom: "Server address resolution failed.",
-				})
-				select {
-				case <-cc.Closed():
-				case <-ack:
-					cc.Close()
-				}
-
+				cc.Kick("Server address resolution failed.")
 				return
 			}
 
 			conn, err := net.DialUDP("udp", nil, addr)
 			if err != nil {
 				cc.Log("<--", "connection fail")
-
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{
-					Reason: mt.Custom,
-					Custom: "Server connection failed.",
-				})
-
-				select {
-				case <-cc.Closed():
-				case <-ack:
-					cc.Close()
-				}
-
+				cc.Kick("Server connection failed.")
 				return
 			}
 

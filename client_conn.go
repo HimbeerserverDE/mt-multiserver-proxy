@@ -478,17 +478,8 @@ func handleClt(cc *ClientConn) {
 			cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.Name())
 			if err != nil {
 				cc.Log("<--", err.Error())
-
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{
-					Reason: mt.Custom,
-					Custom: "Content multiplexing failed.",
-				})
-
-				select {
-				case <-cc.Closed():
-				case <-ack:
-					cc.Close()
-				}
+				cc.Kick("Content multiplexing failed.")
+				break
 			}
 
 			cc.SendCmd(&mt.ToCltItemDefs{
