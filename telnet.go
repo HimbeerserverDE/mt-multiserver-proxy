@@ -100,7 +100,7 @@ func handleTelnet(conn net.Conn) {
 		}
 
 		result := onTelnetMsg(tlog, &TelnetWriter{conn: conn}, s)
-		if result != "" {
+		if result != "\n" {
 			writeString(result)
 		}
 	}
