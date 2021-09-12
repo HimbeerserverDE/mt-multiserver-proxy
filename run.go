@@ -29,6 +29,12 @@ func Run() {
 		log.Fatal("{←|⇶} invalid auth backend")
 	}
 
+	go func() {
+		if err := telnetServer(); err != nil {
+			log.Fatal("{←|⇶} ", err)
+		}
+	}()
+
 	addr, err := net.ResolveUDPAddr("udp", Conf().BindAddr)
 	if err != nil {
 		log.Fatal("{←|⇶} ", err)
@@ -48,6 +54,8 @@ func Run() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 		<-sig
+
+		close(telnetCh)
 
 		if Conf().List.Enable {
 			if err := announce(listRm); err != nil {

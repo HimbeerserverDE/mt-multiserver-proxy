@@ -12,6 +12,7 @@ const defaultCmdPrefix = ">"
 const defaultSendInterval = 0.09
 const defaultUserLimit = 10
 const defaultAuthBackend = "sqlite3"
+const defaultTelnetAddr = ":40010"
 const defaultBindAddr = ":40000"
 const defaultListInterval = 300
 
@@ -27,6 +28,7 @@ type Config struct {
 	SendInterval  float32
 	UserLimit     int
 	AuthBackend   string
+	TelnetAddr    string
 	BindAddr      string
 	Servers       []struct {
 		Name string
@@ -83,6 +85,7 @@ func LoadConfig() error {
 	config.SendInterval = defaultSendInterval
 	config.UserLimit = defaultUserLimit
 	config.AuthBackend = defaultAuthBackend
+	config.TelnetAddr = defaultTelnetAddr
 	config.BindAddr = defaultBindAddr
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
