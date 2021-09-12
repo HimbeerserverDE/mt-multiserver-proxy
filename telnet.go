@@ -5,8 +5,23 @@ import (
 	"errors"
 	"io"
 	"log"
+	"math"
 	"net"
+	"strings"
 )
+
+// A TelnetWriter can be used to print something at the other end
+// of a telnet connection. It implements the io.Writer interface.
+type TelnetWriter struct {
+	conn net.Conn
+}
+
+// Write writes its parameter to the telnet connection.
+// A trailing newline is always appended.
+// It returns the number of bytes written and an error.
+func (tw *TelnetWriter) Write(p []byte) (n int, err error) {
+	return tw.conn.Write(append(p, '\n'))
+}
 
 var telnetCh = make(chan struct{})
 
@@ -16,6 +31,8 @@ func telnetServer() error {
 		return err
 	}
 	defer ln.Close()
+
+	log.Print("{←|⇶} listen telnet ", ln.Addr())
 
 	for {
 		select {
@@ -34,16 +51,39 @@ func telnetServer() error {
 }
 
 func handleTelnet(conn net.Conn) {
+	tlog := func(dir string, v ...interface{}) {
+		format := "{%s} %s {←|⇶}"
+		format += strings.Repeat(" %v", len(v))
+
+		log.Printf(format, append([]interface{}{
+			conn.RemoteAddr(),
+			dir,
+		}, v...)...)
+	}
+
+	tlog("<->", "telnet connect")
+
+	defer tlog("<->", "telnet disconnect")
 	defer conn.Close()
 
-	r, w := bufio.NewReader(conn), bufio.NewWriter(conn)
-	b := bufio.NewReadWriter(r, w)
+	readString := func(delim byte) (string, error) {
+		s, err := bufio.NewReader(conn).ReadString(delim)
+		i := int(math.Max(float64(len(s)-2), 1))
+		s = s[:i]
+		return s, err
+	}
 
-	b.WriteString("mt-multiserver-proxy console\n")
+	writeString := func(s string) (n int, err error) {
+		return io.WriteString(conn, s)
+	}
+
+	writeString("mt-multiserver-proxy console\n")
+	writeString("Type \\quit or \\q to disconnect.\n")
+
 	for {
-		b.WriteString(">")
+		writeString(Conf().CmdPrefix)
 
-		_, err := b.ReadString('\n')
+		s, err := readString('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				return
@@ -51,6 +91,17 @@ func handleTelnet(conn net.Conn) {
 
 			log.Print("{←|⇶} ", err)
 			continue
+		}
+
+		tlog("-->", "telnet command", s)
+
+		if s == "\\quit" || s == "\\q" {
+			return
+		}
+
+		result := onTelnetMsg(tlog, &TelnetWriter{conn: conn}, s)
+		if result != "" {
+			writeString(result)
 		}
 	}
 }

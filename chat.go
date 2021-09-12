@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -59,8 +60,41 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 			return fmt.Sprintf("Missing permission %s.", cmd.Perm), true
 		}
 
-		return cmd.Handler(cc, args...), true
+		return cmd.Handler(cc, nil, args...), true
 	}
 
 	return "", false
+}
+
+func onTelnetMsg(tlog func(dir string, v ...interface{}), w io.Writer, msg string) string {
+	initChatCmds()
+
+	substrs := strings.Split(msg, " ")
+	cmdName := substrs[0]
+
+	var args []string
+	if len(substrs) > 1 {
+		args = substrs[1:]
+	}
+
+	v := make([]interface{}, 2+len(args))
+	v[0] = "command"
+	v[1] = cmdName
+
+	for i, arg := range args {
+		v[i+2] = arg
+	}
+
+	tlog("-->", v...)
+
+	if !ChatCmdExists(cmdName) {
+		tlog("<--", "unknown command", cmdName)
+		return "Command not found.\n"
+	}
+
+	chatCmdsMu.RLock()
+	defer chatCmdsMu.RUnlock()
+
+	cmd := chatCmds[cmdName]
+	return cmd.Handler(nil, w, args...) + "\n"
 }

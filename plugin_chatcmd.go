@@ -1,6 +1,9 @@
 package proxy
 
-import "sync"
+import (
+	"io"
+	"sync"
+)
 
 // A ChatCmd holds information on how to handle a chat command.
 type ChatCmd struct {
@@ -8,7 +11,7 @@ type ChatCmd struct {
 	Perm    string
 	Help    string
 	Usage   string
-	Handler func(*ClientConn, ...string) string
+	Handler func(*ClientConn, io.Writer, ...string) string
 }
 
 var chatCmds map[string]ChatCmd

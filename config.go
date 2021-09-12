@@ -12,7 +12,7 @@ const defaultCmdPrefix = ">"
 const defaultSendInterval = 0.09
 const defaultUserLimit = 10
 const defaultAuthBackend = "sqlite3"
-const defaultTelnetAddr = ":40010"
+const defaultTelnetAddr = "[::1]:40010"
 const defaultBindAddr = ":40000"
 const defaultListInterval = 300
 
