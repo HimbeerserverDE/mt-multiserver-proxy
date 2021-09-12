@@ -77,16 +77,6 @@ func onTelnetMsg(tlog func(dir string, v ...interface{}), w io.Writer, msg strin
 		args = substrs[1:]
 	}
 
-	v := make([]interface{}, 2+len(args))
-	v[0] = "command"
-	v[1] = cmdName
-
-	for i, arg := range args {
-		v[i+2] = arg
-	}
-
-	tlog("-->", v...)
-
 	if !ChatCmdExists(cmdName) {
 		tlog("<--", "unknown command", cmdName)
 		return "Command not found.\n"
