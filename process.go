@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
@@ -424,7 +425,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		if _, ok := cmd.Pointed.(*mt.PointedAO); ok {
-			srv.swapAOID(&pkt.Cmd.(*mt.ToSrvInteract).Pointed.(*mt.PointedAO).ID)
+			srv.swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 		}
 	case *mt.ToSrvChatMsg:
 		result, isCmd := onChatMsg(cc, cmd)
@@ -443,4 +444,376 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 	}
 
 	srv.Send(pkt)
+}
+
+func (sc *ServerConn) process(pkt mt.Pkt) {
+	clt := sc.client()
+	if clt == nil {
+		sc.Log("<-", "no client")
+		return
+	}
+
+	switch cmd := pkt.Cmd.(type) {
+	case *mt.ToCltHello:
+		if sc.auth.method != 0 {
+			sc.Log("<-", "unexpected authentication")
+			sc.Close()
+			return
+		}
+
+		sc.setState(sc.state() + 1)
+		if cmd.AuthMethods&mt.FirstSRP != 0 {
+			sc.auth.method = mt.FirstSRP
+		} else {
+			sc.auth.method = mt.SRP
+		}
+
+		if cmd.SerializeVer != latestSerializeVer {
+			sc.Log("<-", "invalid serializeVer")
+			return
+		}
+
+		switch sc.auth.method {
+		case mt.SRP:
+			var err error
+			sc.auth.srpA, sc.auth.a, err = srp.InitiateHandshake()
+			if err != nil {
+				sc.Log("->", err)
+				return
+			}
+
+			sc.SendCmd(&mt.ToSrvSRPBytesA{
+				A:      sc.auth.srpA,
+				NoSHA1: true,
+			})
+		case mt.FirstSRP:
+			salt, verifier, err := srp.NewClient([]byte(clt.name), []byte{})
+			if err != nil {
+				sc.Log("->", err)
+				return
+			}
+
+			sc.SendCmd(&mt.ToSrvFirstSRP{
+				Salt:        salt,
+				Verifier:    verifier,
+				EmptyPasswd: true,
+			})
+		default:
+			sc.Log("<->", "invalid auth method")
+			sc.Close()
+		}
+
+		return
+	case *mt.ToCltSRPBytesSaltB:
+		if sc.auth.method != mt.SRP {
+			sc.Log("<-", "multiple authentication attempts")
+			return
+		}
+
+		var err error
+		sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(clt.name), []byte{}, cmd.Salt, cmd.B)
+		if err != nil {
+			sc.Log("->", err)
+			return
+		}
+
+		M := srp.ClientProof([]byte(clt.name), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
+		if M == nil {
+			sc.Log("<-", "SRP safety check fail")
+			return
+		}
+
+		sc.SendCmd(&mt.ToSrvSRPBytesM{
+			M: M,
+		})
+
+		return
+	case *mt.ToCltDisco:
+		sc.Log("<-", "deny access", cmd)
+		ack, _ := clt.SendCmd(cmd)
+
+		select {
+		case <-clt.Closed():
+		case <-ack:
+			clt.Close()
+
+			sc.mu.Lock()
+			sc.clt = nil
+			sc.mu.Unlock()
+		}
+
+		return
+	case *mt.ToCltAcceptAuth:
+		sc.auth = struct {
+			method              mt.AuthMethods
+			salt, srpA, a, srpK []byte
+		}{}
+		sc.SendCmd(&mt.ToSrvInit2{Lang: clt.lang})
+
+		return
+	case *mt.ToCltDenySudoMode:
+		sc.Log("<-", "deny sudo")
+		return
+	case *mt.ToCltAcceptSudoMode:
+		sc.Log("<-", "accept sudo")
+		sc.setState(sc.state() + 1)
+		return
+	case *mt.ToCltAnnounceMedia:
+		sc.SendCmd(&mt.ToSrvReqMedia{})
+
+		sc.SendCmd(&mt.ToSrvCltReady{
+			Major:    clt.major,
+			Minor:    clt.minor,
+			Patch:    clt.patch,
+			Reserved: clt.reservedVer,
+			Version:  clt.versionStr,
+			Formspec: clt.formspecVer,
+		})
+
+		sc.Log("<->", "handshake completed")
+		sc.setState(sc.state() + 1)
+		close(sc.initCh)
+
+		return
+	case *mt.ToCltMedia:
+		return
+	case *mt.ToCltItemDefs:
+		return
+	case *mt.ToCltNodeDefs:
+		return
+	case *mt.ToCltInv:
+		var oldInv mt.Inv
+		copy(oldInv, sc.inv)
+		sc.inv.Deserialize(strings.NewReader(cmd.Inv))
+		sc.prependInv(sc.inv)
+
+		handStack := mt.Stack{
+			Item: mt.Item{
+				Name: sc.name + "_hand",
+			},
+			Count: 1,
+		}
+
+		hand := sc.inv.List("hand")
+		if hand == nil {
+			sc.inv = append(sc.inv, mt.NamedInvList{
+				Name: "hand",
+				InvList: mt.InvList{
+					Width:  0,
+					Stacks: []mt.Stack{handStack},
+				},
+			})
+		} else if len(hand.Stacks) == 0 {
+			hand.Width = 0
+			hand.Stacks = []mt.Stack{handStack}
+		}
+
+		b := &strings.Builder{}
+		sc.inv.SerializeKeep(b, oldInv)
+
+		clt.SendCmd(&mt.ToCltInv{Inv: b.String()})
+		return
+	case *mt.ToCltAOMsgs:
+		for k := range cmd.Msgs {
+			sc.swapAOID(&cmd.Msgs[k].ID)
+			sc.handleAOMsg(cmd.Msgs[k].Msg)
+		}
+	case *mt.ToCltAORmAdd:
+		resp := &mt.ToCltAORmAdd{}
+
+		for _, ao := range cmd.Remove {
+			delete(sc.aos, ao)
+			resp.Remove = append(resp.Remove, ao)
+		}
+
+		for _, ao := range cmd.Add {
+			if ao.InitData.Name == clt.name {
+				clt.currentCAO = ao.ID
+
+				if clt.playerCAO == 0 {
+					clt.playerCAO = ao.ID
+					for _, msg := range ao.InitData.Msgs {
+						sc.handleAOMsg(msg)
+					}
+
+					resp.Add = append(resp.Add, ao)
+				} else {
+					var msgs []mt.IDAOMsg
+					for _, msg := range ao.InitData.Msgs {
+						msgs = append(msgs, mt.IDAOMsg{
+							ID:  ao.ID,
+							Msg: msg,
+						})
+					}
+
+					clt.SendCmd(&mt.ToCltAOMsgs{Msgs: msgs})
+				}
+			} else {
+				sc.swapAOID(&ao.ID)
+				for _, msg := range ao.InitData.Msgs {
+					sc.handleAOMsg(msg)
+				}
+
+				resp.Add = append(resp.Add, ao)
+				sc.aos[ao.ID] = struct{}{}
+			}
+		}
+
+		clt.SendCmd(resp)
+		return
+	case *mt.ToCltCSMRestrictionFlags:
+		if Conf().DropCSMRF {
+			return
+		}
+
+		cmd.Flags &= ^mt.NoCSMs
+	case *mt.ToCltDetachedInv:
+		var inv mt.Inv
+		inv.Deserialize(strings.NewReader(cmd.Inv))
+		sc.prependInv(inv)
+
+		b := &strings.Builder{}
+		inv.Serialize(b)
+
+		if cmd.Keep {
+			sc.detachedInvs = append(sc.detachedInvs, cmd.Name)
+		} else {
+			for i, name := range sc.detachedInvs {
+				if name == cmd.Name {
+					sc.detachedInvs = append(sc.detachedInvs[:i], sc.detachedInvs[i+1:]...)
+					break
+				}
+			}
+		}
+
+		clt.SendCmd(&mt.ToCltDetachedInv{
+			Name: cmd.Name,
+			Keep: cmd.Keep,
+			Len:  cmd.Len,
+			Inv:  b.String(),
+		})
+
+		return
+	case *mt.ToCltMediaPush:
+		var exit bool
+		for _, f := range clt.media {
+			if f.name == cmd.Filename {
+				exit = true
+				break
+			}
+		}
+
+		if exit {
+			break
+		}
+
+		prepend(sc.name, &cmd.Filename)
+	case *mt.ToCltSkyParams:
+		for i := range cmd.Textures {
+			prependTexture(sc.name, &cmd.Textures[i])
+		}
+	case *mt.ToCltSunParams:
+		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.name, &cmd.ToneMap)
+		prependTexture(sc.name, &cmd.Rise)
+	case *mt.ToCltMoonParams:
+		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.name, &cmd.ToneMap)
+	case *mt.ToCltSetHotbarParam:
+		prependTexture(sc.name, &cmd.Img)
+	case *mt.ToCltUpdatePlayerList:
+		if !clt.playerListInit {
+			clt.playerListInit = true
+		} else if cmd.Type == mt.InitPlayers {
+			cmd.Type = mt.AddPlayers
+		}
+
+		if cmd.Type <= mt.AddPlayers {
+			for _, player := range cmd.Players {
+				sc.playerList[player] = struct{}{}
+			}
+		} else if cmd.Type == mt.RemovePlayers {
+			for _, player := range cmd.Players {
+				delete(sc.playerList, player)
+			}
+		}
+	case *mt.ToCltSpawnParticle:
+		prependTexture(sc.name, &cmd.Texture)
+		sc.globalParam0(&cmd.NodeParam0)
+	case *mt.ToCltBlkData:
+		for i := range cmd.Blk.Param0 {
+			sc.globalParam0(&cmd.Blk.Param0[i])
+		}
+
+		for k := range cmd.Blk.NodeMetas {
+			for j, field := range cmd.Blk.NodeMetas[k].Fields {
+				if field.Name == "formspec" {
+					sc.prependFormspec(&cmd.Blk.NodeMetas[k].Fields[j].Value)
+					break
+				}
+			}
+			sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
+		}
+	case *mt.ToCltAddNode:
+		sc.globalParam0(&cmd.Node.Param0)
+	case *mt.ToCltAddParticleSpawner:
+		prependTexture(sc.name, &cmd.Texture)
+		sc.swapAOID(&cmd.AttachedAOID)
+		sc.globalParam0(&cmd.NodeParam0)
+		sc.particleSpawners[cmd.ID] = struct{}{}
+	case *mt.ToCltDelParticleSpawner:
+		delete(sc.particleSpawners, cmd.ID)
+	case *mt.ToCltPlaySound:
+		prepend(sc.name, &cmd.Name)
+		sc.swapAOID(&cmd.SrcAOID)
+		if cmd.Loop {
+			sc.sounds[cmd.ID] = struct{}{}
+		}
+	case *mt.ToCltFadeSound:
+		delete(sc.sounds, cmd.ID)
+	case *mt.ToCltStopSound:
+		delete(sc.sounds, cmd.ID)
+	case *mt.ToCltAddHUD:
+		sc.prependHUD(cmd.Type, cmd)
+
+		sc.huds[cmd.ID] = cmd.Type
+	case *mt.ToCltChangeHUD:
+		sc.prependHUD(sc.huds[cmd.ID], cmd)
+	case *mt.ToCltRmHUD:
+		delete(sc.huds, cmd.ID)
+	case *mt.ToCltShowFormspec:
+		sc.prependFormspec(&cmd.Formspec)
+	case *mt.ToCltFormspecPrepend:
+		sc.prependFormspec(&cmd.Prepend)
+	case *mt.ToCltInvFormspec:
+		sc.prependFormspec(&cmd.Formspec)
+	case *mt.ToCltMinimapModes:
+		for i := range cmd.Modes {
+			prependTexture(sc.name, &cmd.Modes[i].Texture)
+		}
+	case *mt.ToCltNodeMetasChanged:
+		for k := range cmd.Changed {
+			for i, field := range cmd.Changed[k].Fields {
+				if field.Name == "formspec" {
+					sc.prependFormspec(&cmd.Changed[k].Fields[i].Value)
+					break
+				}
+			}
+			sc.prependInv(cmd.Changed[k].Inv)
+		}
+	case *mt.ToCltModChanSig:
+		switch cmd.Signal {
+		case mt.JoinOK:
+			if _, ok := clt.modChs[cmd.Channel]; ok {
+				return
+			}
+			clt.modChs[cmd.Channel] = struct{}{}
+		case mt.JoinFail:
+			fallthrough
+		case mt.LeaveOK:
+			delete(clt.modChs, cmd.Channel)
+		}
+	}
+
+	clt.Send(pkt)
 }
