@@ -31,11 +31,13 @@ func Run() {
 		log.Fatal("invalid auth backend")
 	}
 
-	go func() {
-		if err := telnetServer(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	if !Conf().NoTelnet {
+		go func() {
+			if err := telnetServer(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
 
 	addr, err := net.ResolveUDPAddr("udp", Conf().BindAddr)
 	if err != nil {

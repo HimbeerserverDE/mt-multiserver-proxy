@@ -29,6 +29,7 @@ type Config struct {
 	SendInterval  float32
 	UserLimit     int
 	AuthBackend   string
+	NoTelnet      bool
 	TelnetAddr    string
 	BindAddr      string
 	Servers       []struct {

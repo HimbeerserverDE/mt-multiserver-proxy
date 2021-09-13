@@ -57,9 +57,9 @@ func handleTelnet(conn net.Conn) {
 		l.Println(append([]interface{}{dir}, v...)...)
 	}
 
-	tlog("<->", "telnet connect")
+	tlog("<->", "connect")
 
-	defer tlog("<->", "telnet disconnect")
+	defer tlog("<->", "disconnect")
 	defer conn.Close()
 
 	readString := func(delim byte) (string, error) {
@@ -89,7 +89,7 @@ func handleTelnet(conn net.Conn) {
 			continue
 		}
 
-		tlog("->", "telnet command", s)
+		tlog("->", "command", s)
 
 		if s == "\\quit" || s == "\\q" {
 			return

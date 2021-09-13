@@ -43,9 +43,24 @@ Description: The maximum number of players that can be connected to the proxy at
 > `AuthBackend`
 ```
 Type: string
-Default: "sqlite3"
-Values: "sqlite3"
+Default: "files"
+Values: "sqlite3", "files"
 Description: The authentication backend to use. Only SQLite3 is available at the moment.
+```
+
+> `NoTelnet`
+```
+Type: bool
+Default: false
+Description: The telnet server is not started if this is true.
+```
+
+> `TelnetAddr`
+```
+Type: string
+Default: "[::1]:40010"
+Description: The telnet server will listen for new clients on this
+address.
 ```
 
 > `BindAddr`
