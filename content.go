@@ -203,6 +203,10 @@ func handleContent(cc *contentConn) {
 
 		RequestLoop:
 			for _, f := range cmd.Files {
+				if cc.fromCache(f.Name, f.Base64SHA1) {
+					break
+				}
+
 				filenames = append(filenames, f.Name)
 
 				for i, mf := range cc.media {
@@ -230,6 +234,7 @@ func handleContent(cc *contentConn) {
 			}
 
 			if cmd.I == cmd.N-1 {
+				cc.updateCache()
 				cc.Close()
 			}
 		}

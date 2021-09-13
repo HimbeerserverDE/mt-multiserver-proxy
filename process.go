@@ -708,6 +708,13 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		}
 
 		prepend(sc.name, &cmd.Filename)
+		if cmd.ShouldCache {
+			cacheMedia(mediaFile{
+				name:       cmd.Filename,
+				base64SHA1: b64.EncodeToString(cmd.SHA1[:]),
+				data:       cmd.Data,
+			})
+		}
 	case *mt.ToCltSkyParams:
 		for i := range cmd.Textures {
 			prependTexture(sc.name, &cmd.Textures[i])
