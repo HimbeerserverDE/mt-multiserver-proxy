@@ -188,6 +188,22 @@ func (a authFiles) ExportBans() ([]ban, error) {
 func (a authFiles) updateTimestamp(name string) {
 	os.Mkdir(Path("auth"), 0700)
 
+	path := Path("auth/", name, "/timestamp")
+
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+			if err != nil {
+				return
+			}
+
+			f.Close()
+		}
+
+		return
+	}
+
 	t := time.Now().Local()
-	os.Chtimes(Path("auth/", name, "/timestamp"), t, t)
+	os.Chtimes(path, t, t)
 }
