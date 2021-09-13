@@ -23,8 +23,6 @@ func Run() {
 
 	var err error
 	switch Conf().AuthBackend {
-	case "sqlite3":
-		setAuthBackend(authSQLite3{})
 	case "files":
 		setAuthBackend(authFiles{})
 	default:

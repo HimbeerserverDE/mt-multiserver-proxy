@@ -44,8 +44,9 @@ Description: The maximum number of players that can be connected to the proxy at
 ```
 Type: string
 Default: "files"
-Values: "sqlite3", "files"
-Description: The authentication backend to use. Only SQLite3 is available at the moment.
+Values: "files"
+Description: The authentication backend to use. Files are the only
+option at the moment. This mainly exists for future expandability.
 ```
 
 > `NoTelnet`
