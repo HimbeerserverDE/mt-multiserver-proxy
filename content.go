@@ -17,6 +17,8 @@ import (
 
 //go:generate go run gen_textures.go
 
+var disallowedChars = regexp.MustCompile("[^a-zA-Z0-9-_.:]")
+
 var b64 = base64.StdEncoding
 
 type mediaFile struct {
@@ -502,9 +504,8 @@ func isDefaultNode(s string) bool {
 
 func prependRaw(prep string, s *string, isTexture bool) {
 	if !isDefaultNode(*s) {
-		reg := regexp.MustCompile("[^a-zA-Z0-9-_.:]")
-		subs := reg.Split(*s, -1)
-		seps := reg.FindAllString(*s, -1)
+		subs := disallowedChars.Split(*s, -1)
+		seps := disallowedChars.FindAllString(*s, -1)
 
 		for i, sub := range subs {
 			if !isTexture || strings.Contains(sub, ".") {
