@@ -28,3 +28,7 @@ The configuration file name and format are described in [doc/config.md](doc/conf
 **All internal servers need to allow empty passwords and must not be reachable from the internet!**
 ## Chat commands
 The default chat commands can be installed as a [plugin](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands).
+## Telnet interface
+Chat commands can also be executed over a telnet connection.
+See [telnet.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/telnet.md)
+for details.
