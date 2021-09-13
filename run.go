@@ -65,7 +65,7 @@ func Run() {
 			}
 		}
 
-		clts := l.clients()
+		clts := Clts()
 
 		var wg sync.WaitGroup
 		wg.Add(len(clts))
