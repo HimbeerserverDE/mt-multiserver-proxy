@@ -109,6 +109,7 @@ func handleContent(cc *contentConn) {
 					cc.log("<->", "timeout")
 				}
 
+				cc.setState(csInit)
 				break
 			}
 
