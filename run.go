@@ -25,6 +25,8 @@ func Run() {
 	switch Conf().AuthBackend {
 	case "sqlite3":
 		setAuthBackend(authSQLite3{})
+	case "files":
+		setAuthBackend(authFiles{})
 	default:
 		log.Fatal("invalid auth backend")
 	}

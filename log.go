@@ -3,7 +3,6 @@ package proxy
 import (
 	"log"
 	"os"
-	"path/filepath"
 )
 
 var logWriter *LogWriter
@@ -27,13 +26,7 @@ func init() {
 	log.SetPrefix("[proxy] ")
 	log.SetFlags(log.Flags() | log.Lmsgprefix)
 
-	executable, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	path := filepath.Dir(executable) + "/latest.log"
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	f, err := os.OpenFile(Path("latest.log"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}

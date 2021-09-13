@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net"
-	"os"
-	"path/filepath"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -73,8 +71,7 @@ func (a authSQLite3) Timestamp(name string) (time.Time, error) {
 	return time.Parse("2006-01-02 15:04:05", tstr)
 }
 
-// Import deletes all users and and adds the passed
-// users.
+// Import deletes all users and adds the passed users.
 func (a authSQLite3) Import(in []user) {
 	if err := a.init(); err != nil {
 		return
@@ -114,13 +111,14 @@ func (a authSQLite3) Export() ([]user, error) {
 
 	var out []user
 	for _, name := range names {
-		var u user
-		u.timestamp, err = a.Timestamp(name)
+		u := user{name: name}
+
+		u.timestamp, err = a.Timestamp(u.name)
 		if err != nil {
 			return nil, err
 		}
 
-		u.salt, u.verifier, err = a.Passwd(name)
+		u.salt, u.verifier, err = a.Passwd(u.name)
 		if err != nil {
 			return nil, err
 		}
@@ -224,13 +222,8 @@ func (a authSQLite3) updateTimestamp(name string) {
 }
 
 func (a *authSQLite3) init() error {
-	executable, err := os.Executable()
-	if err != nil {
-		return err
-	}
-
-	path := filepath.Dir(executable) + "/auth.sqlite"
-	a.db, err = sql.Open("sqlite3", path)
+	var err error
+	a.db, err = sql.Open("sqlite3", Path("auth.sqlite3"))
 	if err != nil {
 		return err
 	}

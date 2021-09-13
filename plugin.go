@@ -3,7 +3,6 @@ package proxy
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"plugin"
 	"sync"
 )
@@ -15,12 +14,7 @@ func loadPlugins() {
 }
 
 func openPlugins() {
-	executable, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	path := filepath.Dir(executable) + "/plugins"
+	path := Path("plugins")
 	os.Mkdir(path, 0777)
 
 	dir, err := os.ReadDir(path)

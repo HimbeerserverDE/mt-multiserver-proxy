@@ -4,7 +4,14 @@ It also provides an API for plugins.
 */
 package proxy
 
-import "regexp"
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"sync"
+)
 
 const (
 	latestSerializeVer = 28
@@ -15,3 +22,19 @@ const (
 )
 
 var playerNameChars = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
+
+var proxyDir string
+var proxyDirOnce sync.Once
+
+func Path(path ...string) string {
+	proxyDirOnce.Do(func() {
+		executable, err := os.Executable()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		proxyDir = filepath.Dir(executable)
+	})
+
+	return proxyDir + "/" + strings.Join(path, "")
+}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -12,7 +11,7 @@ const (
 	defaultCmdPrefix    = ">"
 	defaultSendInterval = 0.09
 	defaultUserLimit    = 10
-	defaultAuthBackend  = "sqlite3"
+	defaultAuthBackend  = "files"
 	defaultTelnetAddr   = "[::1]:40010"
 	defaultBindAddr     = ":40000"
 	defaultListInterval = 300
@@ -93,13 +92,7 @@ func LoadConfig() error {
 	config.UserGroups = make(map[string]string)
 	config.List.Interval = defaultListInterval
 
-	executable, err := os.Executable()
-	if err != nil {
-		return err
-	}
-
-	path := filepath.Dir(executable) + "/config.json"
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+	f, err := os.OpenFile(Path("config.json"), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		config = oldConf
 		return err
