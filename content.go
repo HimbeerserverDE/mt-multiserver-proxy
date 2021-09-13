@@ -108,6 +108,7 @@ func handleContent(cc *contentConn) {
 				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
 					cc.log("<->", "timeout")
 				}
+
 				break
 			}
 
