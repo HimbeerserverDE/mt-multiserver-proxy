@@ -225,9 +225,9 @@ func handleContent(cc *contentConn) {
 			cc.SendCmd(&mt.ToSrvReqMedia{Filenames: filenames})
 		case *mt.ToCltMedia:
 			for _, f := range cmd.Files {
-				for _, af := range cc.media {
+				for i, af := range cc.media {
 					if af.name == f.Name {
-						af.data = f.Data
+						cc.media[i].data = f.Data
 						break
 					}
 				}

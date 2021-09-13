@@ -33,7 +33,7 @@ func (cc *contentConn) updateCache() {
 	os.Mkdir(Path("cache"), 0777)
 
 	for _, f := range cc.media {
-		os.WriteFile(cc.name+"_"+f.name, f.data, 0666)
+		os.WriteFile(Path("cache/", cc.name, "_", f.name), f.data, 0666)
 	}
 }
 
