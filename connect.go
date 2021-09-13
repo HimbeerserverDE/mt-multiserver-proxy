@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"fmt"
+	"log"
 	"net"
 
 	"github.com/anon55555/mt"
@@ -15,8 +17,10 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	}
 	cc.mu.RUnlock()
 
+	prefix := fmt.Sprintf("[server %s] ", name)
 	sc := &ServerConn{
 		Peer:             mt.Connect(conn),
+		logger:           log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix),
 		initCh:           make(chan struct{}),
 		clt:              cc,
 		name:             name,
@@ -26,7 +30,7 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 		huds:             make(map[mt.HUDID]mt.HUDType),
 		playerList:       make(map[string]struct{}),
 	}
-	sc.Log("-->", "connect")
+	sc.Log("->", "connect")
 
 	cc.mu.Lock()
 	cc.srv = sc
@@ -37,8 +41,10 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 }
 
 func connectContent(conn net.Conn, name, userName string) (*contentConn, error) {
+	prefix := fmt.Sprintf("[content %s] ", name)
 	cc := &contentConn{
 		Peer:     mt.Connect(conn),
+		logger:   log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix),
 		doneCh:   make(chan struct{}),
 		name:     name,
 		userName: userName,

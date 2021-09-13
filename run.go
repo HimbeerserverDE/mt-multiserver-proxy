@@ -14,7 +14,7 @@ import (
 // It blocks forever.
 func Run() {
 	if err := LoadConfig(); err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	if !Conf().NoPlugins {
@@ -26,29 +26,29 @@ func Run() {
 	case "sqlite3":
 		setAuthBackend(authSQLite3{})
 	default:
-		log.Fatal("{←|⇶} invalid auth backend")
+		log.Fatal("invalid auth backend")
 	}
 
 	go func() {
 		if err := telnetServer(); err != nil {
-			log.Fatal("{←|⇶} ", err)
+			log.Fatal(err)
 		}
 	}()
 
 	addr, err := net.ResolveUDPAddr("udp", Conf().BindAddr)
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	pc, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	l := listen(pc)
 	defer l.Close()
 
-	log.Print("{←|⇶} listen ", l.Addr())
+	log.Println("listen", l.Addr())
 
 	go func() {
 		sig := make(chan os.Signal, 1)
@@ -59,7 +59,7 @@ func Run() {
 
 		if Conf().List.Enable {
 			if err := announce(listRm); err != nil {
-				log.Print("{←|⇶} ", err)
+				log.Print(err)
 			}
 		}
 
@@ -83,11 +83,11 @@ func Run() {
 		cc, err := l.accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				log.Print("{←|⇶} stop listening")
+				log.Print("stop listening")
 				break
 			}
 
-			log.Print("{←|⇶} ", err)
+			log.Print(err)
 			continue
 		}
 
@@ -96,21 +96,21 @@ func Run() {
 			cc.Log("<->", "handshake completed")
 
 			if len(Conf().Servers) == 0 {
-				cc.Log("<--", "no servers")
+				cc.Log("<-", "no servers")
 				cc.Kick("No servers are configured.")
 				return
 			}
 
 			addr, err := net.ResolveUDPAddr("udp", Conf().Servers[0].Addr)
 			if err != nil {
-				cc.Log("<--", "address resolution fail")
+				cc.Log("<-", "address resolution fail")
 				cc.Kick("Server address resolution failed.")
 				return
 			}
 
 			conn, err := net.DialUDP("udp", nil, addr)
 			if err != nil {
-				cc.Log("<--", "connection fail")
+				cc.Log("<-", "connection fail")
 				cc.Kick("Server connection failed.")
 				return
 			}

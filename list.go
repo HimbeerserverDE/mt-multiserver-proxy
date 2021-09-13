@@ -88,7 +88,7 @@ func announce(action string) error {
 		return err
 	}
 
-	log.Print("{←|⇶} announce ", action)
+	log.Println("announce", action)
 	return nil
 }
 
@@ -101,7 +101,7 @@ func init() {
 				<-t.C
 				if !added {
 					if err := announce(listAdd); err != nil {
-						log.Print("{←|⇶} ", err)
+						log.Print(err)
 					}
 
 					added = true
@@ -109,7 +109,7 @@ func init() {
 				}
 
 				if err := announce(listUpdate); err != nil {
-					log.Print("{←|⇶} ", err)
+					log.Print(err)
 				}
 			}
 		}()

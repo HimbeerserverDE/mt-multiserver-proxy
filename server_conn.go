@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -19,6 +18,8 @@ type ServerConn struct {
 	mt.Peer
 	clt *ClientConn
 	mu  sync.RWMutex
+
+	logger *log.Logger
 
 	cstate   clientState
 	cstateMu sync.RWMutex
@@ -71,20 +72,7 @@ func (sc *ServerConn) Init() <-chan struct{} { return sc.initCh }
 // Log logs an interaction with the ServerConn.
 // dir indicates the direction of the interaction.
 func (sc *ServerConn) Log(dir string, v ...interface{}) {
-	if sc.client() != nil {
-		format := "%s {%s}"
-		format += strings.Repeat(" %v", len(v))
-
-		sc.client().Log("", fmt.Sprintf(format, append([]interface{}{
-			dir,
-			sc.name,
-		}, v...)...))
-	} else {
-		format := "{←|⇶} %s {%s}"
-		format += strings.Repeat(" %v", len(v))
-
-		log.Printf(format, append([]interface{}{dir, sc.name}, v...)...)
-	}
+	sc.logger.Println(append([]interface{}{dir}, v...)...)
 }
 
 func handleSrv(sc *ServerConn) {
@@ -96,7 +84,7 @@ func handleSrv(sc *ServerConn) {
 			select {
 			case <-init:
 			case <-time.After(10 * time.Second):
-				sc.Log("-->", "timeout")
+				sc.Log("->", "timeout")
 				sc.Close()
 			}
 		}(init)
@@ -146,20 +134,20 @@ func handleSrv(sc *ServerConn) {
 				break
 			}
 
-			sc.Log("<--", err)
+			sc.Log("<-", err)
 			continue
 		}
 
 		clt := sc.client()
 		if clt == nil {
-			sc.Log("<--", "no client")
+			sc.Log("<-", "no client")
 			continue
 		}
 
 		switch cmd := pkt.Cmd.(type) {
 		case *mt.ToCltHello:
 			if sc.auth.method != 0 {
-				sc.Log("<--", "unexpected authentication")
+				sc.Log("<-", "unexpected authentication")
 				sc.Close()
 				break
 			}
@@ -172,7 +160,7 @@ func handleSrv(sc *ServerConn) {
 			}
 
 			if cmd.SerializeVer != latestSerializeVer {
-				sc.Log("<--", "invalid serializeVer")
+				sc.Log("<-", "invalid serializeVer")
 				break
 			}
 
@@ -180,7 +168,7 @@ func handleSrv(sc *ServerConn) {
 			case mt.SRP:
 				sc.auth.srpA, sc.auth.a, err = srp.InitiateHandshake()
 				if err != nil {
-					sc.Log("-->", err)
+					sc.Log("->", err)
 					break
 				}
 
@@ -191,7 +179,7 @@ func handleSrv(sc *ServerConn) {
 			case mt.FirstSRP:
 				salt, verifier, err := srp.NewClient([]byte(clt.name), []byte{})
 				if err != nil {
-					sc.Log("-->", err)
+					sc.Log("->", err)
 					break
 				}
 
@@ -206,19 +194,19 @@ func handleSrv(sc *ServerConn) {
 			}
 		case *mt.ToCltSRPBytesSaltB:
 			if sc.auth.method != mt.SRP {
-				sc.Log("<--", "multiple authentication attempts")
+				sc.Log("<-", "multiple authentication attempts")
 				break
 			}
 
 			sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(clt.name), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
-				sc.Log("-->", err)
+				sc.Log("->", err)
 				break
 			}
 
 			M := srp.ClientProof([]byte(clt.name), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
 			if M == nil {
-				sc.Log("<--", "SRP safety check fail")
+				sc.Log("<-", "SRP safety check fail")
 				break
 			}
 
@@ -226,7 +214,7 @@ func handleSrv(sc *ServerConn) {
 				M: M,
 			})
 		case *mt.ToCltDisco:
-			sc.Log("<--", "deny access", cmd)
+			sc.Log("<-", "deny access", cmd)
 			ack, _ := clt.SendCmd(cmd)
 
 			select {
@@ -245,9 +233,9 @@ func handleSrv(sc *ServerConn) {
 			}{}
 			sc.SendCmd(&mt.ToSrvInit2{Lang: clt.lang})
 		case *mt.ToCltDenySudoMode:
-			sc.Log("<--", "deny sudo")
+			sc.Log("<-", "deny sudo")
 		case *mt.ToCltAcceptSudoMode:
-			sc.Log("<--", "accept sudo")
+			sc.Log("<-", "accept sudo")
 			sc.setState(sc.state() + 1)
 		case *mt.ToCltAnnounceMedia:
 			sc.SendCmd(&mt.ToSrvReqMedia{})

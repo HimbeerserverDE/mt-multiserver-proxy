@@ -8,13 +8,15 @@ import (
 	"sync"
 )
 
-const defaultCmdPrefix = ">"
-const defaultSendInterval = 0.09
-const defaultUserLimit = 10
-const defaultAuthBackend = "sqlite3"
-const defaultTelnetAddr = "[::1]:40010"
-const defaultBindAddr = ":40000"
-const defaultListInterval = 300
+const (
+	defaultCmdPrefix    = ">"
+	defaultSendInterval = 0.09
+	defaultUserLimit    = 10
+	defaultAuthBackend  = "sqlite3"
+	defaultTelnetAddr   = "[::1]:40010"
+	defaultBindAddr     = ":40000"
+	defaultListInterval = 300
+)
 
 var config Config
 var configMu sync.RWMutex
@@ -115,6 +117,6 @@ func LoadConfig() error {
 		return err
 	}
 
-	log.Print("{←|⇶} load config")
+	log.Print("load config")
 	return nil
 }

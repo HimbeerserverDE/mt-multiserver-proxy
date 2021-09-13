@@ -3,11 +3,11 @@ package proxy
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math"
 	"net"
-	"strings"
 )
 
 // A TelnetWriter can be used to print something at the other end
@@ -32,7 +32,7 @@ func telnetServer() error {
 	}
 	defer ln.Close()
 
-	log.Print("{←|⇶} listen telnet ", ln.Addr())
+	log.Println("listen telnet", ln.Addr())
 
 	for {
 		select {
@@ -41,7 +41,7 @@ func telnetServer() error {
 		default:
 			conn, err := ln.Accept()
 			if err != nil {
-				log.Print("{←|⇶} ", err)
+				log.Print(err)
 				continue
 			}
 
@@ -52,13 +52,9 @@ func telnetServer() error {
 
 func handleTelnet(conn net.Conn) {
 	tlog := func(dir string, v ...interface{}) {
-		format := "{%s} %s {←|⇶}"
-		format += strings.Repeat(" %v", len(v))
-
-		log.Printf(format, append([]interface{}{
-			conn.RemoteAddr(),
-			dir,
-		}, v...)...)
+		prefix := fmt.Sprintf("[telnet %s] ", conn.RemoteAddr())
+		l := log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix)
+		l.Println(append([]interface{}{dir}, v...)...)
 	}
 
 	tlog("<->", "telnet connect")
@@ -89,11 +85,11 @@ func handleTelnet(conn net.Conn) {
 				return
 			}
 
-			log.Print("{←|⇶} ", err)
+			log.Print(err)
 			continue
 		}
 
-		tlog("-->", "telnet command", s)
+		tlog("->", "telnet command", s)
 
 		if s == "\\quit" || s == "\\q" {
 			return

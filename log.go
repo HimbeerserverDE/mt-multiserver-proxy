@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 )
 
+var logWriter *LogWriter
+
 type LogWriter struct {
 	f *os.File
 }
@@ -22,15 +24,18 @@ func (lw *LogWriter) Write(p []byte) (n int, err error) {
 }
 
 func init() {
+	log.SetPrefix("[proxy] ")
+	log.SetFlags(log.Flags() | log.Lmsgprefix)
+
 	executable, err := os.Executable()
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	path := filepath.Dir(executable) + "/latest.log"
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	go func() {
@@ -38,6 +43,6 @@ func init() {
 		select {}
 	}()
 
-	lw := &LogWriter{f}
-	log.SetOutput(lw)
+	logWriter = &LogWriter{f}
+	log.SetOutput(logWriter)
 }

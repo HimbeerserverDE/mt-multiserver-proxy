@@ -30,6 +30,8 @@ type mediaFile struct {
 type contentConn struct {
 	mt.Peer
 
+	logger *log.Logger
+
 	cstate         clientState
 	cstateMu       sync.RWMutex
 	name, userName string
@@ -69,10 +71,7 @@ func (cc *contentConn) addDefaultTextures() {
 }
 
 func (cc *contentConn) log(dir string, v ...interface{}) {
-	format := "{←|⇶} %s {%s}"
-	format += strings.Repeat(" %v", len(v))
-
-	log.Printf(format, append([]interface{}{dir, cc.name}, v...)...)
+	cc.logger.Println(append([]interface{}{dir}, v...)...)
 }
 
 func handleContent(cc *contentConn) {
@@ -86,7 +85,7 @@ func handleContent(cc *contentConn) {
 			select {
 			case <-init:
 			case <-time.After(10 * time.Second):
-				cc.log("-->", "timeout")
+				cc.log("->", "timeout")
 				cc.Close()
 			}
 		}(init)
@@ -112,14 +111,14 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.log("-->", err)
+			cc.log("->", err)
 			continue
 		}
 
 		switch cmd := pkt.Cmd.(type) {
 		case *mt.ToCltHello:
 			if cc.auth.method != 0 {
-				cc.log("<--", "unexpected authentication")
+				cc.log("<-", "unexpected authentication")
 				cc.Close()
 				break
 			}
@@ -132,7 +131,7 @@ func handleContent(cc *contentConn) {
 			}
 
 			if cmd.SerializeVer != latestSerializeVer {
-				cc.log("<--", "invalid serializeVer")
+				cc.log("<-", "invalid serializeVer")
 				break
 			}
 
@@ -140,7 +139,7 @@ func handleContent(cc *contentConn) {
 			case mt.SRP:
 				cc.auth.srpA, cc.auth.a, err = srp.InitiateHandshake()
 				if err != nil {
-					cc.log("-->", err)
+					cc.log("->", err)
 					break
 				}
 
@@ -151,7 +150,7 @@ func handleContent(cc *contentConn) {
 			case mt.FirstSRP:
 				salt, verifier, err := srp.NewClient([]byte(cc.userName), []byte{})
 				if err != nil {
-					cc.log("-->", err)
+					cc.log("->", err)
 					break
 				}
 
@@ -166,19 +165,19 @@ func handleContent(cc *contentConn) {
 			}
 		case *mt.ToCltSRPBytesSaltB:
 			if cc.auth.method != mt.SRP {
-				cc.log("<--", "multiple authentication attempts")
+				cc.log("<-", "multiple authentication attempts")
 				break
 			}
 
 			cc.auth.srpK, err = srp.CompleteHandshake(cc.auth.srpA, cc.auth.a, []byte(cc.userName), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
-				cc.log("-->", err)
+				cc.log("->", err)
 				break
 			}
 
 			M := srp.ClientProof([]byte(cc.userName), cmd.Salt, cc.auth.srpA, cmd.B, cc.auth.srpK)
 			if M == nil {
-				cc.log("<--", "SRP safety check fail")
+				cc.log("<-", "SRP safety check fail")
 				break
 			}
 
@@ -186,7 +185,7 @@ func handleContent(cc *contentConn) {
 				M: M,
 			})
 		case *mt.ToCltDisco:
-			cc.log("<--", "deny access", cmd)
+			cc.log("<-", "deny access", cmd)
 		case *mt.ToCltAcceptAuth:
 			cc.auth.method = 0
 			cc.SendCmd(&mt.ToSrvInit2{})
@@ -276,7 +275,7 @@ func (cc *ClientConn) sendMedia(filenames []string) {
 		}
 
 		if !known {
-			cc.Log("-->", "request unknown media file")
+			cc.Log("->", "request unknown media file")
 			continue
 		}
 	}

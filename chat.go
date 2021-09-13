@@ -43,10 +43,10 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 			v[i+2] = arg
 		}
 
-		cc.Log("-->", v...)
+		cc.Log("->", v...)
 
 		if !ChatCmdExists(cmdName) {
-			cc.Log("<--", "unknown command", cmdName)
+			cc.Log("<-", "unknown command", cmdName)
 			return "Command not found.", true
 		}
 
@@ -56,7 +56,7 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 		cmd := chatCmds[cmdName]
 
 		if !cc.HasPerms(cmd.Perm) {
-			cc.Log("<--", "deny command", cmdName)
+			cc.Log("<-", "deny command", cmdName)
 			return fmt.Sprintf("Missing permission %s.", cmd.Perm), true
 		}
 
@@ -78,7 +78,7 @@ func onTelnetMsg(tlog func(dir string, v ...interface{}), w io.Writer, msg strin
 	}
 
 	if !ChatCmdExists(cmdName) {
-		tlog("<--", "unknown command", cmdName)
+		tlog("<-", "unknown command", cmdName)
 		return "Command not found.\n"
 	}
 

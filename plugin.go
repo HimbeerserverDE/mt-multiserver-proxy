@@ -17,7 +17,7 @@ func loadPlugins() {
 func openPlugins() {
 	executable, err := os.Executable()
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	path := filepath.Dir(executable) + "/plugins"
@@ -25,16 +25,16 @@ func openPlugins() {
 
 	dir, err := os.ReadDir(path)
 	if err != nil {
-		log.Fatal("{←|⇶} ", err)
+		log.Fatal(err)
 	}
 
 	for _, file := range dir {
 		_, err := plugin.Open(path + "/" + file.Name())
 		if err != nil {
-			log.Print("{←|⇶} ", err)
+			log.Print(err)
 			continue
 		}
 	}
 
-	log.Print("{←|⇶} load plugins")
+	log.Print("load plugins")
 }

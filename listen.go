@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"sync"
 
@@ -68,8 +69,10 @@ func (l *listener) accept() (*ClientConn, error) {
 		return nil, err
 	}
 
+	prefix := fmt.Sprintf("[%s] ", p.RemoteAddr())
 	cc := &ClientConn{
 		Peer:   p,
+		logger: log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix),
 		initCh: make(chan struct{}),
 		modChs: make(map[string]struct{}),
 	}
@@ -86,7 +89,7 @@ func (l *listener) accept() (*ClientConn, error) {
 		delete(l.clts, cc)
 	}()
 
-	cc.Log("-->", "connect")
+	cc.Log("->", "connect")
 	go handleClt(cc)
 
 	select {
