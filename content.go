@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"crypto/sha1"
+	"embed"
 	"encoding/base64"
 	"errors"
 	"log"
@@ -15,11 +17,12 @@ import (
 	"github.com/anon55555/mt/rudp"
 )
 
-//go:generate go run gen_textures.go
-
 var disallowedChars = regexp.MustCompile("[^a-zA-Z0-9-_.:]")
 
 var b64 = base64.StdEncoding
+
+//go:embed textures/*
+var textures embed.FS
 
 type mediaFile struct {
 	name       string
@@ -66,8 +69,28 @@ func (cc *contentConn) setState(state clientState) {
 
 func (cc *contentConn) done() <-chan struct{} { return cc.doneCh }
 
-func (cc *contentConn) addDefaultTextures() {
-	cc.media = defaultTextures // auto generated variable, see gen_textures.go
+func (cc *contentConn) addDefaultTextures() error {
+	dir, err := textures.ReadDir("textures")
+	if err != nil {
+		return err
+	}
+
+	cc.media = make([]mediaFile, 0, len(dir))
+	for _, f := range dir {
+		data, err := textures.ReadFile("textures/" + f.Name())
+		if err != nil {
+			return err
+		}
+
+		sum := sha1.Sum(data)
+		cc.media = append(cc.media, mediaFile{
+			name:       f.Name(),
+			base64SHA1: b64.EncodeToString(sum[:]),
+			data:       data,
+		})
+	}
+
+	return nil
 }
 
 func (cc *contentConn) log(dir string, v ...interface{}) {

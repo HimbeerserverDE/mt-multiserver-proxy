@@ -50,7 +50,10 @@ func connectContent(conn net.Conn, name, userName string) (*contentConn, error) 
 		userName: userName,
 	}
 
-	cc.addDefaultTextures()
+	if err := cc.addDefaultTextures(); err != nil {
+		return nil, err
+	}
+
 	go handleContent(cc)
 	return cc, nil
 }
