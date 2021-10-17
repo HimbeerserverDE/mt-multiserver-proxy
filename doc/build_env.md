@@ -1,7 +1,7 @@
 # Build environment
 ## `go version`
 ```
-go version go1.17 linux/amd64
+go version go1.17.2 linux/amd64
 ```
 ## Build commands
 All commands are run in the project root directory.
