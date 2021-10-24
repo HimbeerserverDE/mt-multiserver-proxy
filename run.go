@@ -106,7 +106,7 @@ func Run() {
 
 			srv := srvs[0]
 			lastSrv, err := authIface.LastSrv(cc.Name())
-			if err != nil && !Conf().ForceDefaultSrv && lastSrv != srv.Name {
+			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srv.Name {
 				for _, v := range srvs {
 					if v.Name == lastSrv {
 						srv = v
