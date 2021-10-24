@@ -52,6 +52,23 @@ func (a authFiles) SetPasswd(name string, salt, verifier []byte) error {
 	return nil
 }
 
+// LastSrv returns the last server a user was on.
+func (a authFiles) LastSrv(name string) (string, error) {
+	os.Mkdir(Path("auth"), 0700)
+	os.Mkdir(Path("auth/", name), 0700)
+
+	srv, err := os.ReadFile(Path("auth/", name, "/last_server"))
+	return string(srv), err
+}
+
+// SetLastSrv sets the last server a user was on.
+func (a authFiles) SetLastSrv(name, srv string) error {
+	os.Mkdir(Path("auth"), 0700)
+	os.Mkdir(Path("auth/", name), 0700)
+
+	return os.WriteFile(Path("auth/", name, "/last_server"), []byte(srv), 0600)
+}
+
 // Timestamp returns the last time an authentication entry was accessed
 // or an error.
 func (a authFiles) Timestamp(name string) (time.Time, error) {

@@ -25,6 +25,8 @@ type authBackend interface {
 	Exists(name string) bool
 	Passwd(name string) (salt, verifier []byte, err error)
 	SetPasswd(name string, salt, verifier []byte) error
+	LastSrv(name string) (string, error)
+	SetLastSrv(name, srv string) error
 	Timestamp(name string) (time.Time, error)
 	Import(in []user)
 	Export() ([]user, error)
