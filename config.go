@@ -36,7 +36,8 @@ type Config struct {
 		Name string
 		Addr string
 	}
-	CSMRF struct {
+	ForceDefaultSrv bool
+	CSMRF           struct {
 		NoCSMs          bool
 		ChatMsgs        bool
 		ItemDefs        bool

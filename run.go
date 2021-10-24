@@ -97,13 +97,25 @@ func Run() {
 			<-cc.Init()
 			cc.Log("<->", "handshake completed")
 
-			if len(Conf().Servers) == 0 {
+			srvs := Conf().Servers
+			if len(srvs) == 0 {
 				cc.Log("<-", "no servers")
 				cc.Kick("No servers are configured.")
 				return
 			}
 
-			addr, err := net.ResolveUDPAddr("udp", Conf().Servers[0].Addr)
+			srv := srvs[0]
+			lastSrv, err := authIface.LastSrv(cc.Name())
+			if err != nil && !Conf().ForceDefaultSrv && lastSrv != srv.Name {
+				for _, v := range srvs {
+					if v.Name == lastSrv {
+						srv = v
+						break
+					}
+				}
+			}
+
+			addr, err := net.ResolveUDPAddr("udp", srv.Addr)
 			if err != nil {
 				cc.Log("<-", "address resolution fail")
 				cc.Kick("Server address resolution failed.")
@@ -117,7 +129,7 @@ func Run() {
 				return
 			}
 
-			connect(conn, Conf().Servers[0].Name, cc)
+			connect(conn, srv.Name, cc)
 		}()
 	}
 

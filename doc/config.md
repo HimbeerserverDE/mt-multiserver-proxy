@@ -96,6 +96,14 @@ Default: ""
 Description: The network address and port of an internal server.
 ```
 
+> `ForceDefaultSrv`
+```
+Type: bool
+Default: false
+Description: Players are connected to the default server instead of
+the server they were playing on if this is true.
+```
+
 > `CSMRF`
 ```
 Type: CSMRF
