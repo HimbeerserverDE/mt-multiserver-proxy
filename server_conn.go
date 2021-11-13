@@ -109,7 +109,7 @@ func handleSrv(sc *ServerConn) {
 				}
 
 				if sc.client() != nil {
-					ack, _ := sc.client().SendCmd(&mt.ToCltDisco{
+					ack, _ := sc.client().SendCmd(&mt.ToCltKick{
 						Reason: mt.Custom,
 						Custom: "Server connection closed unexpectedly.",
 					})

@@ -136,7 +136,7 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.log("->", err)
+			cc.log("<-", err)
 			continue
 		}
 
@@ -209,7 +209,7 @@ func handleContent(cc *contentConn) {
 			cc.SendCmd(&mt.ToSrvSRPBytesM{
 				M: M,
 			})
-		case *mt.ToCltDisco:
+		case *mt.ToCltKick:
 			cc.log("<-", "deny access", cmd)
 		case *mt.ToCltAcceptAuth:
 			cc.auth.method = 0

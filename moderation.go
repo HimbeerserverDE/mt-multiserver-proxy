@@ -6,11 +6,11 @@ import (
 	"github.com/anon55555/mt"
 )
 
-// Kick sends mt.ToCltDisco with the specified custom reason
+// Kick sends mt.ToCltKick with the specified custom reason
 // and closes the ClientConn.
 func (cc *ClientConn) Kick(reason string) {
 	go func() {
-		ack, _ := cc.SendCmd(&mt.ToCltDisco{
+		ack, _ := cc.SendCmd(&mt.ToCltKick{
 			Reason: mt.Custom,
 			Custom: reason,
 		})

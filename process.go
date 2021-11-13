@@ -25,7 +25,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.setState(csInit)
 		if cmd.SerializeVer != latestSerializeVer {
 			cc.Log("<-", "invalid serializeVer")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
 			case <-cc.Closed():
@@ -38,7 +38,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		if cmd.MaxProtoVer < latestProtoVer {
 			cc.Log("<-", "invalid protoVer")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnsupportedVer})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
 			case <-cc.Closed():
@@ -51,7 +51,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		if len(cmd.PlayerName) == 0 || len(cmd.PlayerName) > maxPlayerNameLen {
 			cc.Log("<-", "invalid player name length")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadName})
 
 			select {
 			case <-cc.Closed():
@@ -64,7 +64,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		if !playerNameChars.MatchString(cmd.PlayerName) {
 			cc.Log("<-", "invalid player name")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadNameChars})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadNameChars})
 
 			select {
 			case <-cc.Closed():
@@ -88,7 +88,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		_, ok := players[cc.Name()]
 		if ok {
 			cc.Log("<-", "already connected")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.AlreadyConnected})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.AlreadyConnected})
 
 			select {
 			case <-cc.Closed():
@@ -105,7 +105,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		if cc.Name() == "singleplayer" {
 			cc.Log("<-", "name is singleplayer")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.BadName})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadName})
 
 			select {
 			case <-cc.Closed():
@@ -119,7 +119,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		// user limit
 		if len(players) >= Conf().UserLimit {
 			cc.Log("<-", "player limit reached")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.TooManyClts})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.TooManyClts})
 
 			select {
 			case <-cc.Closed():
@@ -149,7 +149,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		if cc.state() == csInit {
 			if cc.auth.method != mt.FirstSRP {
 				cc.Log("->", "unauthorized password change")
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
+				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnexpectedData})
 
 				select {
 				case <-cc.Closed():
@@ -167,7 +167,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 			if cmd.EmptyPasswd && Conf().RequirePasswd {
 				cc.Log("<-", "empty password disallowed")
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.EmptyPasswd})
+				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.EmptyPasswd})
 
 				select {
 				case <-cc.Closed():
@@ -180,7 +180,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 			if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 				cc.Log("<-", "set password fail")
-				ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
+				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})
 
 				select {
 				case <-cc.Closed():
@@ -231,7 +231,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				return
 			}
 
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnexpectedData})
 			select {
 			case <-cc.Closed():
 			case <-ack:
@@ -251,7 +251,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		salt, verifier, err := authIface.Passwd(cc.Name())
 		if err != nil {
 			cc.Log("<-", "SRP data retrieval fail")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.SrvErr})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})
 
 			select {
 			case <-cc.Closed():
@@ -267,7 +267,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.auth.srpB, _, cc.auth.srpK, err = srp.Handshake(cc.auth.srpA, verifier)
 		if err != nil || cc.auth.srpB == nil {
 			cc.Log("<-", "SRP safety check fail")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnexpectedData})
 
 			select {
 			case <-cc.Closed():
@@ -299,7 +299,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				return
 			}
 
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.UnexpectedData})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnexpectedData})
 
 			select {
 			case <-cc.Closed():
@@ -336,7 +336,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			}
 
 			cc.Log("<-", "invalid password")
-			ack, _ := cc.SendCmd(&mt.ToCltDisco{Reason: mt.WrongPasswd})
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.WrongPasswd})
 
 			select {
 			case <-cc.Closed():
@@ -528,7 +528,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		})
 
 		return
-	case *mt.ToCltDisco:
+	case *mt.ToCltKick:
 		sc.Log("<-", "deny access", cmd)
 		ack, _ := clt.SendCmd(cmd)
 
