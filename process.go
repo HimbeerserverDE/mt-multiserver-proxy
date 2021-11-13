@@ -204,7 +204,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				return
 			}
 
-			cc.setState(cc.state() - 1)
+			cc.setState(csActive)
 			if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 				cc.Log("<-", "change password fail")
 				cc.SendChatMsg("Password change failed or unavailable.")
@@ -318,7 +318,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			}{}
 
 			if wantSudo {
-				cc.setState(cc.state() + 1)
+				cc.setState(csSudo)
 				cc.SendCmd(&mt.ToCltAcceptSudoMode{})
 			} else {
 				cc.SendCmd(&mt.ToCltAcceptAuth{
@@ -414,7 +414,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.versionStr = cmd.Version
 		cc.formspecVer = cmd.Formspec
 
-		cc.setState(cc.state() + 1)
+		cc.setState(csActive)
 		close(cc.initCh)
 
 		return
@@ -461,7 +461,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		sc.setState(sc.state() + 1)
+		sc.setState(csActive)
 		if cmd.AuthMethods&mt.FirstSRP != 0 {
 			sc.auth.method = mt.FirstSRP
 		} else {
@@ -556,7 +556,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		return
 	case *mt.ToCltAcceptSudoMode:
 		sc.Log("<-", "accept sudo")
-		sc.setState(sc.state() + 1)
+		sc.setState(csSudo)
 		return
 	case *mt.ToCltAnnounceMedia:
 		sc.SendCmd(&mt.ToSrvReqMedia{})
@@ -571,7 +571,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		})
 
 		sc.Log("<->", "handshake completed")
-		sc.setState(sc.state() + 1)
+		sc.setState(csActive)
 		close(sc.initCh)
 
 		return

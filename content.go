@@ -148,7 +148,7 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.setState(cc.state() + 1)
+			cc.setState(csActive)
 			if cmd.AuthMethods&mt.FirstSRP != 0 {
 				cc.auth.method = mt.FirstSRP
 			} else {
