@@ -173,7 +173,9 @@ func handleContent(cc *contentConn) {
 					NoSHA1: true,
 				})
 			case mt.FirstSRP:
-				salt, verifier, err := srp.NewClient([]byte(cc.userName), []byte{})
+				id := strings.ToLower(cc.userName)
+
+				salt, verifier, err := srp.NewClient([]byte(id), []byte{})
 				if err != nil {
 					cc.log("->", err)
 					break
@@ -194,7 +196,9 @@ func handleContent(cc *contentConn) {
 				break
 			}
 
-			cc.auth.srpK, err = srp.CompleteHandshake(cc.auth.srpA, cc.auth.a, []byte(cc.userName), []byte{}, cmd.Salt, cmd.B)
+			id := strings.ToLower(cc.userName)
+
+			cc.auth.srpK, err = srp.CompleteHandshake(cc.auth.srpA, cc.auth.a, []byte(id), []byte{}, cmd.Salt, cmd.B)
 			if err != nil {
 				cc.log("->", err)
 				break

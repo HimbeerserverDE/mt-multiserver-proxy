@@ -487,7 +487,9 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 				NoSHA1: true,
 			})
 		case mt.FirstSRP:
-			salt, verifier, err := srp.NewClient([]byte(clt.name), []byte{})
+			id := strings.ToLower(clt.Name())
+
+			salt, verifier, err := srp.NewClient([]byte(id), []byte{})
 			if err != nil {
 				sc.Log("->", err)
 				return
@@ -510,14 +512,16 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			return
 		}
 
+		id := strings.ToLower(clt.Name())
+
 		var err error
-		sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(clt.name), []byte{}, cmd.Salt, cmd.B)
+		sc.auth.srpK, err = srp.CompleteHandshake(sc.auth.srpA, sc.auth.a, []byte(id), []byte{}, cmd.Salt, cmd.B)
 		if err != nil {
 			sc.Log("->", err)
 			return
 		}
 
-		M := srp.ClientProof([]byte(clt.name), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
+		M := srp.ClientProof([]byte(clt.Name()), cmd.Salt, sc.auth.srpA, cmd.B, sc.auth.srpK)
 		if M == nil {
 			sc.Log("<-", "SRP safety check fail")
 			return
