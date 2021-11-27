@@ -50,7 +50,8 @@ type contentConn struct {
 
 	nodeDefs []mt.NodeDef
 
-	media []mediaFile
+	media   []mediaFile
+	remotes []string
 }
 
 func (cc *contentConn) state() clientState {
@@ -249,6 +250,11 @@ func handleContent(cc *contentConn) {
 					name:       f.Name,
 					base64SHA1: f.Base64SHA1,
 				})
+			}
+
+			cc.remotes = strings.Split(cmd.URL, ",")
+			for k, v := range cc.remotes {
+				cc.remotes[k] = strings.TrimSpace(v)
 			}
 
 			cc.SendCmd(&mt.ToSrvReqMedia{Filenames: filenames})
@@ -468,7 +474,25 @@ func muxMedia(conns []*contentConn) []mediaFile {
 	return media
 }
 
-func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, err error) {
+func muxRemotes(conns []*contentConn) []string {
+	remotes := make(map[string]struct{})
+
+	for _, cc := range conns {
+		<-cc.done()
+		for _, v := range cc.remotes {
+			remotes[v] = struct{}{}
+		}
+	}
+
+	urls := make([]string, 0, len(remotes))
+	for remote := range remotes {
+		urls = append(urls, remote)
+	}
+
+	return urls
+}
+
+func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
 	var conns []*contentConn
 	for _, srv := range Conf().Servers {
 		var addr *net.UDPAddr
@@ -496,6 +520,7 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 	itemDefs, aliases = muxItemDefs(conns)
 	nodeDefs, p0Map, p0SrvMap = muxNodeDefs(conns)
 	media = muxMedia(conns)
+	remotes = muxRemotes(conns)
 	return
 }
 

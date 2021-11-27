@@ -349,8 +349,9 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToSrvInit2:
+		var remotes []string
 		var err error
-		cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, err = muxContent(cc.Name())
+		cc.itemDefs, cc.aliases, cc.nodeDefs, cc.p0Map, cc.p0SrvMap, cc.media, remotes, err = muxContent(cc.Name())
 		if err != nil {
 			cc.Log("<-", err.Error())
 			cc.Kick("Content multiplexing failed.")
@@ -374,7 +375,10 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			})
 		}
 
-		cc.SendCmd(&mt.ToCltAnnounceMedia{Files: files})
+		cc.SendCmd(&mt.ToCltAnnounceMedia{
+			Files: files,
+			URL:   strings.Join(remotes, ","),
+		})
 		cc.lang = cmd.Lang
 
 		var csmrf mt.CSMRestrictionFlags
