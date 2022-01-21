@@ -1,7 +1,28 @@
 # Configuration file
+
 ## Location
 The configuration file is automatically created in the working directory.
 The file name is `config.json`.
+
+## Example
+This is an example configuration file with two servers. Remember installing
+the chat command plugin and configuring the permissions.
+
+```json
+{
+	"Servers": [
+		{
+			"Name": "default_server",
+			"Addr": "minetest.local:30000"
+		},
+		{
+			"Name": "some_other_server",
+			"Addr": "minetest.local:30001"
+		}
+	]
+}
+```
+
 ## Format
 The configuration file contains JSON data. The fields are as follows.
 
