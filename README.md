@@ -9,7 +9,7 @@ This project was made possible by [anon55555's mt module](https://github.com/ano
 ## Installation
 Go 1.17 or higher is required. Run
 
-`go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver/proxy@latest`
+`go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver-proxy@latest`
 
 to download and compile the project. A mt-multiserver-proxy executable
 will be created in your $GOBIN directory. The same command is also
