@@ -5,8 +5,8 @@ The configuration file is automatically created in the working directory.
 The file name is `config.json`.
 
 ## Example
-This is an example configuration file with two servers. Remember installing
-the chat command plugin and configuring the permissions.
+This is an example configuration file with two servers. Remember to install
+[the chat command plugin](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands) and to configure the permissions.
 
 ```json
 {
