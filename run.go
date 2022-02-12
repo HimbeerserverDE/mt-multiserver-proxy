@@ -10,9 +10,15 @@ import (
 	"syscall"
 )
 
-// Run initializes the proxy andstarts the main listener loop.
-// It blocks forever.
+var runOnce sync.Once
+
 func Run() {
+	runOnce.Do(runFunc)
+}
+
+// Run initializes the proxy and starts the main listener loop.
+// It blocks forever.
+func runFunc() {
 	if err := LoadConfig(); err != nil {
 		log.Fatal(err)
 	}
