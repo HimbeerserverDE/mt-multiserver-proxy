@@ -537,6 +537,13 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToCltKick:
+		// if Shutdown or Crash
+		if cmd.Reason == 11 {
+			clt.SendChatMsg("[ERROR] ", cmd.String())
+			clt.Hop(Conf().Servers[0].Name)
+			return
+		}
+		
 		sc.Log("<-", "deny access", cmd)
 		ack, _ := clt.SendCmd(cmd)
 
@@ -828,6 +835,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		case mt.LeaveOK:
 			delete(clt.modChs, cmd.Channel)
 		}
+
 	}
 
 	clt.Send(pkt)
