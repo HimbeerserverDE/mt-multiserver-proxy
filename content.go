@@ -46,7 +46,7 @@ type contentConn struct {
 	}
 
 	itemDefs []mt.ItemDef
-	aliases  []struct{ Alias, Orig string } // alias = texture hash
+	aliases  []struct{ Alias, Orig string }
 
 	nodeDefs []mt.NodeDef
 
