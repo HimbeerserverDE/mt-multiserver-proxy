@@ -2,27 +2,30 @@ package proxy
 
 import (
 	"crypto/sha1"
+	"encoding/hex"
 	"os"
-	"strings"
 )
 
 func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 	os.Mkdir(Path("cache"), 0777)
 
-	data, err := os.ReadFile(Path("cache/", filename))
+
+	hash, err := b64.DecodeString(base64SHA1)
+	if err != nil {
+		cc.log("<-", base64SHA1, ": ", err)
+		return false
+	}
+
+	hexSHA1 := hex.EncodeToString(hash)
+
+	data, err := os.ReadFile(Path("cache/", hexSHA1))
 	if err != nil {
 		return false
 	}
 
-	hash := sha1.Sum(data)
-	sum := b64.EncodeToString(hash[:])
-	if sum != base64SHA1 {
-		return false
-	}
-
 	cc.media = append(cc.media, mediaFile{
-		name:       strings.Replace(filename, cc.name+"_", "", 1),
-		base64SHA1: sum,
+		name:       filename,
+		base64SHA1: base64SHA1,
 		data:       data,
 	})
 
@@ -33,10 +36,20 @@ func (cc *contentConn) updateCache() {
 	os.Mkdir(Path("cache"), 0777)
 
 	for _, f := range cc.media {
-		os.WriteFile(Path("cache/", cc.name, "_", f.name), f.data, 0666)
+		hash, err := b64.DecodeString(f.base64SHA1)
+		if err != nil {
+			cc.log("<-", err)
+			continue
+		}
+
+		hexSHA1 := hex.EncodeToString(hash)
+		os.WriteFile(Path("cache/", hexSHA1), f.data, 0666)
 	}
 }
 
 func cacheMedia(f mediaFile) {
-	os.WriteFile(f.name, f.data, 0666)
+	hash := sha1.Sum(f.data)
+	sum := hex.EncodeToString(hash[:])
+
+	os.WriteFile(Path("cache/", sum), f.data, 0666)
 }
