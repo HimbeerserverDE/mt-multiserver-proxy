@@ -537,7 +537,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToCltKick:
-		// if Shutdown or Crash
+		// if Shutdown
 		if cmd.Reason == 11 {
 			clt.SendChatMsg("[ERROR] ", cmd.String())
 			clt.Hop(Conf().Servers[0].Name)
