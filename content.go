@@ -46,7 +46,7 @@ type contentConn struct {
 	}
 
 	itemDefs []mt.ItemDef
-	aliases  []struct{ Alias, Orig string }
+	aliases  []struct{ Alias, Orig string } // alias = texture hash
 
 	nodeDefs []mt.NodeDef
 
@@ -291,6 +291,7 @@ func (cc *ClientConn) sendMedia(filenames []string) {
 		var known bool
 		for _, f := range cc.media {
 			if f.name == filename {
+				log.Print("filename", filename, f.name)
 				mfile := struct {
 					Name string
 					Data []byte
