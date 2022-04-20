@@ -291,7 +291,6 @@ func (cc *ClientConn) sendMedia(filenames []string) {
 		var known bool
 		for _, f := range cc.media {
 			if f.name == filename {
-				log.Print("filename", filename, f.name)
 				mfile := struct {
 					Name string
 					Data []byte
