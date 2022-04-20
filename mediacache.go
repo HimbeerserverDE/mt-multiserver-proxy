@@ -9,7 +9,6 @@ import (
 func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 	os.Mkdir(Path("cache"), 0777)
 
-
 	hash, err := b64.DecodeString(base64SHA1)
 	if err != nil {
 		cc.log("<-", base64SHA1, ": ", err)
