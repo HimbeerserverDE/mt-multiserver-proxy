@@ -540,10 +540,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		// if Shutdown
 		if cmd.Reason == 11 {
 			clt.SendChatMsg("[ERROR] ", cmd.String())
-			clt.Hop(Conf().Servers[0].Name)
+			clt.Hop(FallbackServers(sc.name)[0])
 			return
 		}
-		
+
 		sc.Log("<-", "deny access", cmd)
 		ack, _ := clt.SendCmd(cmd)
 

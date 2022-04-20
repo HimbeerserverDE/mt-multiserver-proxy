@@ -15,6 +15,7 @@ const (
 	defaultTelnetAddr   = "[::1]:40010"
 	defaultBindAddr     = ":40000"
 	defaultListInterval = 300
+	//defaultFallbackServers = [...]string{}
 )
 
 var config Config
@@ -33,10 +34,12 @@ type Config struct {
 	TelnetAddr    string
 	BindAddr      string
 	Servers       []struct {
-		Name string
-		Addr string
+		Name      string
+		Addr      string
+		Fallbacks []string
 	}
 	ForceDefaultSrv bool
+	FallbackServers []string
 	CSMRF           struct {
 		NoCSMs          bool
 		ChatMsgs        bool
@@ -75,6 +78,39 @@ func Conf() Config {
 	return config
 }
 
+// FallbackServer returns a array of server names that
+// a server can fall back to.
+func FallbackServers(server string) []string {
+	configMu.RLock()
+	defer configMu.RUnlock()
+
+	fallbacks := make([]string, 0)
+
+	// find server
+	found := false
+	for _, srv := range Conf().Servers {
+		if srv.Name == server {
+			found = true
+			fallbacks = append(fallbacks, srv.Fallbacks...)
+			break
+		}
+	}
+
+	// server dosn't exist
+	if !found {
+		return make([]string, 0)
+	}
+
+	// global fallbacks
+	if len(config.FallbackServers) == 0 {
+		return append(fallbacks, config.Servers[0].Name)
+	} else {
+		return append(fallbacks, config.FallbackServers...)
+	}
+
+	return fallbacks
+}
+
 // LoadConfig attempts to parse the configuration file.
 // It leaves the config unchanged if there is an error
 // and returns the error.
@@ -90,6 +126,7 @@ func LoadConfig() error {
 	config.AuthBackend = defaultAuthBackend
 	config.TelnetAddr = defaultTelnetAddr
 	config.BindAddr = defaultBindAddr
+	config.FallbackServers = make([]string, 0)
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
 	config.List.Interval = defaultListInterval
