@@ -543,8 +543,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			clt.SendChatMsg(cmd.String())
 			for _, srvName := range FallbackServers(sc.name)  {
 				err := clt.Hop(srvName)
-				if err != nil {
+				if err == nil {
 					continue
+				} else {
+					clt.Log("<-", err)
 				}
 			}
 			return
