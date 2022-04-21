@@ -231,11 +231,10 @@ func handleContent(cc *contentConn) {
 		case *mt.ToCltAnnounceMedia:
 			var filenames []string
 
-		RequestLoop:
 			for _, f := range cmd.Files {
 
 				if cc.fromCache(f.Name, f.Base64SHA1) {
-					continue RequestLoop
+					continue
 				}
 
 				filenames = append(filenames, f.Name)
@@ -243,7 +242,7 @@ func handleContent(cc *contentConn) {
 				for i, mf := range cc.media {
 					if mf.name == f.Name {
 						cc.media[i].base64SHA1 = f.Base64SHA1
-						continue RequestLoop
+						continue
 					}
 				}
 
@@ -251,7 +250,6 @@ func handleContent(cc *contentConn) {
 					name:       f.Name,
 					base64SHA1: f.Base64SHA1,
 				})
-
 			}
 
 			cc.remotes = strings.Split(cmd.URL, ",")

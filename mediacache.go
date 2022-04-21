@@ -10,7 +10,7 @@ import (
 func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 	os.Mkdir(Path("cache"), 0777)
 
-	// convert to filename save b64
+	// convert to filename safe b64
 	base64SHA1Filesafe := strings.Replace(base64SHA1, "/", "_", -1)
 	base64SHA1Filesafe = strings.Replace(base64SHA1Filesafe, "+", "-", -1)
 
@@ -19,6 +19,7 @@ func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 		if !os.IsNotExist(err) {
 			cc.log("->", "cache", err)
 		}
+		
 		return false
 	}
 
@@ -35,7 +36,7 @@ func (cc *contentConn) updateCache() {
 	os.Mkdir(Path("cache"), 0777)
 
 	for _, f := range cc.media {
-		// convert to filename save b64
+		// convert to filename safe b64
 		base64SHA1Filesafe := strings.Replace(f.base64SHA1, "/", "_", -1)
 		base64SHA1Filesafe = strings.Replace(base64SHA1Filesafe, "+", "-", -1)
 
