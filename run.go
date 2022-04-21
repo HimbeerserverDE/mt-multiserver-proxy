@@ -19,10 +19,6 @@ func Run() {
 }
 
 func runFunc() {
-	if err := LoadConfig(); err != nil {
-		log.Fatal(err)
-	}
-
 	if !Conf().NoPlugins {
 		loadPlugins()
 	}

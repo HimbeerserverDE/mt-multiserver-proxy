@@ -20,6 +20,8 @@ const (
 var config Config
 var configMu sync.RWMutex
 
+var loadConfigOnce sync.Once
+
 // A Config contains information from the configuration file
 // that affects the way the proxy works.
 type Config struct {
@@ -71,6 +73,12 @@ type Config struct {
 // Conf returns a copy of the Config used by the proxy.
 // Any modifications will not affect the original Config.
 func Conf() Config {
+	loadConfigOnce.Do(func (){
+		if err := LoadConfig(); err != nil {
+			log.Fatal(err)
+		}
+	})
+
 	configMu.RLock()
 	defer configMu.RUnlock()
 
