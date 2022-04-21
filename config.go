@@ -15,6 +15,7 @@ const (
 	defaultTelnetAddr   = "[::1]:40010"
 	defaultBindAddr     = ":40000"
 	defaultListInterval = 300
+	//defaultFallbackServers = [...]string{}
 )
 
 var config Config
