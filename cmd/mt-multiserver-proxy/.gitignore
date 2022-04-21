@@ -1,4 +1,4 @@
 config.json
-cache
-latest.log
-auth
+cache/
+*.log
+auth/
