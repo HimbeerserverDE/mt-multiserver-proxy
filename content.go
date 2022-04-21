@@ -232,7 +232,11 @@ func handleContent(cc *contentConn) {
 			var filenames []string
 
 		RequestLoop:
-			for _, f := range cmd.Files {
+			for i, f := range cmd.Files {
+				if len(f.Base64SHA1)%2 != 0 {
+					cmd.Files[i].Base64SHA1 += "="
+				}
+
 				if cc.fromCache(f.Name, f.Base64SHA1) {
 					break
 				}

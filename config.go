@@ -73,7 +73,7 @@ type Config struct {
 // Conf returns a copy of the Config used by the proxy.
 // Any modifications will not affect the original Config.
 func Conf() Config {
-	loadConfigOnce.Do(func (){
+	loadConfigOnce.Do(func() {
 		if err := LoadConfig(); err != nil {
 			log.Fatal(err)
 		}
