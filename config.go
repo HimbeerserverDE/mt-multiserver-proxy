@@ -33,10 +33,12 @@ type Config struct {
 	TelnetAddr    string
 	BindAddr      string
 	Servers       []struct {
-		Name string
-		Addr string
+		Name      string
+		Addr      string
+		Fallbacks []string
 	}
 	ForceDefaultSrv bool
+	FallbackServers []string
 	CSMRF           struct {
 		NoCSMs          bool
 		ChatMsgs        bool
@@ -75,6 +77,38 @@ func Conf() Config {
 	return config
 }
 
+// FallbackServers returns a slice of server names that
+// a server can fall back to.
+func FallbackServers(server string) []string {
+	configMu.RLock()
+	defer configMu.RUnlock()
+
+	fallbacks := make([]string, 0)
+
+	conf := Conf()
+	
+	// find server
+	for _, srv := range conf.Servers {
+		if srv.Name == server {
+			fallbacks = append(fallbacks, srv.Fallbacks...)
+			break
+		}
+	}
+
+	// global fallbacks
+	if len(conf.FallbackServers) == 0 {
+		if len(conf.Servers) == 0 {
+			return fallbacks
+		}
+		
+		return append(fallbacks, conf.Servers[0].Name)
+	} else {
+		return append(fallbacks, conf.FallbackServers...)
+	}
+
+	return fallbacks
+}
+
 // LoadConfig attempts to parse the configuration file.
 // It leaves the config unchanged if there is an error
 // and returns the error.
@@ -90,6 +124,7 @@ func LoadConfig() error {
 	config.AuthBackend = defaultAuthBackend
 	config.TelnetAddr = defaultTelnetAddr
 	config.BindAddr = defaultBindAddr
+	config.FallbackServers = make([]string, 0)
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
 	config.List.Interval = defaultListInterval
