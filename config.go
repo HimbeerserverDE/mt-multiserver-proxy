@@ -101,7 +101,6 @@ func DelServer(name string) {
 	defer configMu.Unlock()
 
 	var srvID int
-
 	for i, srv := range config.Servers {
 		if srv.Name == name {
 			srvID = i
