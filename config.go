@@ -22,23 +22,25 @@ var configMu sync.RWMutex
 
 var loadConfigOnce sync.Once
 
+type Server struct {
+	Name      string
+	Addr      string
+	Fallbacks []string
+}
+
 // A Config contains information from the configuration file
 // that affects the way the proxy works.
 type Config struct {
-	NoPlugins     bool
-	CmdPrefix     string
-	RequirePasswd bool
-	SendInterval  float32
-	UserLimit     int
-	AuthBackend   string
-	NoTelnet      bool
-	TelnetAddr    string
-	BindAddr      string
-	Servers       []struct {
-		Name      string
-		Addr      string
-		Fallbacks []string
-	}
+	NoPlugins       bool
+	CmdPrefix       string
+	RequirePasswd   bool
+	SendInterval    float32
+	UserLimit       int
+	AuthBackend     string
+	NoTelnet        bool
+	TelnetAddr      string
+	BindAddr        string
+	Servers         []Server
 	ForceDefaultSrv bool
 	FallbackServers []string
 	CSMRF           struct {
@@ -83,6 +85,30 @@ func Conf() Config {
 	defer configMu.RUnlock()
 
 	return config
+}
+
+// AddServer appends a server to the list of configured servers.
+func AddServer(server Server) {
+	configMu.Lock()
+	defer configMu.Unlock()
+
+	config.Servers = append(config.Servers, server)
+}
+
+// DelServer removes a server based on name.
+func DelServer(name string) {
+	configMu.Lock()
+	defer configMu.Unlock()
+
+	var srvID int
+
+	for i, srv := range config.Servers {
+		if srv.Name == name {
+			srvID = i
+		}
+	}
+
+	config.Servers = append(config.Servers[:srvID], config.Servers[1+srvID:]...)
 }
 
 // FallbackServers returns a slice of server names that
