@@ -547,6 +547,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 					break
 				}
 			}
+			
 			return
 		}
 
