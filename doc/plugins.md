@@ -38,5 +38,5 @@ to the proxy itself and want to use plugins, you have to temporarily
 edit the go.mod file of your plugin. Find the line that says
 `require github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION`
 and copy everything excluding the `require `. Then append a new line:
-`replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo`.
+`replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo/`.
 Now rebuild and install the plugin and it should be loaded.
