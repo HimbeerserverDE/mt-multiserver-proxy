@@ -32,3 +32,11 @@ repository and rebuild it. You should compile the plugin and the proxy
 on the same machine since the build environment needs to be identical.
 My build environment can be found in
 [build_env.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/build_env.md).
+
+If the above steps didn't fix the error, or if you are making changes
+to the proxy itself and want to use plugins, you have to temporarily
+edit the go.mod file of your plugin. Find the line that says
+`require github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION`
+and copy everything excluding the `require `. Then append a new line:
+`replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo/`.
+Now rebuild and install the plugin and it should be loaded.

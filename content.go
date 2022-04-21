@@ -233,6 +233,13 @@ func handleContent(cc *contentConn) {
 
 		RequestLoop:
 			for _, f := range cmd.Files {
+				switch len(f.Base64SHA1) % 4 {
+				case 2:
+					f.Base64SHA1 += "=="
+				case 3:
+					f.Base64SHA1 += "="
+				}
+
 				if cc.fromCache(f.Name, f.Base64SHA1) {
 					break
 				}
