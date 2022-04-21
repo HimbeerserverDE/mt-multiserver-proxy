@@ -146,7 +146,6 @@ func (a authFiles) Unban(id string) error {
 
 				if string(name) == id {
 					return os.Remove(Path("ban/", f.Name()))
-					break
 				}
 			}
 		}

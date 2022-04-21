@@ -20,7 +20,7 @@ func (cc *ClientConn) SendChatMsg(msg ...string) {
 
 // Colorize returns the minetest-colorized version of the input.
 func Colorize(text, color string) string {
-	return string(0x1b) + "(c@" + color + ")" + text + string(0x1b) + "(c@#FFF)"
+	return string([]rune{0x1b}) + "(c@" + color + ")" + text + string([]rune{0x1b}) + "(c@#FFF)"
 }
 
 func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {

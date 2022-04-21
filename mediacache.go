@@ -37,7 +37,7 @@ func (cc *contentConn) updateCache() {
 	for _, f := range cc.media {
 		hash, err := b64.DecodeString(f.base64SHA1)
 		if err != nil {
-			cc.log("<-", err)
+			cc.log("<-", f.base64SHA1, ": ", err)
 			continue
 		}
 
