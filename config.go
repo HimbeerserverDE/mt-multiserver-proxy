@@ -88,26 +88,33 @@ func Conf() Config {
 }
 
 // AddServer appends a server to the list of configured servers.
-func AddServer(server Server) {
+func AddServer(server Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
-	config.Servers = append(config.Servers, server)
-}
-
-// DelServer removes a server based on name.
-func DelServer(name string) {
-	configMu.Lock()
-	defer configMu.Unlock()
-
-	var srvID int
-	for i, srv := range config.Servers {
-		if srv.Name == name {
-			srvID = i
+	for _, srv := range config.Servers {
+		if srv.Name == server.Name {
+			return false
 		}
 	}
 
-	config.Servers = append(config.Servers[:srvID], config.Servers[1+srvID:]...)
+	config.Servers = append(config.Servers, server)
+	return true
+}
+
+// DelServer removes a server based on name.
+func DelServer(name string) bool {
+	configMu.Lock()
+	defer configMu.Unlock()
+
+	for i, srv := range config.Servers {
+		if srv.Name == name {
+			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
+			return true
+		}
+	}
+
+	return false
 }
 
 // FallbackServers returns a slice of server names that
