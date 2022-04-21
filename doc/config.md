@@ -120,7 +120,7 @@ Description: The network address and port of an internal server.
 > `Server.Fallback`
 ```
 Type: []string
-Default: []
+Default: []string{}
 Description: Servers that clients get sent to when server stops or crashes (in order).
 ```
 
@@ -191,7 +191,7 @@ Description: The maximum distance from which CSMs can read the map.
 > `FallbackServers`
 ```
 Type: []string
-Default: []
+Default: []string{}
 Description: General Fallback servers if server stopps and clients are connected.
 ```
 
