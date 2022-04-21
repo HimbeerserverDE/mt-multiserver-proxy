@@ -87,7 +87,6 @@ func FallbackServers(server string) []string {
 	fallbacks := make([]string, 0)
 
 	// find server
-	found := false
 	for _, srv := range Conf().Servers {
 		if srv.Name == server {
 			fallbacks = append(fallbacks, srv.Fallbacks...)
