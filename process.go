@@ -539,10 +539,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltKick:
 		sc.Log("<-", "deny access", cmd)
 		
-		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == cmd.TooManyClts || cmd.Reason == cmd.UnsupportedVer {
+		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == mt.TooManyClts || cmd.Reason == mt.UnsupportedVer {
 			clt.SendChatMsg(cmd.String())
 			for _, srvName := range FallbackServers(sc.name) {
-				if err := clt.Hop(); err != nil {
+				if err := clt.Hop(srvName); err != nil {
 					clt.Log("<-", err)
 					break
 				}
