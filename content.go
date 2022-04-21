@@ -233,15 +233,9 @@ func handleContent(cc *contentConn) {
 
 		RequestLoop:
 			for _, f := range cmd.Files {
-				switch len(f.Base64SHA1) % 4 {
-				case 2:
-					f.Base64SHA1 += "=="
-				case 3:
-					f.Base64SHA1 += "="
-				}
 
 				if cc.fromCache(f.Name, f.Base64SHA1) {
-					break
+					continue RequestLoop
 				}
 
 				filenames = append(filenames, f.Name)
@@ -257,6 +251,7 @@ func handleContent(cc *contentConn) {
 					name:       f.Name,
 					base64SHA1: f.Base64SHA1,
 				})
+
 			}
 
 			cc.remotes = strings.Split(cmd.URL, ",")
