@@ -544,7 +544,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			for _, srvName := range FallbackServers(sc.name)  {
 				err := clt.Hop(srvName)
 				if err != nil {
-					break
+					continue
 				}
 			}
 			return
