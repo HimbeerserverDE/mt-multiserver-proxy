@@ -78,7 +78,7 @@ func Conf() Config {
 	return config
 }
 
-// FallbackServer returns a array of server names that
+// FallbackServers returns a slice of server names that
 // a server can fall back to.
 func FallbackServers(server string) []string {
 	configMu.RLock()
@@ -90,15 +90,9 @@ func FallbackServers(server string) []string {
 	found := false
 	for _, srv := range Conf().Servers {
 		if srv.Name == server {
-			found = true
 			fallbacks = append(fallbacks, srv.Fallbacks...)
 			break
 		}
-	}
-
-	// server dosn't exist
-	if !found {
-		return make([]string, 0)
 	}
 
 	// global fallbacks
