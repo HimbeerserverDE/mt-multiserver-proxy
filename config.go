@@ -105,8 +105,6 @@ func FallbackServers(server string) []string {
 	} else {
 		return append(fallbacks, conf.FallbackServers...)
 	}
-
-	return fallbacks
 }
 
 // LoadConfig attempts to parse the configuration file.
