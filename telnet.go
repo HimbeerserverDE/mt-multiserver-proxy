@@ -64,7 +64,7 @@ func handleTelnet(conn net.Conn) {
 
 	readString := func(delim byte) (string, error) {
 		s, err := bufio.NewReader(conn).ReadString(delim)
-		i := int(math.Max(float64(len(s)-2), 1))
+		i := int(math.Max(float64(len(s)-1), 1))
 		s = s[:i]
 		return s, err
 	}

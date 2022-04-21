@@ -2,3 +2,4 @@ config.json
 cache/
 *.log
 auth/
+mt-multiserver-proxy
