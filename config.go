@@ -86,8 +86,10 @@ func FallbackServers(server string) []string {
 
 	fallbacks := make([]string, 0)
 
+	conf := Conf()
+	
 	// find server
-	for _, srv := range Conf().Servers {
+	for _, srv := range conf.Servers {
 		if srv.Name == server {
 			fallbacks = append(fallbacks, srv.Fallbacks...)
 			break
@@ -95,10 +97,13 @@ func FallbackServers(server string) []string {
 	}
 
 	// global fallbacks
-	if len(config.FallbackServers) == 0 {
-		return append(fallbacks, config.Servers[0].Name)
+	if len(conf.FallbackServers) == 0 {
+		if len(conf.Servers) == 0 {
+			return fallbacks
+		}
+		return append(fallbacks, conf.Servers[0].Name)
 	} else {
-		return append(fallbacks, config.FallbackServers...)
+		return append(fallbacks, conf.FallbackServers...)
 	}
 
 	return fallbacks
