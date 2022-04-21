@@ -19,7 +19,7 @@ func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 		if !os.IsNotExist(err) {
 			cc.log("->", "cache", err)
 		}
-		
+
 		return false
 	}
 
