@@ -538,7 +538,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		return
 	case *mt.ToCltKick:
 		// if Shutdown
-		if cmd.Reason == 11 {
+		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == cmd.TooManyClts || cmd.Reason == cmd.UnsupportedVer {
 			clt.SendChatMsg("[ERROR] ", cmd.String())
 			clt.Hop(FallbackServers(sc.name)[0])
 			return
