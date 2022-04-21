@@ -539,10 +539,15 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltKick:
 		sc.Log("<-", "deny access", cmd)
 		
-		// if Shutdown
 		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == cmd.TooManyClts || cmd.Reason == cmd.UnsupportedVer {
 			clt.SendChatMsg(cmd.String())
-			clt.Hop(FallbackServers(sc.name)[0])
+			fallbackServers := FallbackServers(sc.name)[0]
+			for i := 0; i < len(fallbackServers); i++ {
+				err := clt.Hop()
+				if err != nil {
+					break
+				}
+			}
 			return
 		}
 
