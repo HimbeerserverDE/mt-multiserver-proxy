@@ -835,7 +835,6 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		case mt.LeaveOK:
 			delete(clt.modChs, cmd.Channel)
 		}
-
 	}
 
 	clt.Send(pkt)
