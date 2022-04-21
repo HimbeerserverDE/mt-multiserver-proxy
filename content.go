@@ -236,6 +236,7 @@ func handleContent(cc *contentConn) {
 				if pad := len(f.Base64SHA1) % 4; pad != 0 {
 					cmd.Files[i].Base64SHA1 += strings.Repeat("=", pad)
 				}
+				f = cmd.Files[i]
 
 				if cc.fromCache(f.Name, f.Base64SHA1) {
 					break
