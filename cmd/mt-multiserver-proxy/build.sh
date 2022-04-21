@@ -1,4 +1,4 @@
 cd ../..
-go build .
+go build
 cd cmd/mt-multiserver-proxy
-go build .
+go build
