@@ -13,6 +13,15 @@ import (
 func (cc *ClientConn) process(pkt mt.Pkt) {
 	srv := cc.server()
 
+	forward := func(pkt mt.Pkt) {
+		if srv == nil {
+			cc.Log("->", "no server")
+			return
+		}
+
+		srv.Send(pkt)
+	}
+
 	switch cmd := pkt.Cmd.(type) {
 	case *mt.ToSrvNil:
 		return
@@ -23,8 +32,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-		if cmd.SerializeVer != latestSerializeVer {
-			cc.Log("<-", "invalid serializeVer")
+		if cmd.SerializeVer <= latestSerializeVer {
+			cc.Log("<-", "invalid serializeVer", cmd.SerializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
@@ -36,8 +45,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		if cmd.MaxProtoVer < latestProtoVer {
-			cc.Log("<-", "invalid protoVer")
+		if cmd.MaxProtoVer <= latestProtoVer {
+			cc.Log("<-", "invalid protoVer", cmd.MaxProtoVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
@@ -432,22 +441,19 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			srv.swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 		}
 	case *mt.ToSrvChatMsg:
-		result, isCmd := onChatMsg(cc, cmd)
-		if !isCmd {
-			break
-		} else if result != "" {
-			cc.SendChatMsg(result)
-		}
+		go func() {
+			result, isCmd := onChatMsg(cc, cmd)
+			if !isCmd {
+				forward(pkt)
+			} else if result != "" {
+				cc.SendChatMsg(result)
+			}
+		}()
 
 		return
 	}
 
-	if srv == nil {
-		cc.Log("->", "no server")
-		return
-	}
-
-	srv.Send(pkt)
+	forward(pkt)
 }
 
 func (sc *ServerConn) process(pkt mt.Pkt) {
