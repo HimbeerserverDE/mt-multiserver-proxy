@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -23,10 +24,12 @@ var configMu sync.RWMutex
 var loadConfigOnce sync.Once
 
 type Server struct {
-	Name        string
-	Addr        string
-	TexturePool string
-	Fallbacks   []string
+	Name      string
+	Addr      string
+	MediaPool string
+	Fallbacks []string
+
+	dynamic bool
 }
 
 // A Config contains information from the configuration file
@@ -96,17 +99,17 @@ func UniquePoolServers() [][]Server {
 
 	// every server needs a texturePool property
 	for _, srv := range conf.Servers {
-		if len(srv.TexturePool) == 0 {
-			srv.TexturePool = srv.Name
+		if len(srv.MediaPool) == 0 {
+			srv.MediaPool = srv.Name
 		}
 	}
 
 	// map all to.. map of slices
 	for _, srv := range conf.Servers {
-		if srvs[srv.TexturePool] != nil {
-			srvs[srv.TexturePool] = append(srvs[srv.TexturePool], srv)
+		if srvs[srv.MediaPool] != nil {
+			srvs[srv.MediaPool] = append(srvs[srv.MediaPool], srv)
 		} else {
-			srvs[srv.TexturePool] = []Server{srv}
+			srvs[srv.MediaPool] = []Server{srv}
 		}
 	}
 
@@ -121,40 +124,62 @@ func UniquePoolServers() [][]Server {
 // AddServer dynamically configures a new Server at runtime.
 // Servers added in this way are ephemeral and will be lost
 // when the proxy shuts down.
-// For the media to work you have to specify an alternative
-// media source that is always available, even if the server
-// is offline.
-// WARNING: Reloading the configuration file deletes the
-// servers added using this function.
-func AddServer(server Server) bool {
+// The server must be part of a media pool with at least one
+// other member. At least one of the other members always
+// needs to be reachable.
+func AddServer(s Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
+	s.dynamic = true
+
 	for _, srv := range config.Servers {
-		if srv.Name == server.Name {
+		if srv.Name == s.Name {
 			return false
 		}
 	}
 
-	config.Servers = append(config.Servers, server)
+	var poolMembers bool
+	for _, srv := range config.Servers {
+		if srv.MediaPool == s.MediaPool {
+			poolMembers = true
+		}
+	}
+
+	if !poolMembers {
+		return false
+	}
+
+	config.Servers = append(config.Servers, s)
 	return true
 }
 
 // RmServer deletes a Server from the Config at runtime.
-// Any server can be deleted this way, not just the ones
-// added using AddServer.
-// WARNING: Reloading the configuration files re-adds the
-// servers it contains that were deleted using this function.
-func RmServer(name string) {
+// Only servers added using AddServer can be deleted at runtime.
+// Returns true on success or if the server doesn't exist.
+func RmServer(name string) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	for i, srv := range config.Servers {
 		if srv.Name == name {
+			if srv.dynamic {
+				return false
+			}
+
+			// Can't remove server if players are connected to it
+			for cc := range Clts() {
+				if cc.ServerName() == name {
+					return false
+				}
+			}
+
 			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
-			return
+			return true
 		}
 	}
+
+	return true
 }
 
 // FallbackServers returns a slice of server names that
@@ -223,6 +248,40 @@ func LoadConfig() error {
 	if err := decoder.Decode(&config); err != nil {
 		config = oldConf
 		return err
+	}
+
+	// Dynamic servers shouldn't be deleted silently.
+DynLoop:
+	for _, srv := range oldConf.Servers {
+		if srv.dynamic {
+			config.Servers = append(config.Servers, srv)
+		} else {
+			for _, s := range config.Servers {
+				if srv.Name == s.Name {
+					continue DynLoop
+				}
+			}
+
+			for cc := range Clts() {
+				if cc.ServerName() == srv.Name {
+					config = oldConf
+					return fmt.Errorf("can't delete server %s with players", srv.Name)
+				}
+			}
+		}
+	}
+
+	for i, srv := range config.Servers {
+		for _, s := range config.Servers {
+			if srv.Name == s.Name {
+				config = oldConf
+				return fmt.Errorf("duplicate server %s", s.Name)
+			}
+		}
+
+		if srv.MediaPool == "" {
+			config.Servers[i].MediaPool = srv.Name
+		}
 	}
 
 	log.Print("load config")

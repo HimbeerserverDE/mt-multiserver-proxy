@@ -13,13 +13,11 @@ This is an example configuration file with two servers. Remember to install
 	"Servers": [
 		{
 			"Name": "default_server",
-			"Addr": "minetest.local:30000",
-			"TexturePool": "mt_game"
+			"Addr": "minetest.local:30000"
 		},
 		{
 			"Name": "some_other_server",
-			"Addr": "minetest.local:30001",
-			"TexturePool": "mt_game"
+			"Addr": "minetest.local:30001"
 		}
 	]
 }
@@ -119,11 +117,13 @@ Default: ""
 Description: The network address and port of an internal server.
 ```
 
-> `Server.TexturePool`
+> `Server.MediaPool`
 ```
 Type: string
-Default: ""
-Description: The texture Pool the server will be mapped to default is server name.
+Default: Server.Name
+Description: The media pool this server will be part of.
+See [media_pools.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/media_pools.md)
+for more information.
 ```
 
 > `Server.Fallback`

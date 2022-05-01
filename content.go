@@ -35,8 +35,6 @@ type contentConn struct {
 
 	logger *log.Logger
 
-	prefix string
-
 	cstate         clientState
 	cstateMu       sync.RWMutex
 	name, userName string
@@ -46,6 +44,8 @@ type contentConn struct {
 		method              mt.AuthMethods
 		salt, srpA, a, srpK []byte
 	}
+
+	mediaPool string
 
 	itemDefs []mt.ItemDef
 	aliases  []struct{ Alias, Orig string }
@@ -359,21 +359,21 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 				def.Name = "hand"
 			}
 
-			prepend(cc.prefix, &def.Name)
-			prependTexture(cc.prefix, &def.InvImg)
-			prependTexture(cc.prefix, &def.WieldImg)
-			prepend(cc.prefix, &def.PlacePredict)
-			prepend(cc.prefix, &def.PlaceSnd.Name)
-			prepend(cc.prefix, &def.PlaceFailSnd.Name)
-			prependTexture(cc.prefix, &def.Palette)
-			prependTexture(cc.prefix, &def.InvOverlay)
-			prependTexture(cc.prefix, &def.WieldOverlay)
+			prepend(cc.mediaPool, &def.Name)
+			prependTexture(cc.mediaPool, &def.InvImg)
+			prependTexture(cc.mediaPool, &def.WieldImg)
+			prepend(cc.mediaPool, &def.PlacePredict)
+			prepend(cc.mediaPool, &def.PlaceSnd.Name)
+			prepend(cc.mediaPool, &def.PlaceFailSnd.Name)
+			prependTexture(cc.mediaPool, &def.Palette)
+			prependTexture(cc.mediaPool, &def.InvOverlay)
+			prependTexture(cc.mediaPool, &def.WieldOverlay)
 			itemDefs = append(itemDefs, def)
 		}
 
 		for _, alias := range cc.aliases {
-			prepend(cc.prefix, &alias.Alias)
-			prepend(cc.prefix, &alias.Orig)
+			prepend(cc.mediaPool, &alias.Alias)
+			prepend(cc.mediaPool, &alias.Orig)
 
 			aliases = append(aliases, struct{ Alias, Orig string }{
 				Alias: alias.Alias,
@@ -431,25 +431,25 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			}
 
 			def.Param0 = param0
-			prepend(cc.prefix, &def.Name)
-			prepend(cc.prefix, &def.Mesh)
+			prepend(cc.mediaPool, &def.Name)
+			prepend(cc.mediaPool, &def.Mesh)
 			for i := range def.Tiles {
-				prependTexture(cc.prefix, &def.Tiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.Tiles[i].Texture)
 			}
 			for i := range def.OverlayTiles {
-				prependTexture(cc.prefix, &def.OverlayTiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.OverlayTiles[i].Texture)
 			}
 			for i := range def.SpecialTiles {
-				prependTexture(cc.prefix, &def.SpecialTiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.SpecialTiles[i].Texture)
 			}
-			prependTexture(cc.prefix, &def.Palette)
+			prependTexture(cc.mediaPool, &def.Palette)
 			for k, v := range def.ConnectTo {
 				def.ConnectTo[k] = p0Map[cc.name][v]
 			}
-			prepend(cc.prefix, &def.FootstepSnd.Name)
-			prepend(cc.prefix, &def.DiggingSnd.Name)
-			prepend(cc.prefix, &def.DugSnd.Name)
-			prepend(cc.prefix, &def.DigPredict)
+			prepend(cc.mediaPool, &def.FootstepSnd.Name)
+			prepend(cc.mediaPool, &def.DiggingSnd.Name)
+			prepend(cc.mediaPool, &def.DugSnd.Name)
+			prepend(cc.mediaPool, &def.DigPredict)
 			nodeDefs = append(nodeDefs, def)
 
 			param0++
@@ -468,7 +468,7 @@ func muxMedia(conns []*contentConn) []mediaFile {
 	for _, cc := range conns {
 		<-cc.done()
 		for _, f := range cc.media {
-			prepend(cc.prefix, &f.name)
+			prepend(cc.mediaPool, &f.name)
 			media = append(media, f)
 		}
 	}
@@ -499,7 +499,7 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 	for _, pools := range UniquePoolServers() {
 		var addr *net.UDPAddr
 		found := false
-		
+
 		for _, srv := range pools {
 			addr, err = net.ResolveUDPAddr("udp", srv.Addr)
 			if err != nil {
@@ -514,10 +514,10 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 
 			// get prefix of server
 			var prefix string
-			if len(srv.TexturePool) == 0 {
+			if len(srv.MediaPool) == 0 {
 				prefix = srv.Name
 			} else {
-				prefix = srv.TexturePool
+				prefix = srv.MediaPool
 			}
 
 			var cc *contentConn
@@ -613,7 +613,7 @@ func prependTexture(prep string, t *mt.Texture) {
 func (sc *ServerConn) prependInv(inv mt.Inv) {
 	for k, l := range inv {
 		for i := range l.Stacks {
-			prepend(sc.prefix, &inv[k].InvList.Stacks[i].Name)
+			prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
 		}
 	}
 }
@@ -622,28 +622,28 @@ func (sc *ServerConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
 	pa := func(cmd *mt.ToCltAddHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.prefix, &cmd.Text2)
+			prepend(sc.mediaPool, &cmd.Text2)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.prefix, &cmd.Text)
+			prepend(sc.mediaPool, &cmd.Text)
 		}
 	}
 
 	pc := func(cmd *mt.ToCltChangeHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.prefix, &cmd.Text2)
+			prepend(sc.mediaPool, &cmd.Text2)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.prefix, &cmd.Text)
+			prepend(sc.mediaPool, &cmd.Text)
 		}
 	}
 
