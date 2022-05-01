@@ -112,18 +112,28 @@ func AddServer(server Server) bool {
 // RmServer deletes a Server from the Config at runtime.
 // Any server can be deleted this way, not just the ones
 // added using AddServer.
+// Returns true on success or if the server doesn't exist.
 // WARNING: Reloading the configuration files re-adds the
 // servers it contains that were deleted using this function.
-func RmServer(name string) {
+func RmServer(name string) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	for i, srv := range config.Servers {
 		if srv.Name == name {
+			// Can't remove server if players are connected to it
+			for cc := range Clts() {
+				if cc.ServerName() == name {
+					return false
+				}
+			}
+
 			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
-			return
+			return true
 		}
 	}
+
+	return true
 }
 
 // FallbackServers returns a slice of server names that
