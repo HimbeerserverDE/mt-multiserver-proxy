@@ -117,6 +117,13 @@ Default: ""
 Description: The network address and port of an internal server.
 ```
 
+> `Server.TexturePool`
+```
+Type: string
+Default: Server.Name
+Description: The texture pool the server will be mapped to.
+```
+
 > `Server.Fallback`
 ```
 Type: []string
