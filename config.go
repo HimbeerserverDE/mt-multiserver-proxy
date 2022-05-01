@@ -24,10 +24,10 @@ var configMu sync.RWMutex
 var loadConfigOnce sync.Once
 
 type Server struct {
-	Name        string
-	Addr        string
-	TexturePool string
-	Fallbacks   []string
+	Name      string
+	Addr      string
+	MediaPool string
+	Fallbacks []string
 
 	dynamic bool
 }
@@ -92,7 +92,7 @@ func Conf() Config {
 }
 
 // UniquePoolServers returns a []Server where each
-// TexturePool is only represented once.
+// MediaPool is only represented once.
 func UniquePoolServers() []Server {
 	var srvs []Server
 	conf := Conf()
@@ -100,7 +100,7 @@ func UniquePoolServers() []Server {
 AppendLoop:
 	for _, srv := range conf.Servers {
 		for _, s := range srvs {
-			if srv.TexturePool == s.TexturePool {
+			if srv.MediaPool == s.MediaPool {
 				continue AppendLoop
 			}
 		}
@@ -257,8 +257,8 @@ DynLoop:
 			}
 		}
 
-		if srv.TexturePool == "" {
-			config.Servers[i].TexturePool = srv.Name
+		if srv.MediaPool == "" {
+			config.Servers[i].MediaPool = srv.Name
 		}
 	}
 

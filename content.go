@@ -510,7 +510,7 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 		}
 
 		var cc *contentConn
-		cc, err = connectContent(conn, srv.Name, userName, srv.TexturePool)
+		cc, err = connectContent(conn, srv.Name, userName, srv.MediaPool)
 		if err != nil {
 			return
 		}

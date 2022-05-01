@@ -20,7 +20,7 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	var mediaPool string
 	for _, srv := range Conf().Servers {
 		if srv.Name == name {
-			mediaPool = srv.TexturePool
+			mediaPool = srv.MediaPool
 		}
 	}
 
