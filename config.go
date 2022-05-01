@@ -114,18 +114,30 @@ AppendLoop:
 // AddServer dynamically configures a new Server at runtime.
 // Servers added in this way are ephemeral and will be lost
 // when the proxy shuts down.
-// For the media to work you have to specify an alternative
-// media source that is always available, even if the server
-// is offline.
+// The server must be part of a media pool with at least one
+// other member. At least one of the other members always
+// needs to be reachable.
 func AddServer(s Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	s.dynamic = true
+
 	for _, srv := range config.Servers {
 		if srv.Name == s.Name {
 			return false
 		}
+	}
+
+	var poolMembers bool
+	for _, srv := range config.Servers {
+		if srv.MediaPool == s.MediaPool {
+			poolMembers = true
+		}
+	}
+
+	if !poolMembers {
+		return false
 	}
 
 	config.Servers = append(config.Servers, s)
