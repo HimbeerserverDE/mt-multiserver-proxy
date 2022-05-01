@@ -102,8 +102,8 @@ func AddServer(server Server) bool {
 	return true
 }
 
-// DelServer removes a server based on name.
-func DelServer(name string) bool {
+// RmServer removes a server based on name.
+func RmServer(name string) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
