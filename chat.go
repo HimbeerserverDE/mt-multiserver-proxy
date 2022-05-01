@@ -9,6 +9,10 @@ import (
 	"github.com/anon55555/mt"
 )
 
+// ChatCmdTimeout is the time needed until a user is warned
+// about a chat command that's taking long to execute.
+var ChatCmdTimeout = 10 * time.Second
+
 // SendChatMsg sends a chat message to the ClientConn.
 func (cc *ClientConn) SendChatMsg(msg ...string) {
 	cc.SendCmd(&mt.ToCltChatMsg{
