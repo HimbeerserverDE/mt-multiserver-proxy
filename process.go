@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
@@ -432,12 +433,32 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			srv.swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 		}
 	case *mt.ToSrvChatMsg:
-		result, isCmd := onChatMsg(cc, cmd)
-		if !isCmd {
-			break
-		} else if result != "" {
-			cc.SendChatMsg(result)
-		}
+		done := make(chan struct{})
+
+		go func(done chan<- struct{}) {
+			result, isCmd := onChatMsg(cc, cmd)
+			if !isCmd {
+				if srv == nil {
+					cc.Log("->", "no server")
+					return
+				}
+
+				srv.Send(pkt)
+			} else if result != "" {
+				cc.SendChatMsg(result)
+			}
+
+			close(done)
+		}(done)
+
+		go func(done <-chan struct{}) {
+			select {
+			case <-done:
+			case <-time.After(ChatCmdTimeout):
+				cmdName := strings.Split(cmd.Msg, " ")[0]
+				cc.SendChatMsg("Command", cmdName, "is taking suspiciously long to execute.")
+			}
+		}(done)
 
 		return
 	}
