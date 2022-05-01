@@ -24,10 +24,10 @@ var configMu sync.RWMutex
 var loadConfigOnce sync.Once
 
 type Server struct {
-	Name      string
-	Addr      string
+	Name        string
+	Addr        string
 	TexturePool string
-	Fallbacks []string
+	Fallbacks   []string
 
 	dynamic bool
 }
@@ -91,23 +91,17 @@ func Conf() Config {
 	return config
 }
 
-// UniquePoolServers returns a []server where each Pool is only
-// represented once
+// UniquePoolServers returns a []Server where each
+// TexturePool is only represented once.
 func UniquePoolServers() []Server {
 	var srvs []Server
 	conf := Conf()
 
+AppendLoop:
 	for _, srv := range conf.Servers {
-		if len(srv.TexturePool) == 0 {
-			srv.TexturePool = srv.Name
-		}
-	}
-
-AddLoop:
-	for _, srv := range conf.Servers {
-		for _, srv2 := range srvs {
-			if srv.TexturePool == srv2.TexturePool {
-				continue AddLoop
+		for _, s := range srvs {
+			if srv.TexturePool == s.TexturePool {
+				continue AppendLoop
 			}
 		}
 
@@ -255,12 +249,16 @@ DynLoop:
 		}
 	}
 
-	for _, srv := range config.Servers {
+	for i, srv := range config.Servers {
 		for _, s := range config.Servers {
 			if srv.Name == s.Name {
 				config = oldConf
 				return fmt.Errorf("duplicate server %s", s.Name)
 			}
+		}
+
+		if srv.TexturePool == "" {
+			config.Servers[i].TexturePool = srv.Name
 		}
 	}
 
