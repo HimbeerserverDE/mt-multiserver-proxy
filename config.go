@@ -91,21 +91,14 @@ func Conf() Config {
 	return config
 }
 
-// UniquePoolServers returns a []Server where each
-// MediaPool is only represented once.
-func UniquePoolServers() []Server {
-	var srvs []Server
+// PoolServers returns all media pools and their member servers.
+func PoolServers() map[string][]Server {
+	var srvs = make(map[string][]Server)
 	conf := Conf()
 
-AppendLoop:
+	// map all to.. map of slices
 	for _, srv := range conf.Servers {
-		for _, s := range srvs {
-			if srv.MediaPool == s.MediaPool {
-				continue AppendLoop
-			}
-		}
-
-		srvs = append(srvs, srv)
+		srvs[srv.MediaPool] = append(srvs[srv.MediaPool], srv)
 	}
 
 	return srvs
