@@ -13,13 +13,11 @@ This is an example configuration file with two servers. Remember to install
 	"Servers": [
 		{
 			"Name": "default_server",
-			"Addr": "minetest.local:30000",
-			"TexturePool": "mt_game"
+			"Addr": "minetest.local:30000"
 		},
 		{
 			"Name": "some_other_server",
-			"Addr": "minetest.local:30001",
-			"TexturePool": "mt_game"
+			"Addr": "minetest.local:30001"
 		}
 	]
 }
