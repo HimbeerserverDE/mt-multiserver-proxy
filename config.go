@@ -93,6 +93,8 @@ func Conf() Config {
 // For the media to work you have to specify an alternative
 // media source that is always available, even if the server
 // is offline.
+// WARNING: Reloading the configuration file deletes the
+// servers added using this function.
 func AddServer(server Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
@@ -110,6 +112,8 @@ func AddServer(server Server) bool {
 // RmServer deletes a Server from the Config at runtime.
 // Any server can be deleted this way, not just the ones
 // added using AddServer.
+// WARNING: Reloading the configuration files re-adds the
+// servers it contains that were deleted using this function.
 func RmServer(name string) {
 	configMu.Lock()
 	defer configMu.Unlock()
