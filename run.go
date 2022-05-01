@@ -118,6 +118,7 @@ func runFunc() {
 				}
 			}
 
+			cc.Log(srv.Addr)
 			addr, err := net.ResolveUDPAddr("udp", srv.Addr)
 			if err != nil {
 				cc.Log("<-", "address resolution fail")

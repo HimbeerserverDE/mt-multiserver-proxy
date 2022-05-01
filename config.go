@@ -88,30 +88,34 @@ func Conf() Config {
 	return config
 }
 
-// UniquePoolServers returns a []server where each Pool is only
-// represented once
-func UniquePoolServers() []Server {
-	var srvs []Server
+// UniquePoolServers returns a [][]server where each Pool is represented by a []Server
+// of all servers that use one pool
+func UniquePoolServers() [][]Server {
+	var srvs = make(map[string][]Server)
 	conf := Conf()
 
+	// every server needs a texturePool property
 	for _, srv := range conf.Servers {
 		if len(srv.TexturePool) == 0 {
 			srv.TexturePool = srv.Name
 		}
 	}
 
-AddLoop:
+	// map all to.. map of slices
 	for _, srv := range conf.Servers {
-		for _, srv2 := range srvs {
-			if srv.TexturePool == srv2.TexturePool {
-				continue AddLoop
-			}
+		if srvs[srv.TexturePool] != nil {
+			srvs[srv.TexturePool] = append(srvs[srv.TexturePool], srv)
+		} else {
+			srvs[srv.TexturePool] = []Server{srv}
 		}
-
-		srvs = append(srvs, srv)
 	}
 
-	return srvs
+	var res [][]Server
+	for _, srvsPool := range srvs {
+		res = append(res, srvsPool)
+	}
+
+	return res
 }
 
 // AddServer dynamically configures a new Server at runtime.

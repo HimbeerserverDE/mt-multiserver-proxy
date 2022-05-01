@@ -496,35 +496,44 @@ func muxRemotes(conns []*contentConn) []string {
 
 func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
 	var conns []*contentConn
-	for _, srv := range UniquePoolServers() {
+	for _, pools := range UniquePoolServers() {
 		var addr *net.UDPAddr
-		addr, err = net.ResolveUDPAddr("udp", srv.Addr)
-		if err != nil {
+		found := false
+		
+		for _, srv := range pools {
+			addr, err = net.ResolveUDPAddr("udp", srv.Addr)
+			if err != nil {
+				continue
+			}
+
+			var conn *net.UDPConn
+			conn, err = net.DialUDP("udp", nil, addr)
+			if err != nil {
+				continue
+			}
+
+			// get prefix of server
+			var prefix string
+			if len(srv.TexturePool) == 0 {
+				prefix = srv.Name
+			} else {
+				prefix = srv.TexturePool
+			}
+
+			var cc *contentConn
+			cc, err = connectContent(conn, srv.Name, userName, prefix)
+			if err != nil {
+				continue
+			}
+			defer cc.Close()
+
+			found = true
+			conns = append(conns, cc)
+		}
+
+		if !found {
 			return
 		}
-
-		var conn *net.UDPConn
-		conn, err = net.DialUDP("udp", nil, addr)
-		if err != nil {
-			return
-		}
-
-		// get prefix of server
-		var prefix string
-		if len(srv.TexturePool) == 0 {
-			prefix = srv.Name
-		} else {
-			prefix = srv.TexturePool
-		}
-
-		var cc *contentConn
-		cc, err = connectContent(conn, srv.Name, userName, prefix)
-		if err != nil {
-			return
-		}
-		defer cc.Close()
-
-		conns = append(conns, cc)
 	}
 
 	itemDefs, aliases = muxItemDefs(conns)
