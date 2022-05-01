@@ -496,11 +496,12 @@ func muxRemotes(conns []*contentConn) []string {
 
 func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
 	var conns []*contentConn
-	for _, pools := range UniquePoolServers() {
-		var addr *net.UDPAddr
-		found := false
 
-		for _, srv := range pools {
+PoolLoop:
+	for _, pool := range PoolServers() {
+		var addr *net.UDPAddr
+
+		for _, srv := range pool {
 			addr, err = net.ResolveUDPAddr("udp", srv.Addr)
 			if err != nil {
 				continue
@@ -512,28 +513,20 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 				continue
 			}
 
-			// get prefix of server
-			var prefix string
-			if len(srv.MediaPool) == 0 {
-				prefix = srv.Name
-			} else {
-				prefix = srv.MediaPool
-			}
-
 			var cc *contentConn
-			cc, err = connectContent(conn, srv.Name, userName, prefix)
+			cc, err = connectContent(conn, srv.Name, userName, srv.MediaPool)
 			if err != nil {
 				continue
 			}
 			defer cc.Close()
 
-			found = true
 			conns = append(conns, cc)
+			continue PoolLoop
 		}
 
-		if !found {
-			return
-		}
+		// There's a pool with no reachable servers.
+		// We can't safely let clients join.
+		return
 	}
 
 	itemDefs, aliases = muxItemDefs(conns)
