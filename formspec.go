@@ -13,7 +13,7 @@ func (sc *ServerConn) prependFormspec(fs *string) {
 
 	for i, sub := range subs {
 		if textureName.MatchString(sub) && !strings.Contains(sub, " ") {
-			prepend(sc.name, &subs[i])
+			prepend(sc.prefix, &subs[i])
 		}
 	}
 

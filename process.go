@@ -13,6 +13,15 @@ import (
 func (cc *ClientConn) process(pkt mt.Pkt) {
 	srv := cc.server()
 
+	forward := func(pkt mt.Pkt) {
+		if srv == nil {
+			cc.Log("->", "no server")
+			return
+		}
+
+		srv.Send(pkt)
+	}
+
 	switch cmd := pkt.Cmd.(type) {
 	case *mt.ToSrvNil:
 		return
@@ -442,12 +451,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		return
 	}
 
-	if srv == nil {
-		cc.Log("->", "no server")
-		return
-	}
-
-	srv.Send(pkt)
+	forward(pkt)
 }
 
 func (sc *ServerConn) process(pkt mt.Pkt) {
@@ -610,7 +614,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		handStack := mt.Stack{
 			Item: mt.Item{
-				Name: sc.name + "_hand",
+				Name: sc.prefix + "_hand",
 			},
 			Count: 1,
 		}
@@ -728,7 +732,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			break
 		}
 
-		prepend(sc.name, &cmd.Filename)
+		prepend(sc.prefix, &cmd.Filename)
 		if cmd.ShouldCache {
 			cacheMedia(mediaFile{
 				name:       cmd.Filename,
@@ -738,17 +742,17 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		}
 	case *mt.ToCltSkyParams:
 		for i := range cmd.Textures {
-			prependTexture(sc.name, &cmd.Textures[i])
+			prependTexture(sc.prefix, &cmd.Textures[i])
 		}
 	case *mt.ToCltSunParams:
-		prependTexture(sc.name, &cmd.Texture)
-		prependTexture(sc.name, &cmd.ToneMap)
-		prependTexture(sc.name, &cmd.Rise)
+		prependTexture(sc.prefix, &cmd.Texture)
+		prependTexture(sc.prefix, &cmd.ToneMap)
+		prependTexture(sc.prefix, &cmd.Rise)
 	case *mt.ToCltMoonParams:
-		prependTexture(sc.name, &cmd.Texture)
-		prependTexture(sc.name, &cmd.ToneMap)
+		prependTexture(sc.prefix, &cmd.Texture)
+		prependTexture(sc.prefix, &cmd.ToneMap)
 	case *mt.ToCltSetHotbarParam:
-		prependTexture(sc.name, &cmd.Img)
+		prependTexture(sc.prefix, &cmd.Img)
 	case *mt.ToCltUpdatePlayerList:
 		if !clt.playerListInit {
 			clt.playerListInit = true
@@ -766,7 +770,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			}
 		}
 	case *mt.ToCltSpawnParticle:
-		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.prefix, &cmd.Texture)
 		sc.globalParam0(&cmd.NodeParam0)
 	case *mt.ToCltBlkData:
 		for i := range cmd.Blk.Param0 {
@@ -785,14 +789,14 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltAddNode:
 		sc.globalParam0(&cmd.Node.Param0)
 	case *mt.ToCltAddParticleSpawner:
-		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.prefix, &cmd.Texture)
 		sc.swapAOID(&cmd.AttachedAOID)
 		sc.globalParam0(&cmd.NodeParam0)
 		sc.particleSpawners[cmd.ID] = struct{}{}
 	case *mt.ToCltDelParticleSpawner:
 		delete(sc.particleSpawners, cmd.ID)
 	case *mt.ToCltPlaySound:
-		prepend(sc.name, &cmd.Name)
+		prepend(sc.prefix, &cmd.Name)
 		sc.swapAOID(&cmd.SrcAOID)
 		if cmd.Loop {
 			sc.sounds[cmd.ID] = struct{}{}
@@ -817,7 +821,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		sc.prependFormspec(&cmd.Formspec)
 	case *mt.ToCltMinimapModes:
 		for i := range cmd.Modes {
-			prependTexture(sc.name, &cmd.Modes[i].Texture)
+			prependTexture(sc.prefix, &cmd.Modes[i].Texture)
 		}
 	case *mt.ToCltNodeMetasChanged:
 		for k := range cmd.Changed {
