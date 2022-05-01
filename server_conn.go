@@ -17,8 +17,6 @@ type ServerConn struct {
 	clt *ClientConn
 	mu  sync.RWMutex
 
-	prefix string
-
 	logger *log.Logger
 
 	cstate   clientState
@@ -30,6 +28,8 @@ type ServerConn struct {
 		method              mt.AuthMethods
 		salt, srpA, a, srpK []byte
 	}
+
+	mediaPool string
 
 	inv          mt.Inv
 	detachedInvs []string

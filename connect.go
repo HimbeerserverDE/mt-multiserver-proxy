@@ -17,15 +17,10 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	}
 	cc.mu.RUnlock()
 
-	conf := Conf()
-	var prefix string
-	for _, srv := range conf.Servers {
+	var mediaPool string
+	for _, srv := range Conf().Servers {
 		if srv.Name == name {
-			if len(srv.TexturePool) == 0 {
-				prefix = srv.Name
-			} else {
-				prefix = srv.TexturePool
-			}
+			mediaPool = srv.TexturePool
 		}
 	}
 
@@ -36,7 +31,7 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 		initCh:           make(chan struct{}),
 		clt:              cc,
 		name:             name,
-		prefix:           prefix,
+		mediaPool:        mediaPool,
 		aos:              make(map[mt.AOID]struct{}),
 		particleSpawners: make(map[mt.ParticleSpawnerID]struct{}),
 		sounds:           make(map[mt.SoundID]struct{}),
@@ -53,15 +48,15 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	return sc
 }
 
-func connectContent(conn net.Conn, name, userName, prefix string) (*contentConn, error) {
+func connectContent(conn net.Conn, name, userName, mediaPool string) (*contentConn, error) {
 	logPrefix := fmt.Sprintf("[content %s] ", name)
 	cc := &contentConn{
-		Peer:     mt.Connect(conn),
-		logger:   log.New(logWriter, logPrefix, log.LstdFlags|log.Lmsgprefix),
-		doneCh:   make(chan struct{}),
-		name:     name,
-		userName: userName,
-		prefix:   prefix,
+		Peer:      mt.Connect(conn),
+		logger:    log.New(logWriter, logPrefix, log.LstdFlags|log.Lmsgprefix),
+		doneCh:    make(chan struct{}),
+		name:      name,
+		userName:  userName,
+		mediaPool: mediaPool,
 	}
 
 	if err := cc.addDefaultTextures(); err != nil {
