@@ -110,18 +110,16 @@ func AddServer(server Server) bool {
 // RmServer deletes a Server from the Config at runtime.
 // Any server can be deleted this way, not just the ones
 // added using AddServer.
-func RmServer(name string) bool {
+func RmServer(name string) {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	for i, srv := range config.Servers {
 		if srv.Name == name {
 			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
-			return true
+			return
 		}
 	}
-
-	return false
 }
 
 // FallbackServers returns a slice of server names that
