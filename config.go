@@ -26,8 +26,10 @@ var loadConfigOnce sync.Once
 type Server struct {
 	Name      string
 	Addr      string
+	TexturePool string
 	Fallbacks []string
-	dynamic   bool
+
+	dynamic bool
 }
 
 // A Config contains information from the configuration file
@@ -87,6 +89,32 @@ func Conf() Config {
 	defer configMu.RUnlock()
 
 	return config
+}
+
+// UniquePoolServers returns a []server where each Pool is only
+// represented once
+func UniquePoolServers() []Server {
+	var srvs []Server
+	conf := Conf()
+
+	for _, srv := range conf.Servers {
+		if len(srv.TexturePool) == 0 {
+			srv.TexturePool = srv.Name
+		}
+	}
+
+AddLoop:
+	for _, srv := range conf.Servers {
+		for _, srv2 := range srvs {
+			if srv.TexturePool == srv2.TexturePool {
+				continue AddLoop
+			}
+		}
+
+		srvs = append(srvs, srv)
+	}
+
+	return srvs
 }
 
 // AddServer dynamically configures a new Server at runtime.

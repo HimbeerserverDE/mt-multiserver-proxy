@@ -17,6 +17,8 @@ type ServerConn struct {
 	clt *ClientConn
 	mu  sync.RWMutex
 
+	prefix string
+
 	logger *log.Logger
 
 	cstate   clientState
