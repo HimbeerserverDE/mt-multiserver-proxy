@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -25,7 +26,10 @@ var loadConfigOnce sync.Once
 type Server struct {
 	Name      string
 	Addr      string
+	MediaPool string
 	Fallbacks []string
+
+	dynamic bool
 }
 
 // A Config contains information from the configuration file
@@ -87,34 +91,78 @@ func Conf() Config {
 	return config
 }
 
-// AddServer appends a server to the list of configured servers.
-func AddServer(server Server) bool {
+// PoolServers returns all media pools and their member servers.
+func PoolServers() map[string][]Server {
+	var srvs = make(map[string][]Server)
+	conf := Conf()
+
+	// map all to.. map of slices
+	for _, srv := range conf.Servers {
+		srvs[srv.MediaPool] = append(srvs[srv.MediaPool], srv)
+	}
+
+	return srvs
+}
+
+// AddServer dynamically configures a new Server at runtime.
+// Servers added in this way are ephemeral and will be lost
+// when the proxy shuts down.
+// The server must be part of a media pool with at least one
+// other member. At least one of the other members always
+// needs to be reachable.
+func AddServer(s Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
+	s.dynamic = true
+
 	for _, srv := range config.Servers {
-		if srv.Name == server.Name {
+		if srv.Name == s.Name {
 			return false
 		}
 	}
 
-	config.Servers = append(config.Servers, server)
+	var poolMembers bool
+	for _, srv := range config.Servers {
+		if srv.MediaPool == s.MediaPool {
+			poolMembers = true
+		}
+	}
+
+	if !poolMembers {
+		return false
+	}
+
+	config.Servers = append(config.Servers, s)
 	return true
 }
 
-// DelServer removes a server based on name.
-func DelServer(name string) bool {
+// RmServer deletes a Server from the Config at runtime.
+// Only servers added using AddServer can be deleted at runtime.
+// Returns true on success or if the server doesn't exist.
+func RmServer(name string) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	for i, srv := range config.Servers {
 		if srv.Name == name {
+			if srv.dynamic {
+				return false
+			}
+
+			// Can't remove server if players are connected to it
+			for cc := range Clts() {
+				if cc.ServerName() == name {
+					return false
+				}
+			}
+
 			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
 			return true
 		}
 	}
 
-	return false
+	return true
 }
 
 // FallbackServers returns a slice of server names that
@@ -183,6 +231,40 @@ func LoadConfig() error {
 	if err := decoder.Decode(&config); err != nil {
 		config = oldConf
 		return err
+	}
+
+	// Dynamic servers shouldn't be deleted silently.
+DynLoop:
+	for _, srv := range oldConf.Servers {
+		if srv.dynamic {
+			config.Servers = append(config.Servers, srv)
+		} else {
+			for _, s := range config.Servers {
+				if srv.Name == s.Name {
+					continue DynLoop
+				}
+			}
+
+			for cc := range Clts() {
+				if cc.ServerName() == srv.Name {
+					config = oldConf
+					return fmt.Errorf("can't delete server %s with players", srv.Name)
+				}
+			}
+		}
+	}
+
+	for i, srv := range config.Servers {
+		for _, s := range config.Servers {
+			if srv.Name == s.Name {
+				config = oldConf
+				return fmt.Errorf("duplicate server %s", s.Name)
+			}
+		}
+
+		if srv.MediaPool == "" {
+			config.Servers[i].MediaPool = srv.Name
+		}
 	}
 
 	log.Print("load config")

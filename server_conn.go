@@ -29,6 +29,8 @@ type ServerConn struct {
 		salt, srpA, a, srpK []byte
 	}
 
+	mediaPool string
+
 	inv          mt.Inv
 	detachedInvs []string
 

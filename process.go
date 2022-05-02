@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/HimbeerserverDE/srp"
 	"github.com/anon55555/mt"
@@ -441,14 +442,28 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			srv.swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 		}
 	case *mt.ToSrvChatMsg:
-		go func() {
+		done := make(chan struct{})
+
+		go func(done chan<- struct{}) {
+
 			result, isCmd := onChatMsg(cc, cmd)
 			if !isCmd {
 				forward(pkt)
 			} else if result != "" {
 				cc.SendChatMsg(result)
 			}
-		}()
+
+      close(done)
+		}(done)
+
+		go func(done <-chan struct{}) {
+			select {
+			case <-done:
+			case <-time.After(ChatCmdTimeout):
+				cmdName := strings.Split(cmd.Msg, " ")[0]
+				cc.SendChatMsg("Command", cmdName, "is taking suspiciously long to execute.")
+			}
+		}(done)
 
 		return
 	}
@@ -616,7 +631,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		handStack := mt.Stack{
 			Item: mt.Item{
-				Name: sc.name + "_hand",
+				Name: sc.mediaPool + "_hand",
 			},
 			Count: 1,
 		}
@@ -734,7 +749,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			break
 		}
 
-		prepend(sc.name, &cmd.Filename)
+		prepend(sc.mediaPool, &cmd.Filename)
 		if cmd.ShouldCache {
 			cacheMedia(mediaFile{
 				name:       cmd.Filename,
@@ -744,17 +759,17 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		}
 	case *mt.ToCltSkyParams:
 		for i := range cmd.Textures {
-			prependTexture(sc.name, &cmd.Textures[i])
+			prependTexture(sc.mediaPool, &cmd.Textures[i])
 		}
 	case *mt.ToCltSunParams:
-		prependTexture(sc.name, &cmd.Texture)
-		prependTexture(sc.name, &cmd.ToneMap)
-		prependTexture(sc.name, &cmd.Rise)
+		prependTexture(sc.mediaPool, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.ToneMap)
+		prependTexture(sc.mediaPool, &cmd.Rise)
 	case *mt.ToCltMoonParams:
-		prependTexture(sc.name, &cmd.Texture)
-		prependTexture(sc.name, &cmd.ToneMap)
+		prependTexture(sc.mediaPool, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.ToneMap)
 	case *mt.ToCltSetHotbarParam:
-		prependTexture(sc.name, &cmd.Img)
+		prependTexture(sc.mediaPool, &cmd.Img)
 	case *mt.ToCltUpdatePlayerList:
 		if !clt.playerListInit {
 			clt.playerListInit = true
@@ -772,7 +787,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			}
 		}
 	case *mt.ToCltSpawnParticle:
-		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.Texture)
 		sc.globalParam0(&cmd.NodeParam0)
 	case *mt.ToCltBlkData:
 		for i := range cmd.Blk.Param0 {
@@ -791,14 +806,14 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltAddNode:
 		sc.globalParam0(&cmd.Node.Param0)
 	case *mt.ToCltAddParticleSpawner:
-		prependTexture(sc.name, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.Texture)
 		sc.swapAOID(&cmd.AttachedAOID)
 		sc.globalParam0(&cmd.NodeParam0)
 		sc.particleSpawners[cmd.ID] = struct{}{}
 	case *mt.ToCltDelParticleSpawner:
 		delete(sc.particleSpawners, cmd.ID)
 	case *mt.ToCltPlaySound:
-		prepend(sc.name, &cmd.Name)
+		prepend(sc.mediaPool, &cmd.Name)
 		sc.swapAOID(&cmd.SrcAOID)
 		if cmd.Loop {
 			sc.sounds[cmd.ID] = struct{}{}
@@ -823,7 +838,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		sc.prependFormspec(&cmd.Formspec)
 	case *mt.ToCltMinimapModes:
 		for i := range cmd.Modes {
-			prependTexture(sc.name, &cmd.Modes[i].Texture)
+			prependTexture(sc.mediaPool, &cmd.Modes[i].Texture)
 		}
 	case *mt.ToCltNodeMetasChanged:
 		for k := range cmd.Changed {

@@ -45,6 +45,8 @@ type contentConn struct {
 		salt, srpA, a, srpK []byte
 	}
 
+	mediaPool string
+
 	itemDefs []mt.ItemDef
 	aliases  []struct{ Alias, Orig string }
 
@@ -357,21 +359,21 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 				def.Name = "hand"
 			}
 
-			prepend(cc.name, &def.Name)
-			prependTexture(cc.name, &def.InvImg)
-			prependTexture(cc.name, &def.WieldImg)
-			prepend(cc.name, &def.PlacePredict)
-			prepend(cc.name, &def.PlaceSnd.Name)
-			prepend(cc.name, &def.PlaceFailSnd.Name)
-			prependTexture(cc.name, &def.Palette)
-			prependTexture(cc.name, &def.InvOverlay)
-			prependTexture(cc.name, &def.WieldOverlay)
+			prepend(cc.mediaPool, &def.Name)
+			prependTexture(cc.mediaPool, &def.InvImg)
+			prependTexture(cc.mediaPool, &def.WieldImg)
+			prepend(cc.mediaPool, &def.PlacePredict)
+			prepend(cc.mediaPool, &def.PlaceSnd.Name)
+			prepend(cc.mediaPool, &def.PlaceFailSnd.Name)
+			prependTexture(cc.mediaPool, &def.Palette)
+			prependTexture(cc.mediaPool, &def.InvOverlay)
+			prependTexture(cc.mediaPool, &def.WieldOverlay)
 			itemDefs = append(itemDefs, def)
 		}
 
 		for _, alias := range cc.aliases {
-			prepend(cc.name, &alias.Alias)
-			prepend(cc.name, &alias.Orig)
+			prepend(cc.mediaPool, &alias.Alias)
+			prepend(cc.mediaPool, &alias.Orig)
 
 			aliases = append(aliases, struct{ Alias, Orig string }{
 				Alias: alias.Alias,
@@ -429,25 +431,25 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			}
 
 			def.Param0 = param0
-			prepend(cc.name, &def.Name)
-			prepend(cc.name, &def.Mesh)
+			prepend(cc.mediaPool, &def.Name)
+			prepend(cc.mediaPool, &def.Mesh)
 			for i := range def.Tiles {
-				prependTexture(cc.name, &def.Tiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.Tiles[i].Texture)
 			}
 			for i := range def.OverlayTiles {
-				prependTexture(cc.name, &def.OverlayTiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.OverlayTiles[i].Texture)
 			}
 			for i := range def.SpecialTiles {
-				prependTexture(cc.name, &def.SpecialTiles[i].Texture)
+				prependTexture(cc.mediaPool, &def.SpecialTiles[i].Texture)
 			}
-			prependTexture(cc.name, &def.Palette)
+			prependTexture(cc.mediaPool, &def.Palette)
 			for k, v := range def.ConnectTo {
 				def.ConnectTo[k] = p0Map[cc.name][v]
 			}
-			prepend(cc.name, &def.FootstepSnd.Name)
-			prepend(cc.name, &def.DiggingSnd.Name)
-			prepend(cc.name, &def.DugSnd.Name)
-			prepend(cc.name, &def.DigPredict)
+			prepend(cc.mediaPool, &def.FootstepSnd.Name)
+			prepend(cc.mediaPool, &def.DiggingSnd.Name)
+			prepend(cc.mediaPool, &def.DugSnd.Name)
+			prepend(cc.mediaPool, &def.DigPredict)
 			nodeDefs = append(nodeDefs, def)
 
 			param0++
@@ -466,7 +468,7 @@ func muxMedia(conns []*contentConn) []mediaFile {
 	for _, cc := range conns {
 		<-cc.done()
 		for _, f := range cc.media {
-			prepend(cc.name, &f.name)
+			prepend(cc.mediaPool, &f.name)
 			media = append(media, f)
 		}
 	}
@@ -494,27 +496,37 @@ func muxRemotes(conns []*contentConn) []string {
 
 func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
 	var conns []*contentConn
-	for _, srv := range Conf().Servers {
+
+PoolLoop:
+	for _, pool := range PoolServers() {
 		var addr *net.UDPAddr
-		addr, err = net.ResolveUDPAddr("udp", srv.Addr)
-		if err != nil {
-			return
+
+		for _, srv := range pool {
+			addr, err = net.ResolveUDPAddr("udp", srv.Addr)
+			if err != nil {
+				continue
+			}
+
+			var conn *net.UDPConn
+			conn, err = net.DialUDP("udp", nil, addr)
+			if err != nil {
+				continue
+			}
+
+			var cc *contentConn
+			cc, err = connectContent(conn, srv.Name, userName, srv.MediaPool)
+			if err != nil {
+				continue
+			}
+			defer cc.Close()
+
+			conns = append(conns, cc)
+			continue PoolLoop
 		}
 
-		var conn *net.UDPConn
-		conn, err = net.DialUDP("udp", nil, addr)
-		if err != nil {
-			return
-		}
-
-		var cc *contentConn
-		cc, err = connectContent(conn, srv.Name, userName)
-		if err != nil {
-			return
-		}
-		defer cc.Close()
-
-		conns = append(conns, cc)
+		// There's a pool with no reachable servers.
+		// We can't safely let clients join.
+		return
 	}
 
 	itemDefs, aliases = muxItemDefs(conns)
@@ -594,7 +606,7 @@ func prependTexture(prep string, t *mt.Texture) {
 func (sc *ServerConn) prependInv(inv mt.Inv) {
 	for k, l := range inv {
 		for i := range l.Stacks {
-			prepend(sc.name, &inv[k].InvList.Stacks[i].Name)
+			prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
 		}
 	}
 }
@@ -603,28 +615,28 @@ func (sc *ServerConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
 	pa := func(cmd *mt.ToCltAddHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.name, &cmd.Text2)
+			prepend(sc.mediaPool, &cmd.Text2)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.name, &cmd.Text)
+			prepend(sc.mediaPool, &cmd.Text)
 		}
 	}
 
 	pc := func(cmd *mt.ToCltChangeHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.name, &cmd.Text2)
+			prepend(sc.mediaPool, &cmd.Text2)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.name, &cmd.Text)
+			prepend(sc.mediaPool, &cmd.Text)
 		}
 	}
 
