@@ -33,8 +33,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-		if cmd.SerializeVer != latestSerializeVer {
-			cc.Log("<-", "invalid serializeVer")
+		if cmd.SerializeVer <= latestSerializeVer {
+			cc.Log("<-", "invalid serializeVer", cmd.SerializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
@@ -46,8 +46,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		if cmd.MaxProtoVer < latestProtoVer {
-			cc.Log("<-", "invalid protoVer")
+		if cmd.MaxProtoVer <= latestProtoVer {
+			cc.Log("<-", "invalid protoVer", cmd.MaxProtoVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
@@ -445,6 +445,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		done := make(chan struct{})
 
 		go func(done chan<- struct{}) {
+
 			result, isCmd := onChatMsg(cc, cmd)
 			if !isCmd {
 				forward(pkt)
@@ -452,7 +453,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				cc.SendChatMsg(result)
 			}
 
-			close(done)
+      close(done)
 		}(done)
 
 		go func(done <-chan struct{}) {
