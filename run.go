@@ -107,15 +107,13 @@ func runFunc() {
 				return
 			}
 
-			srv := conf.DefaultSrv()
-			srvName := conf.DefaultSrvName()
-
+			srvName, srv := conf.DefaultSrvInfo()
 			lastSrv, err := authIface.LastSrv(cc.Name())
 			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srvName {
 				for name, s := range conf.Servers {
 					if name == lastSrv {
-						srv = s
 						srvName = name
+						srv = s
 
 						break
 					}

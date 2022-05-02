@@ -162,7 +162,10 @@ func RmServer(name string) bool {
 	return true
 }
 
-func (cnf Config) defaultSrvInfo() (string, Server) {
+// DefaultSrvInfo returns both the name of the default server
+// and information about it. The return values are uninitialized
+// if no servers exist.
+func (cnf Config) DefaultSrvInfo() (string, Server) {
 	for name, srv := range Conf().Servers {
 		return name, srv
 	}
@@ -174,16 +177,16 @@ func (cnf Config) defaultSrvInfo() (string, Server) {
 // DefaultSrvName returns the name of the default server.
 // If no servers exist it returns an empty string.
 func (cnf Config) DefaultSrvName() string {
-	name, _ := cnf.defaultSrvInfo()
+	name, _ := cnf.DefaultSrvInfo()
 	return name
 }
 
 // DefaultSrv returns information about the default server.
 // If no servers exist the returned struct will be uninitialized.
 // This is a faster shortcut for Config.Servers[Config.DefaultSrvName].
-// You should thus only use this method.
+// You should thus only use this method or the DefaultSrvInfo method.
 func (cnf Config) DefaultSrv() Server {
-	_, srv := cnf.defaultSrvInfo()
+	_, srv := cnf.DefaultSrvInfo()
 	return srv
 }
 
