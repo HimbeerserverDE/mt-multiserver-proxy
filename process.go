@@ -452,7 +452,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				cc.SendChatMsg(result)
 			}
 
-      close(done)
+			close(done)
 		}(done)
 
 		go func(done <-chan struct{}) {
