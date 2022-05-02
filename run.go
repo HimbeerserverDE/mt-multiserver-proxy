@@ -100,19 +100,23 @@ func runFunc() {
 			<-cc.Init()
 			cc.Log("<->", "handshake completed")
 
-			srvs := Conf().Servers
-			if len(srvs) == 0 {
+			conf := Conf()
+			if len(conf.Servers) == 0 {
 				cc.Log("<-", "no servers")
 				cc.Kick("No servers are configured.")
 				return
 			}
 
-			srv := srvs[0]
+			srv := conf.DefaultSrv()
+			srvName := conf.DefaultSrvName()
+
 			lastSrv, err := authIface.LastSrv(cc.Name())
-			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srv.Name {
-				for _, v := range srvs {
-					if v.Name == lastSrv {
-						srv = v
+			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srvName {
+				for name, s := range conf.Servers {
+					if name == lastSrv {
+						srv = s
+						srvName = name
+
 						break
 					}
 				}
@@ -132,7 +136,7 @@ func runFunc() {
 				return
 			}
 
-			connect(conn, srv.Name, cc)
+			connect(conn, srvName, cc)
 		}()
 	}
 

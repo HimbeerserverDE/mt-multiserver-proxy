@@ -501,7 +501,7 @@ PoolLoop:
 	for _, pool := range PoolServers() {
 		var addr *net.UDPAddr
 
-		for _, srv := range pool {
+		for name, srv := range pool {
 			addr, err = net.ResolveUDPAddr("udp", srv.Addr)
 			if err != nil {
 				continue
@@ -514,7 +514,7 @@ PoolLoop:
 			}
 
 			var cc *contentConn
-			cc, err = connectContent(conn, srv.Name, userName, srv.MediaPool)
+			cc, err = connectContent(conn, name, userName, srv.MediaPool)
 			if err != nil {
 				continue
 			}

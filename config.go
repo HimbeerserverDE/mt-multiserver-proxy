@@ -24,7 +24,6 @@ var configMu sync.RWMutex
 var loadConfigOnce sync.Once
 
 type Server struct {
-	Name      string
 	Addr      string
 	MediaPool string
 	Fallbacks []string
@@ -44,7 +43,7 @@ type Config struct {
 	NoTelnet        bool
 	TelnetAddr      string
 	BindAddr        string
-	Servers         []Server
+	Servers         map[string]Server
 	ForceDefaultSrv bool
 	FallbackServers []string
 	CSMRF           struct {
@@ -92,16 +91,17 @@ func Conf() Config {
 }
 
 // PoolServers returns all media pools and their member servers.
-func PoolServers() map[string][]Server {
-	var srvs = make(map[string][]Server)
-	conf := Conf()
+func PoolServers() map[string]map[string]Server {
+	pools := make(map[string]map[string]Server)
+	for name, srv := range Conf().Servers {
+		if pools[srv.MediaPool] == nil {
+			pools[srv.MediaPool] = make(map[string]Server)
+		}
 
-	// map all to.. map of slices
-	for _, srv := range conf.Servers {
-		srvs[srv.MediaPool] = append(srvs[srv.MediaPool], srv)
+		pools[srv.MediaPool][name] = srv
 	}
 
-	return srvs
+	return pools
 }
 
 // AddServer dynamically configures a new Server at runtime.
@@ -110,16 +110,14 @@ func PoolServers() map[string][]Server {
 // The server must be part of a media pool with at least one
 // other member. At least one of the other members always
 // needs to be reachable.
-func AddServer(s Server) bool {
+func AddServer(name string, s Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
 	s.dynamic = true
 
-	for _, srv := range config.Servers {
-		if srv.Name == s.Name {
-			return false
-		}
+	if _, ok := config.Servers[name]; ok {
+		return false
 	}
 
 	var poolMembers bool
@@ -133,7 +131,7 @@ func AddServer(s Server) bool {
 		return false
 	}
 
-	config.Servers = append(config.Servers, s)
+	config.Servers[name] = s
 	return true
 }
 
@@ -144,44 +142,62 @@ func RmServer(name string) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 
-	for i, srv := range config.Servers {
-		if srv.Name == name {
-			if srv.dynamic {
-				return false
-			}
+	s, ok := config.Servers[name]
+	if !ok {
+		return true
+	}
 
-			// Can't remove server if players are connected to it
-			for cc := range Clts() {
-				if cc.ServerName() == name {
-					return false
-				}
-			}
+	if !s.dynamic {
+		return false
+	}
 
-			config.Servers = append(config.Servers[:i], config.Servers[1+i:]...)
-			return true
+	// Can't remove server if players are connected to it
+	for cc := range Clts() {
+		if cc.ServerName() == name {
+			return false
 		}
 	}
 
+	delete(config.Servers, name)
 	return true
+}
+
+func (cnf Config) defaultSrvInfo() (string, Server) {
+	for name, srv := range Conf().Servers {
+		return name, srv
+	}
+
+	// No servers are configured.
+	return "", Server{}
+}
+
+// DefaultSrvName returns the name of the default server.
+// If no servers exist it returns an empty string.
+func (cnf Config) DefaultSrvName() string {
+	name, _ := cnf.defaultSrvInfo()
+	return name
+}
+
+// DefaultSrv returns information about the default server.
+// If no servers exist the returned struct will be uninitialized.
+// This is a faster shortcut for Config.Servers[Config.DefaultSrvName].
+// You should thus only use this method.
+func (cnf Config) DefaultSrv() Server {
+	_, srv := cnf.defaultSrvInfo()
+	return srv
 }
 
 // FallbackServers returns a slice of server names that
 // a server can fall back to.
 func FallbackServers(server string) []string {
-	configMu.RLock()
-	defer configMu.RUnlock()
-
-	fallbacks := make([]string, 0)
-
 	conf := Conf()
 
-	// find server
-	for _, srv := range conf.Servers {
-		if srv.Name == server {
-			fallbacks = append(fallbacks, srv.Fallbacks...)
-			break
-		}
+	srv, ok := conf.Servers[server]
+	if !ok {
+		return nil
 	}
+
+	fallbacks := srv.Fallbacks
 
 	// global fallbacks
 	if len(conf.FallbackServers) == 0 {
@@ -189,7 +205,7 @@ func FallbackServers(server string) []string {
 			return fallbacks
 		}
 
-		return append(fallbacks, conf.Servers[0].Name)
+		return append(fallbacks, conf.DefaultSrvName())
 	} else {
 		return append(fallbacks, conf.FallbackServers...)
 	}
@@ -235,35 +251,37 @@ func LoadConfig() error {
 
 	// Dynamic servers shouldn't be deleted silently.
 DynLoop:
-	for _, srv := range oldConf.Servers {
+	for name, srv := range oldConf.Servers {
 		if srv.dynamic {
-			config.Servers = append(config.Servers, srv)
+			config.Servers[name] = srv
 		} else {
-			for _, s := range config.Servers {
-				if srv.Name == s.Name {
+			for name2 := range config.Servers {
+				if name == name2 {
 					continue DynLoop
 				}
 			}
 
 			for cc := range Clts() {
-				if cc.ServerName() == srv.Name {
+				if cc.ServerName() == name {
 					config = oldConf
-					return fmt.Errorf("can't delete server %s with players", srv.Name)
+					return fmt.Errorf("can't delete server %s with players", name)
 				}
 			}
 		}
 	}
 
-	for i, srv := range config.Servers {
-		for _, s := range config.Servers {
-			if srv.Name == s.Name {
+	for name, srv := range config.Servers {
+		for name2 := range config.Servers {
+			if name == name2 {
 				config = oldConf
-				return fmt.Errorf("duplicate server %s", s.Name)
+				return fmt.Errorf("duplicate server %s", name2)
 			}
 		}
 
 		if srv.MediaPool == "" {
-			config.Servers[i].MediaPool = srv.Name
+			s := config.Servers[name]
+			s.MediaPool = name
+			config.Servers[name] = s
 		}
 	}
 

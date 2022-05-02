@@ -18,8 +18,8 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 	cc.mu.RUnlock()
 
 	var mediaPool string
-	for _, srv := range Conf().Servers {
-		if srv.Name == name {
+	for srvName, srv := range Conf().Servers {
+		if srvName == name {
 			mediaPool = srv.MediaPool
 		}
 	}
