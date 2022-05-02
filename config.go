@@ -162,10 +162,10 @@ func RmServer(name string) bool {
 	return true
 }
 
-// DefaultSrvInfo returns both the name of the default server
+// DefaultServerInfo returns both the name of the default server
 // and information about it. The return values are uninitialized
 // if no servers exist.
-func (cnf Config) DefaultSrvInfo() (string, Server) {
+func (cnf Config) DefaultServerInfo() (string, Server) {
 	for name, srv := range Conf().Servers {
 		return name, srv
 	}
@@ -174,19 +174,19 @@ func (cnf Config) DefaultSrvInfo() (string, Server) {
 	return "", Server{}
 }
 
-// DefaultSrvName returns the name of the default server.
+// DefaultServerName returns the name of the default server.
 // If no servers exist it returns an empty string.
-func (cnf Config) DefaultSrvName() string {
-	name, _ := cnf.DefaultSrvInfo()
+func (cnf Config) DefaultServerName() string {
+	name, _ := cnf.DefaultServerInfo()
 	return name
 }
 
-// DefaultSrv returns information about the default server.
+// DefaultServer returns information about the default server.
 // If no servers exist the returned struct will be uninitialized.
-// This is a faster shortcut for Config.Servers[Config.DefaultSrvName].
-// You should thus only use this method or the DefaultSrvInfo method.
-func (cnf Config) DefaultSrv() Server {
-	_, srv := cnf.DefaultSrvInfo()
+// This is a faster shortcut for Config.Servers[Config.DefaultServerName()].
+// You should thus only use this method or the DefaultServerInfo method.
+func (cnf Config) DefaultServer() Server {
+	_, srv := cnf.DefaultServerInfo()
 	return srv
 }
 
@@ -208,7 +208,7 @@ func FallbackServers(server string) []string {
 			return fallbacks
 		}
 
-		return append(fallbacks, conf.DefaultSrvName())
+		return append(fallbacks, conf.DefaultServerName())
 	} else {
 		return append(fallbacks, conf.FallbackServers...)
 	}

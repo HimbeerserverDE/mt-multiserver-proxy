@@ -107,7 +107,7 @@ func runFunc() {
 				return
 			}
 
-			srvName, srv := conf.DefaultSrvInfo()
+			srvName, srv := conf.DefaultServerInfo()
 			lastSrv, err := authIface.LastSrv(cc.Name())
 			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srvName {
 				for name, s := range conf.Servers {
