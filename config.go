@@ -110,6 +110,9 @@ func PoolServers() map[string]map[string]Server {
 // The server must be part of a media pool with at least one
 // other member. At least one of the other members always
 // needs to be reachable.
+// WARNING: Reloading the config will not overwrite servers
+// added using this function. The server definition from the
+// configuration file will silently be ignored.
 func AddServer(name string, s Server) bool {
 	configMu.Lock()
 	defer configMu.Unlock()
@@ -274,13 +277,6 @@ DynLoop:
 	}
 
 	for name, srv := range config.Servers {
-		for name2 := range config.Servers {
-			if name == name2 {
-				config = oldConf
-				return fmt.Errorf("duplicate server %s", name2)
-			}
-		}
-
 		if srv.MediaPool == "" {
 			s := config.Servers[name]
 			s.MediaPool = name
