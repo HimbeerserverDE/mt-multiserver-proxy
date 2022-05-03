@@ -110,8 +110,8 @@ Description: The network address and port of an internal server.
 > `Server.MediaPool`
 ```
 Type: string
-Default: Server.Name
-Description: The media pool this server will be part of.
+Default: Server name (map key)
+Description: The media pool this server is part of.
 See [media_pools.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/media_pools.md)
 for more information.
 ```
