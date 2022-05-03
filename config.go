@@ -256,15 +256,17 @@ func LoadConfig() error {
 	}
 
 	// Dynamic servers shouldn't be deleted silently.
-DynLoop:
 	for name, srv := range oldConf.Servers {
 		if srv.dynamic {
+			if _, ok := config.Servers[name]; ok {
+				config = oldConf
+				return fmt.Errorf("duplicate server %s", name)
+			}
+
 			config.Servers[name] = srv
 		} else {
-			for name2 := range config.Servers {
-				if name == name2 {
-					continue DynLoop
-				}
+			if _, ok := config.Servers[name]; ok {
+				continue
 			}
 
 			for cc := range Clts() {
