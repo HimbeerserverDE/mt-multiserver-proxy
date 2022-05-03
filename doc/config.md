@@ -10,14 +10,14 @@ This is an example configuration file with two servers. Remember to install
 
 ```json
 {
-	"Servers": [
+	"Servers": {
 		"ServerName1": {
 			"Addr": "minetest.local:30000"
 		},
 		"ServerName2": {
 			"Addr": "minetest.local:30001"
 		}
-	]
+	}
 }
 ```
 
