@@ -13,6 +13,25 @@ import (
 // about a chat command that's taking long to execute.
 var ChatCmdTimeout = 10 * time.Second
 
+// Exec handles a string as if it where send by a client.
+// string is imediate returnvalue of chatcommand (if applicable)
+// bool   is if msg is getting forwarded to the minetest server
+func (cc *ClientConn) Exec(msg string) (string, bool) {
+	pkt := &mt.ToSrvChatMsg{
+		Msg: msg,
+	}
+
+	str, fwd := onChatMsg(cc, pkt)
+
+	if fwd {
+		cc.server().Send(*&mt.Pkt{
+			Cmd: pkt,
+		})
+	}
+
+	return str, fwd
+}
+
 // SendChatMsg sends a chat message to the ClientConn.
 func (cc *ClientConn) SendChatMsg(msg ...string) {
 	cc.SendCmd(&mt.ToCltChatMsg{
