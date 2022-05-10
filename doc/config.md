@@ -10,16 +10,14 @@ This is an example configuration file with two servers. Remember to install
 
 ```json
 {
-	"Servers": [
-		{
-			"Name": "default_server",
+	"Servers": {
+		"ServerName1": {
 			"Addr": "minetest.local:30000"
 		},
-		{
-			"Name": "some_other_server",
+		"ServerName2": {
 			"Addr": "minetest.local:30001"
 		}
-	]
+	}
 }
 ```
 
@@ -94,20 +92,12 @@ Description: The proxy will listen for new clients on this address.
 
 > `Servers`
 ```
-Type: []Server
-Default: []Server{}
+Type: map[string]Server
+Default: map[string]Server{}
 Description: The list of internal servers served by this proxy.
 The first server is the default server new clients are connected to.
 It also acts as a fallback server if a connection
 to another server fails or closes.
-```
-
-> `Server.Name`
-```
-Type: string
-Default: ""
-Values: Any non-zero string
-Description: The unique name an internal server is known as.
 ```
 
 > `Server.Addr`
@@ -120,17 +110,21 @@ Description: The network address and port of an internal server.
 > `Server.MediaPool`
 ```
 Type: string
-Default: Server.Name
-Description: The media pool this server will be part of.
+Default: Server name (map key)
+Description: The media pool this server is part of.
 See [media_pools.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/media_pools.md)
 for more information.
 ```
 
-> `Server.Fallback`
+> `Server.Fallbacks`
 ```
 Type: []string
 Default: []string{}
-Description: Servers that clients get sent to when server stops or crashes (in order).
+Description: The names of the servers a client should fall back to
+if this server shuts down or crashes gracefully. Connection attempts
+are made in the order in which the servers are given. As soon as
+a connection is successful the other fallback servers in this list
+will be ignored.
 ```
 
 > `ForceDefaultSrv`

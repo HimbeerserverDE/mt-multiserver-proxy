@@ -445,7 +445,6 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		done := make(chan struct{})
 
 		go func(done chan<- struct{}) {
-
 			result, isCmd := onChatMsg(cc, cmd)
 			if !isCmd {
 				forward(pkt)
@@ -453,7 +452,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				cc.SendChatMsg(result)
 			}
 
-      close(done)
+			close(done)
 		}(done)
 
 		go func(done <-chan struct{}) {
