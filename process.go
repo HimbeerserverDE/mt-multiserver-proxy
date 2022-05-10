@@ -33,7 +33,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-		/*if cmd.SerializeVer <= latestSerializeVer {
+		if cmd.SerializeVer <= latestSerializeVer {
 			cc.Log("<-", "invalid serializeVer", cmd.SerializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
@@ -57,7 +57,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			}
 
 			return
-		}*/
+		}
 
 		if len(cmd.PlayerName) == 0 || len(cmd.PlayerName) > maxPlayerNameLen {
 			cc.Log("<-", "invalid player name length")
@@ -449,7 +449,6 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		done := make(chan struct{})
 
 		go func(done chan<- struct{}) {
-
 			result, isCmd := onChatMsg(cc, cmd)
 			if !isCmd {
 				forward(pkt)
