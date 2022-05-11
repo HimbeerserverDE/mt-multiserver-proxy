@@ -21,7 +21,7 @@ const (
 	Place
 	Use
 	Activate
-	WildCard = 255
+	AnyInteraction = 255
 )
 
 var interactionHandlers []InteractionHandler
@@ -40,7 +40,8 @@ func handleInteraction(cmd *mt.ToSrvInteract, cc *ClientConn) bool {
 	handled := false
 
 	for _, handler := range interactionHandlers {
-		if Interaction(handler.Type) == WildCard || Interaction(cmd.Action) == handler.Type {
+		interaction := Interaction(handler.Type)
+		if interaction == AnyInteraction || interaction == handler.Type {
 			if handler.Handler(cc, cmd) {
 				handled = true
 			}
