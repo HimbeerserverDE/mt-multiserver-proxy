@@ -18,14 +18,14 @@ func (sc *ServerConn) handleAOMsg(aoMsg mt.AOMsg) {
 		sc.swapAOID(&msg.Attach.ParentID)
 	case *mt.AOCmdProps:
 		for j := range msg.Props.Textures {
-			prependTexture(sc.name, &msg.Props.Textures[j])
+			prependTexture(sc.mediaPool, &msg.Props.Textures[j])
 		}
-		prepend(sc.name, &msg.Props.Mesh)
-		prepend(sc.name, &msg.Props.Itemstring)
-		prependTexture(sc.name, &msg.Props.DmgTextureMod)
+		prepend(sc.mediaPool, &msg.Props.Mesh)
+		prepend(sc.mediaPool, &msg.Props.Itemstring)
+		prependTexture(sc.mediaPool, &msg.Props.DmgTextureMod)
 	case *mt.AOCmdSpawnInfant:
 		sc.swapAOID(&msg.ID)
 	case *mt.AOCmdTextureMod:
-		prependTexture(sc.name, &msg.Mod)
+		prependTexture(sc.mediaPool, &msg.Mod)
 	}
 }
