@@ -13,6 +13,21 @@ import (
 // about a chat command that's taking long to execute.
 var ChatCmdTimeout = 10 * time.Second
 
+// DoChatMsg handles a chat message string
+// as if it was sent by the ClientConn.
+func (cc *ClientConn) DoChatMsg(msg string) {
+	cmd := &mt.ToSrvChatMsg{Msg: msg}
+
+	result, isCmd := onChatMsg(cc, cmd)
+	if result != "" {
+		cc.SendChatMsg(result)
+	}
+
+	if !isCmd {
+		cc.server().SendCmd(cmd)
+	}
+}
+
 // SendChatMsg sends a chat message to the ClientConn.
 func (cc *ClientConn) SendChatMsg(msg ...string) {
 	cc.SendCmd(&mt.ToCltChatMsg{
