@@ -441,6 +441,10 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		if _, ok := cmd.Pointed.(*mt.PointedAO); ok {
 			srv.swapAOID(&cmd.Pointed.(*mt.PointedAO).ID)
 		}
+
+		if handleInteraction(cmd, cc) { // if return true: already handled
+			return
+		}
 	case *mt.ToSrvChatMsg:
 		done := make(chan struct{})
 
@@ -736,6 +740,8 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToCltMediaPush:
+		prepend(sc.mediaPool, &cmd.Filename)
+
 		var exit bool
 		for _, f := range clt.media {
 			if f.name == cmd.Filename {
@@ -748,7 +754,6 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			break
 		}
 
-		prepend(sc.mediaPool, &cmd.Filename)
 		if cmd.ShouldCache {
 			cacheMedia(mediaFile{
 				name:       cmd.Filename,
