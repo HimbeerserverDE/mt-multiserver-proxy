@@ -91,9 +91,9 @@ func handleSrv(sc *ServerConn) {
 
 		for sc.state() == csCreated && sc.client() != nil {
 			sc.SendCmd(&mt.ToSrvInit{
-				SerializeVer: latestSerializeVer,
-				MinProtoVer:  latestProtoVer,
-				MaxProtoVer:  latestProtoVer,
+				SerializeVer: serializeVer,
+				MinProtoVer:  protoVer,
+				MaxProtoVer:  protoVer,
 				PlayerName:   sc.client().Name(),
 			})
 			time.Sleep(500 * time.Millisecond)

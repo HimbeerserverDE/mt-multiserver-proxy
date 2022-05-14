@@ -40,8 +40,8 @@ func announce(action string) error {
 		a["name"] = Conf().List.Name
 		a["description"] = Conf().List.Desc
 		a["version"] = versionString
-		a["proto_min"] = latestProtoVer
-		a["proto_max"] = latestProtoVer
+		a["proto_min"] = protoVer
+		a["proto_max"] = protoVer
 		a["url"] = Conf().List.URL
 		a["creative"] = Conf().List.Creative
 		a["damage"] = Conf().List.Dmg

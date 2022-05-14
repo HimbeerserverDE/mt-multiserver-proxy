@@ -33,7 +33,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-		if cmd.SerializeVer <= latestSerializeVer {
+		if cmd.SerializeVer < serializeVer {
 			cc.Log("<-", "invalid serializeVer", cmd.SerializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
@@ -46,7 +46,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		if cmd.MaxProtoVer <= latestProtoVer {
+		if cmd.MaxProtoVer < protoVer {
 			cc.Log("<-", "invalid protoVer", cmd.MaxProtoVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
@@ -148,8 +148,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.SendCmd(&mt.ToCltHello{
-			SerializeVer: latestSerializeVer,
-			ProtoVer:     latestProtoVer,
+			SerializeVer: serializeVer,
+			ProtoVer:     protoVer,
 			AuthMethods:  cc.auth.method,
 			Username:     cc.Name(),
 		})
@@ -496,7 +496,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			sc.auth.method = mt.SRP
 		}
 
-		if cmd.SerializeVer != latestSerializeVer {
+		if cmd.SerializeVer != serializeVer {
 			sc.Log("<-", "invalid serializeVer")
 			return
 		}
