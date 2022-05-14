@@ -118,9 +118,9 @@ func handleContent(cc *contentConn) {
 
 		for cc.state() == csCreated {
 			cc.SendCmd(&mt.ToSrvInit{
-				SerializeVer: latestSerializeVer,
-				MinProtoVer:  latestProtoVer,
-				MaxProtoVer:  latestProtoVer,
+				SerializeVer: serializeVer,
+				MinProtoVer:  protoVer,
+				MaxProtoVer:  protoVer,
 				PlayerName:   cc.userName,
 			})
 			time.Sleep(500 * time.Millisecond)
@@ -158,7 +158,7 @@ func handleContent(cc *contentConn) {
 				cc.auth.method = mt.SRP
 			}
 
-			if cmd.SerializeVer != latestSerializeVer {
+			if cmd.SerializeVer != serializeVer {
 				cc.log("<-", "invalid serializeVer")
 				break
 			}
