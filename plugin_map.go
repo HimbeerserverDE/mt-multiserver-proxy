@@ -11,8 +11,8 @@ type BlkDataHandler struct {
 	Handler func(*ClientConn, *mt.ToCltBlkData) bool
 }
 
-var BlkDataHandlers []BlkDataHandler
-var BlkDataHandlersMu sync.RWMutex
+var blkDataHandlers []BlkDataHandler
+var blkDataHandlersMu sync.RWMutex
 
 var neededNodes = map[string]map[mt.Content]bool{}
 var neededNodesMu sync.RWMutex
@@ -52,19 +52,19 @@ func addNodeId(nodename string, id mt.Content) {
 
 // RegisterBlkDataHandler registers a BlkDataHande
 func RegisterBlkDataHandler(handler BlkDataHandler) {
-	BlkDataHandlersMu.Lock()
-	defer BlkDataHandlersMu.Unlock()
+	blkDataHandlersMu.Lock()
+	defer blkDataHandlersMu.Unlock()
 
-	BlkDataHandlers = append(BlkDataHandlers, handler)
+	blkDataHandlers = append(blkDataHandlers, handler)
 }
 
 func handleBlkData(cc *ClientConn, cmd *mt.ToCltBlkData) bool {
-	BlkDataHandlersMu.RLock()
-	defer BlkDataHandlersMu.RUnlock()
+	blkDataHandlersMu.RLock()
+	defer blkDataHandlersMu.RUnlock()
 
 	handled := false
 
-	for _, handler := range BlkDataHandlers {
+	for _, handler := range blkDataHandlers {
 		if handler.Handler(cc, cmd) {
 			handled = true
 		}
