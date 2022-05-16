@@ -1,0 +1,16 @@
+name: gofmt
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check code formatting using gofmt
+      uses: Jerome1337/gofmt-action@v1.0.4
+      with:
+        gofmt-flags: '-l -d'

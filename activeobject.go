@@ -13,7 +13,6 @@ func (sc *ServerConn) swapAOID(ao *mt.AOID) {
 }
 
 func (sc *ServerConn) handleAOMsg(aoMsg mt.AOMsg) {
-
 	switch msg := aoMsg.(type) {
 	case *mt.AOCmdAttach:
 		sc.swapAOID(&msg.Attach.ParentID)
