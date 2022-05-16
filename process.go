@@ -807,6 +807,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			}
 			sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
 		}
+
+		if handleBlkData(sc.client(), cmd) {
+			return
+		}
 	case *mt.ToCltAddNode:
 		sc.globalParam0(&cmd.Node.Param0)
 	case *mt.ToCltAddParticleSpawner:
