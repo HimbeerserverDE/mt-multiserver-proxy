@@ -36,7 +36,7 @@ func GetNodeId(nodename string) map[mt.Content]bool {
 	if neededNodes[nodename] != nil {
 		return neededNodes[nodename]
 	} else {
-		return map[mt.Content]bool{}
+		return nil
 	}
 }
 
