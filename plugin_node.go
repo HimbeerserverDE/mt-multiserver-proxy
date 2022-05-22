@@ -9,19 +9,19 @@ import (
 type NodeHandler struct {
 	Node          string
 	nodeIds       map[mt.Content]bool
-	OnDig         func(*ClientConn, *[3]int16) bool
-	OnStopDigging func(*ClientConn, *[3]int16) bool
-	OnDug         func(*ClientConn, *[3]int16) bool
-	OnPlace       func(*ClientConn, *[3]int16) bool
-	OnUse         func(*ClientConn, *[3]int16) bool
-	OnActivate    func(*ClientConn, *[3]int16) bool
+	OnDig         func(*ClientConn, *mt.ToSrvInteract) bool
+	OnStopDigging func(*ClientConn, *mt.ToSrvInteract) bool
+	OnDug         func(*ClientConn, *mt.ToSrvInteract) bool
+	OnPlace       func(*ClientConn, *mt.ToSrvInteract) bool
+	OnUse         func(*ClientConn, *mt.ToSrvInteract) bool
+	OnActivate    func(*ClientConn, *mt.ToSrvInteract) bool
 }
 
 var NodeHandlers []*NodeHandler
 var NodeHandlersMu sync.RWMutex
 
-var mapCache     map[[3]int16]*[4096]mt.Content
-var mapCacheMu   sync.RWMutex
+var mapCache map[[3]int16]*[4096]mt.Content
+var mapCacheMu sync.RWMutex
 var mapCacheOnce sync.Once
 
 func initMapCache() {
@@ -42,7 +42,7 @@ func RegisterNodeHandler(handler *NodeHandler) {
 func initNodeHandlerNodeIds() {
 	NodeHandlersMu.RLock()
 	defer NodeHandlersMu.RUnlock()
-				
+
 	for _, h := range NodeHandlers {
 		if h.nodeIds == nil {
 			id := GetNodeId(h.Node)
@@ -78,41 +78,47 @@ func IsCached(pos [3]int16) bool {
 func handleNodeInteraction(cc *ClientConn, pointedNode *mt.PointedNode, cmd *mt.ToSrvInteract) bool {
 	NodeHandlersMu.RLock()
 	defer NodeHandlersMu.RUnlock()
+	mapCacheMu.RLock()
+	defer mapCacheMu.RUnlock()
 
 	var handled bool
 
 	for _, handler := range NodeHandlers {
-		var h bool
-	
-		switch cmd.Action {
-		case mt.Dig:
-			if handler.OnDig != nil {
-				h = handler.OnDig(cc, &pointedNode.Under)
-			}
-		case mt.StopDigging:
-			if handler.OnStopDigging != nil {
-				h = handler.OnStopDigging(cc, &pointedNode.Under)
-			}
-		case mt.Dug:
-			if handler.OnDug != nil {
-				h = handler.OnDug(cc, &pointedNode.Under)
-			}
-		case mt.Place:
-			if handler.OnPlace != nil {
-				h = handler.OnPlace(cc, &pointedNode.Under)
-			}
-		case mt.Use:
-			if handler.OnUse != nil {
-				h = handler.OnUse(cc, &pointedNode.Under)
-			}
-		case mt.Activate:
-			if handler.OnActivate != nil {
-				h = handler.OnActivate(cc, &pointedNode.Under)
-			}
-		}
+		// check if nodeId is right
+		pos, i := mt.Pos2Blkpos(pointedNode.Under)
+		if handler.nodeIds[mapCache[pos][i]] {
+			var h bool
 
-		if h {
-			handled = h
+			switch cmd.Action {
+			case mt.Dig:
+				if handler.OnDig != nil {
+					h = handler.OnDig(cc, cmd)
+				}
+			case mt.StopDigging:
+				if handler.OnStopDigging != nil {
+					h = handler.OnStopDigging(cc, cmd)
+				}
+			case mt.Dug:
+				if handler.OnDug != nil {
+					h = handler.OnDug(cc, cmd)
+				}
+			case mt.Place:
+				if handler.OnPlace != nil {
+					h = handler.OnPlace(cc, cmd)
+				}
+			case mt.Use:
+				if handler.OnUse != nil {
+					h = handler.OnUse(cc, cmd)
+				}
+			case mt.Activate:
+				if handler.OnActivate != nil {
+					h = handler.OnActivate(cc, cmd)
+				}
+			}
+
+			if h {
+				handled = h
+			}
 		}
 	}
 
@@ -127,7 +133,7 @@ func initPluginNode() {
 			initNodeHandlerNodeIds()
 			mapCacheMu.Lock()
 			defer mapCacheMu.Unlock()
-			
+
 			for i, node := range cmd.Blk.Param0 {
 				// check if node is interesting
 				interesting := false
@@ -165,7 +171,7 @@ func initPluginNode() {
 		Type: AnyInteraction,
 		Handler: func(cc *ClientConn, cmd *mt.ToSrvInteract) bool {
 			handled := false
-			
+
 			if pointedNode, ok := cmd.Pointed.(*mt.PointedNode); ok {
 				if IsCached(pointedNode.Under) {
 					// is a interesting node
@@ -174,9 +180,8 @@ func initPluginNode() {
 					}
 				}
 			}
-		
+
 			return handled
 		},
 	})
 }
-
