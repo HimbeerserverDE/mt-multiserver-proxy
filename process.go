@@ -662,6 +662,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		for k := range cmd.Msgs {
 			sc.swapAOID(&cmd.Msgs[k].ID)
 			sc.handleAOMsg(cmd.Msgs[k].Msg)
+
+			if handleAOMsg(sc, cmd.Msgs[k].ID, cmd.Msgs[k].Msg) {
+				return
+			}
 		}
 	case *mt.ToCltAORmAdd:
 		resp := &mt.ToCltAORmAdd{}
@@ -697,6 +701,11 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 				sc.swapAOID(&ao.ID)
 				for _, msg := range ao.InitData.Msgs {
 					sc.handleAOMsg(msg)
+
+					if handleAOMsg(sc, ao.ID, msg) {
+						return
+					}
+
 				}
 
 				resp.Add = append(resp.Add, ao)
