@@ -15,8 +15,8 @@ type NodeHandler struct {
 	OnPlace       func(*ClientConn, *mt.ToSrvInteract) bool // TODO IMPLEMENTED
 }
 
-var NodeHandlers []*NodeHandler
-var NodeHandlersMu sync.RWMutex
+var nodeHandlers []*NodeHandler
+var nodeHandlersMu sync.RWMutex
 
 var mapCache map[[3]int16]*[4096]mt.Content
 var mapCacheMu sync.RWMutex
@@ -29,18 +29,18 @@ func initMapCache() {
 }
 
 func RegisterNodeHandler(handler *NodeHandler) {
-	NodeHandlersMu.Lock()
-	defer NodeHandlersMu.Unlock()
+	nodeHandlersMu.Lock()
+	defer nodeHandlersMu.Unlock()
 
 	RegisterCacheNode(handler.Node)
-	NodeHandlers = append(NodeHandlers, handler)
+	nodeHandlers = append(nodeHandlers, handler)
 }
 
 func initNodeHandlerNodeIds() {
-	NodeHandlersMu.RLock()
-	defer NodeHandlersMu.RUnlock()
+	nodeHandlersMu.RLock()
+	defer nodeHandlersMu.RUnlock()
 
-	for _, h := range NodeHandlers {
+	for _, h := range nodeHandlers {
 		if h.nodeIds == nil {
 			id := GetNodeId(h.Node)
 
@@ -75,14 +75,14 @@ func IsCached(pos [3]int16) bool {
 }
 
 func handleNodeInteraction(cc *ClientConn, pointedNode *mt.PointedNode, cmd *mt.ToSrvInteract) bool {
-	NodeHandlersMu.RLock()
-	defer NodeHandlersMu.RUnlock()
+	nodeHandlersMu.RLock()
+	defer nodeHandlersMu.RUnlock()
 
 	mapCacheMu.RLock()
 	defer mapCacheMu.RUnlock()
 
 	var handled bool
-	for _, handler := range NodeHandlers {
+	for _, handler := range nodeHandlers {
 		// check if nodeId is right
 		pos, i := mt.Pos2Blkpos(pointedNode.Under)
 		if handler.nodeIds[mapCache[pos][i]] {
@@ -128,7 +128,7 @@ func initPluginNode() {
 			for i, node := range cmd.Blk.Param0 {
 				// check if node is interesting
 				interesting := false
-				for _, h := range NodeHandlers {
+				for _, h := range nodeHandlers {
 					if h.nodeIds[node] {
 						interesting = true
 						break
