@@ -64,7 +64,6 @@ func handleBlkData(cc *ClientConn, cmd *mt.ToCltBlkData) bool {
 	defer blkDataHandlersMu.RUnlock()
 
 	handled := false
-
 	for _, handler := range blkDataHandlers {
 		if !handler.UsePos && handler.Handler(cc, cmd) {
 			handled = true
