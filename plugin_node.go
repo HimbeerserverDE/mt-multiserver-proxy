@@ -12,9 +12,7 @@ type NodeHandler struct {
 	OnDig         func(*ClientConn, *mt.ToSrvInteract) bool
 	OnStopDigging func(*ClientConn, *mt.ToSrvInteract) bool
 	OnDug         func(*ClientConn, *mt.ToSrvInteract) bool
-	OnPlace       func(*ClientConn, *mt.ToSrvInteract) bool
-	OnUse         func(*ClientConn, *mt.ToSrvInteract) bool
-	OnActivate    func(*ClientConn, *mt.ToSrvInteract) bool
+	OnPlace       func(*ClientConn, *mt.ToSrvInteract) bool // TODO IMPLEMENTED
 }
 
 var NodeHandlers []*NodeHandler
@@ -35,7 +33,7 @@ func RegisterNodeHandler(handler *NodeHandler) {
 	NodeHandlersMu.Lock()
 	defer NodeHandlersMu.Unlock()
 
-	RegisterNeedNode(handler.Node)
+	RegisterCacheNode(handler.Node)
 	NodeHandlers = append(NodeHandlers, handler)
 }
 
@@ -105,14 +103,6 @@ func handleNodeInteraction(cc *ClientConn, pointedNode *mt.PointedNode, cmd *mt.
 			case mt.Place:
 				if handler.OnPlace != nil {
 					h = handler.OnPlace(cc, cmd)
-				}
-			case mt.Use:
-				if handler.OnUse != nil {
-					h = handler.OnUse(cc, cmd)
-				}
-			case mt.Activate:
-				if handler.OnActivate != nil {
-					h = handler.OnActivate(cc, cmd)
 				}
 			}
 
