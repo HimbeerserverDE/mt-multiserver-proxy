@@ -705,7 +705,6 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 					if handleAOMsg(sc, ao.ID, msg) {
 						return
 					}
-
 				}
 
 				resp.Add = append(resp.Add, ao)
