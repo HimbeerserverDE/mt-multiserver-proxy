@@ -20,10 +20,47 @@ type AOHandler struct {
 var aOHandlers []*AOHandler
 var aOHandlersMu sync.RWMutex
 
+func handleAOAdd(sc *ServerConn, id mt.AOID, msg *mt.AOAdd) bool {
+	var handled bool
+
+	for _, handler := range aOHandlers {
+		if handler.OnAOAdd == nil {
+			continue
+		}
+		if handler.AOIDs == nil && handler.OnAOAdd(sc.clt, id, msg) {
+			handled = true
+		} else if handler.AOIDs[id] && handler.OnAOAdd(sc.clt, id, msg) {
+			handled = true
+		}
+	}
+
+	return handled
+}
+
+func handleAORm(sc *ServerConn, id mt.AOID) bool {
+	var handled bool
+
+	for _, handler := range aOHandlers {
+		if handler.OnAORm == nil {
+			continue
+		}
+		if handler.AOIDs == nil && handler.OnAORm(sc.clt, id) {
+			handled = true
+		} else if handler.AOIDs[id] && handler.OnAORm(sc.clt, id) {
+			handled = true
+		}
+	}
+
+	return handled
+}
+
 func handleAOMsg(sc *ServerConn, id mt.AOID, msg mt.AOMsg) bool {
 	var handled bool
 
 	for _, handler := range aOHandlers {
+		if handler.OnAOMsg == nil {
+			continue
+		}
 		if handler.AOIDs == nil && handler.OnAOMsg(sc.clt, id, msg) {
 			handled = true
 		} else if handler.AOIDs[id] && handler.OnAOMsg(sc.clt, id, msg) {

@@ -671,6 +671,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		resp := &mt.ToCltAORmAdd{}
 
 		for _, ao := range cmd.Remove {
+			if handleAORm(sc, ao) {
+				continue
+			}
+		
 			delete(sc.aos, ao)
 			resp.Remove = append(resp.Remove, ao)
 		}
@@ -709,6 +713,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 				resp.Add = append(resp.Add, ao)
 				sc.aos[ao.ID] = struct{}{}
+			}
+
+			if handleAOAdd(sc, ao.ID, &ao) {
+				continue
 			}
 		}
 
