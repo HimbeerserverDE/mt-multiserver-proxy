@@ -54,6 +54,9 @@ func runFunc() {
 
 	log.Println("listen", l.Addr())
 
+	// plugin_node.go
+	initPluginNode()
+
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
