@@ -6,7 +6,7 @@ import (
 )
 
 type AOHandler struct {
-	AOIDs map[mt.AOID]bool
+	AOIDs map[string]map[mt.AOID]bool
 
 	OnAOMsg func(*ClientConn, mt.AOID, mt.AOMsg) bool
 	OnAOAdd func(*ClientConn, mt.AOID, *mt.AOAdd) bool
@@ -29,7 +29,7 @@ func handleAOAdd(sc *ServerConn, id mt.AOID, msg *mt.AOAdd) bool {
 		}
 		if handler.AOIDs == nil && handler.OnAOAdd(sc.clt, id, msg) {
 			handled = true
-		} else if handler.AOIDs[id] && handler.OnAOAdd(sc.clt, id, msg) {
+		} else if handler.AOIDs[sc.name][id] && handler.OnAOAdd(sc.clt, id, msg) {
 			handled = true
 		}
 	}
@@ -46,7 +46,7 @@ func handleAORm(sc *ServerConn, id mt.AOID) bool {
 		}
 		if handler.AOIDs == nil && handler.OnAORm(sc.clt, id) {
 			handled = true
-		} else if handler.AOIDs[id] && handler.OnAORm(sc.clt, id) {
+		} else if handler.AOIDs[sc.name][id] && handler.OnAORm(sc.clt, id) {
 			handled = true
 		}
 	}
@@ -63,7 +63,7 @@ func handleAOMsg(sc *ServerConn, id mt.AOID, msg mt.AOMsg) bool {
 		}
 		if handler.AOIDs == nil && handler.OnAOMsg(sc.clt, id, msg) {
 			handled = true
-		} else if handler.AOIDs[id] && handler.OnAOMsg(sc.clt, id, msg) {
+		} else if handler.AOIDs[sc.name][id] && handler.OnAOMsg(sc.clt, id, msg) {
 			handled = true
 		}
 	}
