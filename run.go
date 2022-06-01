@@ -110,7 +110,21 @@ func runFunc() {
 				return
 			}
 
-			srvName, srv := conf.DefaultServerInfo()
+			var srv, s Server
+			var found bool
+			
+			srvName := handlePlayerJoin(cc)
+			if srvName != "" {
+				s, found = Conf().Servers[srvName]
+			}
+
+			if found {
+				srv = s
+			} else { 
+				srvName, srv = conf.DefaultServerInfo()
+			}
+
+			
 			lastSrv, err := authIface.LastSrv(cc.Name())
 			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srvName {
 				for name, s := range conf.Servers {
