@@ -17,6 +17,8 @@ func (cc *ClientConn) Hop(serverName string) error {
 
 	cc.Log("<->", "hop", serverName)
 
+	source := cc.ServerName()
+
 	if cc.server() == nil {
 		err := fmt.Errorf("no server connection")
 		cc.Log("<->", err)
@@ -159,6 +161,8 @@ func (cc *ClientConn) Hop(serverName string) error {
 	if !Conf().ForceDefaultSrv {
 		return authIface.SetLastSrv(cc.Name(), serverName)
 	}
+
+	handlePlayerHop(cc, source, serverName)
 
 	return nil
 }
