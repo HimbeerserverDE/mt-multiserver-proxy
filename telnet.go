@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"strings"
 )
 
 // A TelnetWriter can be used to print something at the other end
@@ -92,6 +93,8 @@ func handleTelnet(conn net.Conn) {
 			log.Print(err)
 			continue
 		}
+
+		s = strings.TrimSuffix(s, "\r")
 
 		tlog("->", "command", s)
 
