@@ -3,7 +3,7 @@ package proxy
 import (
 	"net"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 // Kick sends mt.ToCltKick with the specified custom reason

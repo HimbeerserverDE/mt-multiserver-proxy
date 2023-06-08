@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 var listeners map[*listener]struct{}

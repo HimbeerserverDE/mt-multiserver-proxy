@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/HimbeerserverDE/mt"
+	"github.com/HimbeerserverDE/mt/rudp"
 	"github.com/HimbeerserverDE/srp"
-	"github.com/anon55555/mt"
-	"github.com/anon55555/mt/rudp"
 )
 
 var disallowedChars = regexp.MustCompile("[^a-zA-Z0-9-_.:]")

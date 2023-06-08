@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 // ChatCmdTimeout is the time needed until a user is warned

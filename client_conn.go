@@ -6,8 +6,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/anon55555/mt"
-	"github.com/anon55555/mt/rudp"
+	"github.com/HimbeerserverDE/mt"
+	"github.com/HimbeerserverDE/mt/rudp"
 )
 
 type clientState uint8

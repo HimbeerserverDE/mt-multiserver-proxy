@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"net"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 // Hop connects the ClientConn to the specified upstream server.

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/anon55555/mt"
-	"github.com/anon55555/mt/rudp"
+	"github.com/HimbeerserverDE/mt"
+	"github.com/HimbeerserverDE/mt/rudp"
 )
 
 // A ServerConn is a connection to a minetest server.
@@ -30,6 +30,10 @@ type ServerConn struct {
 	}
 
 	mediaPool string
+	dynMedia  map[string]struct {
+		token uint32
+		cache bool
+	}
 
 	inv          mt.Inv
 	detachedInvs []string

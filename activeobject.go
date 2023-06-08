@@ -1,6 +1,6 @@
 package proxy
 
-import "github.com/anon55555/mt"
+import "github.com/HimbeerserverDE/mt"
 
 func (sc *ServerConn) swapAOID(ao *mt.AOID) {
 	if sc.client() != nil {

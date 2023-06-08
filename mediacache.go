@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"crypto/sha1"
-	"encoding/base64"
 	"os"
 	"strings"
 )
@@ -44,9 +43,11 @@ func (cc *contentConn) updateCache() {
 	}
 }
 
-func cacheMedia(f mediaFile) {
-	hash := sha1.Sum(f.data)
-	sum := base64.RawStdEncoding.EncodeToString(hash[:])
+func cacheMedia(data []byte) error {
+	hash := sha1.Sum(data)
+	sum := b64.EncodeToString(hash[:])
+	safeSum := strings.Replace(sum, "/", "_", -1)
+	safeSum = strings.Replace(safeSum, "+", "-", -1)
 
-	os.WriteFile(Path("cache/", sum), f.data, 0666)
+	return os.WriteFile(Path("cache/", safeSum), data, 0666)
 }

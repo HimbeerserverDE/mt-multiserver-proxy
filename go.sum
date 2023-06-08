@@ -1,4 +1,6 @@
+github.com/HimbeerserverDE/mt v0.0.0-20230608121241-64825b4e1a1a h1:MsoyF+K8d6/UkaYSmRrnQYHPeFHmW6wwW5/+WNXgzw0=
+github.com/HimbeerserverDE/mt v0.0.0-20230608121241-64825b4e1a1a/go.mod h1:RSf7NAuQ5zZC6CTPj5ey/uXPHOdu/oiIvHT8tH3fWK8=
 github.com/HimbeerserverDE/srp v0.0.0 h1:Iy2GIF7DJphXXO9NjncLEBO6VsZd8Yhrlxl/qTr09eE=
 github.com/HimbeerserverDE/srp v0.0.0/go.mod h1:pxNH8S2nh4n2DWE0ToX5GnnDr/uEAuaAhJsCpkDLIWw=
-github.com/anon55555/mt v0.0.0-20210919124550-bcc58cb3048f h1:tZU8VPYLyRrG3Lj9zBZvTVF5tUGciC/2aUIgTcU4WaM=
-github.com/anon55555/mt v0.0.0-20210919124550-bcc58cb3048f/go.mod h1:jH4ER+ahjl7H6TczzK+q4V9sXY++U2Geh6/vt3r4Xvs=
+github.com/klauspost/compress v1.16.5 h1:IFV2oUNUzZaz+XyusxpLzpzS8Pt5rh0Z16For/djlyI=
+github.com/klauspost/compress v1.16.5/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=

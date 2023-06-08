@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {

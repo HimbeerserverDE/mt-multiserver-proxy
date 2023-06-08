@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HimbeerserverDE/mt"
 	"github.com/HimbeerserverDE/srp"
-	"github.com/anon55555/mt"
 )
 
 func (cc *ClientConn) process(pkt mt.Pkt) {
@@ -624,7 +624,22 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToCltMedia:
-		return
+		tokens := make([]uint32, 0, len(cmd.Files))
+		for i, f := range cmd.Files {
+			prepend(sc.mediaPool, &cmd.Files[i].Name)
+
+			dynInfo, ok := sc.dynMedia[f.Name]
+			if ok {
+				if dynInfo.cache {
+					cacheMedia(f.Data)
+				}
+
+				tokens = append(tokens, dynInfo.token)
+				delete(sc.dynMedia, f.Name)
+			}
+		}
+
+		sc.SendCmd(&mt.ToSrvHaveMedia{Tokens: tokens})
 	case *mt.ToCltItemDefs:
 		return
 	case *mt.ToCltNodeDefs:
@@ -743,6 +758,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		return
 	case *mt.ToCltMediaPush:
+		filename := cmd.Filename
 		prepend(sc.mediaPool, &cmd.Filename)
 
 		var exit bool
@@ -757,13 +773,15 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			break
 		}
 
-		if cmd.ShouldCache {
-			cacheMedia(mediaFile{
-				name:       cmd.Filename,
-				base64SHA1: b64.EncodeToString(cmd.SHA1[:]),
-				data:       cmd.Data,
-			})
+		sc.dynMedia[cmd.Filename] = struct {
+			token uint32
+			cache bool
+		}{
+			token: cmd.CallbackToken,
+			cache: cmd.ShouldCache,
 		}
+
+		sc.SendCmd(&mt.ToSrvReqMedia{Filenames: []string{filename}})
 	case *mt.ToCltSkyParams:
 		for i := range cmd.Textures {
 			prependTexture(sc.mediaPool, &cmd.Textures[i])

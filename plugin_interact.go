@@ -3,7 +3,7 @@ package proxy
 import (
 	"sync"
 
-	"github.com/anon55555/mt"
+	"github.com/HimbeerserverDE/mt"
 )
 
 // A InteractionHandler holds information on how to handle a Minetest Interaction.
