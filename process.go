@@ -33,8 +33,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-		if cmd.SerializeVer < serializeVer {
-			cc.Log("<-", "invalid serializeVer", cmd.SerializeVer)
+		if cmd.SerializeVer != serializeVer {
+			cc.Log("<-", "unsupported serializeVer", cmd.SerializeVer, "expect", serializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
