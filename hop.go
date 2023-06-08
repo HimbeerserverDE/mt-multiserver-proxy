@@ -76,7 +76,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltFOV{})
 	cc.SendCmd(&mt.ToCltFormspecPrepend{})
 	cc.SendCmd(&mt.ToCltHP{})
-	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0)})
+	cc.SendCmd(&mt.ToCltHUDFlags{Mask: ^mt.HUDFlags(0), Flags: ^mt.HUDFlags(0)})
 	cc.SendCmd(&mt.ToCltLocalPlayerAnim{})
 
 	cc.SendCmd(&mt.ToCltMinimapModes{
