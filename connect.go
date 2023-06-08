@@ -59,10 +59,6 @@ func connectContent(conn net.Conn, name, userName, mediaPool string) (*contentCo
 		mediaPool: mediaPool,
 	}
 
-	if err := cc.addDefaultTextures(); err != nil {
-		return nil, err
-	}
-
 	go handleContent(cc)
 	return cc, nil
 }

@@ -78,8 +78,14 @@ func (cc *contentConn) addDefaultTextures() error {
 		return err
 	}
 
-	cc.media = make([]mediaFile, 0, len(dir))
+DirLoop:
 	for _, f := range dir {
+		for _, mf := range cc.media {
+			if mf.name == f.Name() {
+				continue DirLoop
+			}
+		}
+
 		data, err := textures.ReadFile("textures/" + f.Name())
 		if err != nil {
 			return err
@@ -102,6 +108,11 @@ func (cc *contentConn) log(dir string, v ...interface{}) {
 
 func handleContent(cc *contentConn) {
 	defer close(cc.doneCh)
+	defer func() {
+		if err := cc.addDefaultTextures(); err != nil {
+			cc.log("<-", err)
+		}
+	}()
 
 	go func() {
 		init := make(chan struct{})
