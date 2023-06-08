@@ -94,7 +94,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.SendCmd(&mt.ToCltOverrideDayNightRatio{})
 	cc.SendCmd(&mt.ToCltPrivs{})
 
-	for i := mt.HotbarParam(mt.HotbarSize); i < mt.HotbarSelImg; i++ {
+	for i := mt.HotbarParam(mt.HotbarSize); i <= mt.HotbarSelImg; i++ {
 		cc.SendCmd(&mt.ToCltSetHotbarParam{Param: i})
 	}
 
