@@ -158,6 +158,8 @@ func (cc *ClientConn) Hop(serverName string) error {
 		cc.server().SendCmd(&mt.ToSrvJoinModChan{Channel: ch})
 	}
 
+	cc.server().SendCmd(cc.cltInfo)
+
 	if !Conf().ForceDefaultSrv {
 		return authIface.SetLastSrv(cc.Name(), serverName)
 	}

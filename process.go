@@ -472,6 +472,9 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}(done)
 
 		return
+	case *mt.ToSrvCltInfo:
+		// Store for any future hops (need to send it to the new server).
+		cc.cltInfo = cmd
 	}
 
 	forward(pkt)

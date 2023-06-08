@@ -58,6 +58,8 @@ type ClientConn struct {
 
 	modChs   map[string]struct{}
 	modChsMu sync.RWMutex
+
+	cltInfo *mt.ToSrvCltInfo
 }
 
 // Name returns the player name of the ClientConn.
