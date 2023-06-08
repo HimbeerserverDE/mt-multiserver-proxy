@@ -136,6 +136,8 @@ func (cc *ClientConn) Hop(serverName string) error {
 		Players: players,
 	})
 
+	cc.SendCmd(&mt.ToCltLighting{})
+
 	cc.mu.Lock()
 	cc.srv = nil
 	cc.mu.Unlock()
