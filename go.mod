@@ -3,7 +3,7 @@ module github.com/HimbeerserverDE/mt-multiserver-proxy
 go 1.18
 
 require (
-	github.com/HimbeerserverDE/mt v0.0.0-20230608161750-969e5ea5c77e
+	github.com/HimbeerserverDE/mt v0.0.0-20230608172837-a72d1c768beb
 	github.com/HimbeerserverDE/srp v0.0.0
 )
 
