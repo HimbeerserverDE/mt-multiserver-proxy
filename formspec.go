@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-var itemName = regexp.MustCompile("(item_image\\[[0-9.]+,[0-9.]+;[0-9.]+,[0-9]+;)([a-zA-Z0-9-_.:]*)(\\])")
-var itemButtonName = regexp.MustCompile("(item_image_button\\[[0-9.]+,[0-9.]+;[0-9.]+,[0-9.]+;)([a-zA-Z0-9-_.:]+)(;[a-zA-Z0-9-_.:]+;[^\\[\\]]*\\])")
+var itemName = regexp.MustCompile("(item_image\\[[0-9.]+,[0-9.]+;[0-9.]+,[0-9]+;)([a-zA-Z0-9-_.: ]+)(\\])")
+var itemButtonName = regexp.MustCompile("(item_image_button\\[[0-9.]+,[0-9.]+;[0-9.]+,[0-9.]+;)([a-zA-Z0-9-_.: ]+)(;[a-zA-Z0-9-_.: ]+;[^\\[\\]]*\\])")
 var textureName = regexp.MustCompile("[a-zA-Z0-9-_.]*\\.[a-zA-Z-_.]+")
 
 func (sc *ServerConn) prependFormspec(fs *string) {
