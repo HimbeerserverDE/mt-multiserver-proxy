@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-type authFiles struct{}
+type AuthFiles struct{}
 
 // Exists reports whether a user is registered.
 // Error cases count as inexistent.
-func (a authFiles) Exists(name string) bool {
+func (a AuthFiles) Exists(name string) bool {
 	os.Mkdir(Path("auth"), 0700)
 
 	_, err := os.Stat(Path("auth/", name))
@@ -18,7 +18,7 @@ func (a authFiles) Exists(name string) bool {
 }
 
 // Passwd returns the SRP salt and verifier of a user or an error.
-func (a authFiles) Passwd(name string) (salt, verifier []byte, err error) {
+func (a AuthFiles) Passwd(name string) (salt, verifier []byte, err error) {
 	os.Mkdir(Path("auth"), 0700)
 
 	salt, err = os.ReadFile(Path("auth/", name, "/salt"))
@@ -37,7 +37,7 @@ func (a authFiles) Passwd(name string) (salt, verifier []byte, err error) {
 
 // SetPasswd creates a password entry if necessary
 // and sets the password of a user.
-func (a authFiles) SetPasswd(name string, salt, verifier []byte) error {
+func (a AuthFiles) SetPasswd(name string, salt, verifier []byte) error {
 	os.Mkdir(Path("auth"), 0700)
 	os.Mkdir(Path("auth/", name), 0700)
 
@@ -54,7 +54,7 @@ func (a authFiles) SetPasswd(name string, salt, verifier []byte) error {
 }
 
 // LastSrv returns the last server a user was on.
-func (a authFiles) LastSrv(name string) (string, error) {
+func (a AuthFiles) LastSrv(name string) (string, error) {
 	os.Mkdir(Path("auth"), 0700)
 	os.Mkdir(Path("auth/", name), 0700)
 
@@ -63,7 +63,7 @@ func (a authFiles) LastSrv(name string) (string, error) {
 }
 
 // SetLastSrv sets the last server a user was on.
-func (a authFiles) SetLastSrv(name, srv string) error {
+func (a AuthFiles) SetLastSrv(name, srv string) error {
 	os.Mkdir(Path("auth"), 0700)
 	os.Mkdir(Path("auth/", name), 0700)
 
@@ -72,7 +72,7 @@ func (a authFiles) SetLastSrv(name, srv string) error {
 
 // Timestamp returns the last time an authentication entry was accessed
 // or an error.
-func (a authFiles) Timestamp(name string) (time.Time, error) {
+func (a AuthFiles) Timestamp(name string) (time.Time, error) {
 	os.Mkdir(Path("auth"), 0700)
 
 	info, err := os.Stat(Path("auth/", name, "/timestamp"))
@@ -84,7 +84,7 @@ func (a authFiles) Timestamp(name string) (time.Time, error) {
 }
 
 // Import deletes all users and adds the passed users.
-func (a authFiles) Import(in []User) error {
+func (a AuthFiles) Import(in []User) error {
 	os.Mkdir(Path("auth"), 0700)
 
 	for _, u := range in {
@@ -102,7 +102,7 @@ func (a authFiles) Import(in []User) error {
 
 // Export returns data that can be processed by Import
 // or an error.
-func (a authFiles) Export() ([]User, error) {
+func (a AuthFiles) Export() ([]User, error) {
 	dir, err := os.ReadDir(Path("auth"))
 	if err != nil {
 		return nil, err
@@ -129,14 +129,14 @@ func (a authFiles) Export() ([]User, error) {
 }
 
 // Ban adds a ban entry for a network address and an associated name.
-func (a authFiles) Ban(addr, name string) error {
+func (a AuthFiles) Ban(addr, name string) error {
 	os.Mkdir(Path("ban"), 0700)
 	return os.WriteFile(Path("ban/", addr), []byte(name), 0600)
 }
 
 // Unban deletes a ban entry. It accepts both network addresses
 // and player names.
-func (a authFiles) Unban(id string) error {
+func (a AuthFiles) Unban(id string) error {
 	os.Mkdir(Path("ban"), 0700)
 
 	if err := os.Remove(Path("ban/", id)); err != nil {
@@ -164,7 +164,7 @@ func (a authFiles) Unban(id string) error {
 
 // Banned reports whether a network address is banned.
 // Error cases count as banned.
-func (a authFiles) Banned(addr *net.UDPAddr) bool {
+func (a AuthFiles) Banned(addr *net.UDPAddr) bool {
 	os.Mkdir(Path("ban"), 0700)
 
 	_, err := os.Stat(Path("ban/", addr.IP.String()))
@@ -176,7 +176,7 @@ func (a authFiles) Banned(addr *net.UDPAddr) bool {
 }
 
 // ImportBans deletes all ban entries and adds the passed entries.
-func (a authFiles) ImportBans(in []Ban) error {
+func (a AuthFiles) ImportBans(in []Ban) error {
 	os.Mkdir(Path("ban"), 0700)
 
 	for _, b := range in {
@@ -190,7 +190,7 @@ func (a authFiles) ImportBans(in []Ban) error {
 
 // ExportBans returns data that can be processed by ImportBans
 // or an error,
-func (a authFiles) ExportBans() ([]Ban, error) {
+func (a AuthFiles) ExportBans() ([]Ban, error) {
 	os.Mkdir(Path("ban"), 0700)
 
 	dir, err := os.ReadDir(Path("ban"))
@@ -214,7 +214,7 @@ func (a authFiles) ExportBans() ([]Ban, error) {
 	return out, nil
 }
 
-func (a authFiles) updateTimestamp(name string) {
+func (a AuthFiles) updateTimestamp(name string) {
 	os.Mkdir(Path("auth"), 0700)
 
 	path := Path("auth/", name, "/timestamp")

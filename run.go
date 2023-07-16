@@ -26,7 +26,7 @@ func runFunc() {
 	var err error
 	switch Conf().AuthBackend {
 	case "files":
-		setAuthBackend(authFiles{})
+		setAuthBackend(AuthFiles{})
 	default:
 		log.Fatal("invalid auth backend")
 	}
