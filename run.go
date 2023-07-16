@@ -27,6 +27,13 @@ func runFunc() {
 	switch Conf().AuthBackend {
 	case "files":
 		setAuthBackend(AuthFiles{})
+	case "mtsqlite3":
+		ab, err := NewAuthMTSQLite3()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		setAuthBackend(ab)
 	default:
 		log.Fatal("invalid auth backend")
 	}
