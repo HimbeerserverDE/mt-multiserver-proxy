@@ -121,7 +121,11 @@ func (a *AuthMTSQLite3) Import(in []User) error {
 // or an error.
 func (a *AuthMTSQLite3) Export() ([]User, error) {
 	var names []string
-	result := a.db.QueryRow("SELECT name FROM auth;")
+
+	result, err := a.db.Query("SELECT name FROM auth;")
+	if err != nil {
+		return nil, err
+	}
 
 	for {
 		var name string
