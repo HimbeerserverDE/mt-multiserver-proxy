@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // A handle to a SQLite3 authentication database.
