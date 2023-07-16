@@ -6,9 +6,11 @@ need to restart the proxy.
 
 ## Installing plugins
 To install a plugin, clone the repository, cd into it and run:
+
 ```
 go build -buildmode=plugin
 ```
+
 A .so file will be created. Copy or move this file into the `plugins`
 directory. Restart the proxy to load the plugin.
 
