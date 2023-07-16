@@ -63,9 +63,8 @@ Description: The maximum number of players that can be connected to the proxy at
 ```
 Type: string
 Default: "files"
-Values: "files"
-Description: The authentication backend to use. Files are the only
-option at the moment. This mainly exists for future expandability.
+Values: "files", "mtsqlite3"
+Description: The authentication backend to use. Consider converting your existing database instead of loading it directly.
 ```
 
 > `NoTelnet`

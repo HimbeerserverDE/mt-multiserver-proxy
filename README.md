@@ -36,6 +36,11 @@ are described in [doc/config.md](doc/config.md).
 __All internal servers need to allow empty passwords
 and must not be reachable from the internet!__
 
+## Authentication database migration
+It is now possible to import existing Minetest authentication databases.
+See [doc/auth_backends.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/auth_backends.md)
+for details.
+
 ## Chat commands
 The default chat commands can be installed as a [plugin](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands).
 
