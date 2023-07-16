@@ -24,7 +24,7 @@ type AuthMTSQLite3 struct {
 
 // NewAuthMTSQLite3 opens the SQLite3 authentication database at auth.sqlite.
 func NewAuthMTSQLite3() (*AuthMTSQLite3, error) {
-	db, err := sql.Open("sqlite3", "auth.sqlite")
+	db, err := sql.Open("sqlite3", Path("auth.sqlite"))
 	if err != nil {
 		return nil, err
 	}
