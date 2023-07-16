@@ -1,9 +1,13 @@
 package proxy
 
 import (
+	"bufio"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net"
+	"os"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -165,34 +169,81 @@ func (a *AuthMTSQLite3) Export() ([]User, error) {
 	return out, nil
 }
 
-// Ban always returns an error
-// since the Minetest database schema cannot store this information.
-func (a *AuthMTSQLite3) Ban(_, _ string) error {
-	return ErrBanNotSupported
+// Ban adds a ban entry for a network address and an associated name.
+func (a *AuthMTSQLite3) Ban(addr, name string) error {
+	bans, err := a.readBans()
+	if err != nil {
+		return err
+	}
+
+	bans[addr] = name
+	return a.writeBans(bans)
 }
 
-// Unban always returns an error
-// since the Minetest database schema cannot store this information.
-func (a *AuthMTSQLite3) Unban(_ string) error {
-	return ErrBanNotSupported
+// Unban deletes a ban entry. It accepts bot network addresses
+// and player names.
+func (a *AuthMTSQLite3) Unban(id string) error {
+	bans, err := a.readBans()
+	if err != nil {
+		return err
+	}
+
+	delete(bans, id)
+
+	var flagged []string
+	for addr, name := range bans {
+		if name == id {
+			flagged = append(flagged, addr)
+		}
+	}
+
+	for _, addr := range flagged {
+		delete(bans, addr)
+	}
+
+	return a.writeBans(bans)
 }
 
-// Banned always reports that the user is not banned
-// since the Minetest database schema cannot store this information.
-func (a *AuthMTSQLite3) Banned(_ *net.UDPAddr) bool {
-	return false
+// Banned reports whether a network address is banned.
+// Error cases count as banned.
+func (a *AuthMTSQLite3) Banned(addr *net.UDPAddr) bool {
+	bans, err := a.readBans()
+	if err != nil {
+		return true
+	}
+
+	_, ok := bans[addr.IP.String()]
+	return ok
 }
 
-// ImportBans always returns an error
-// since the Minetest database schema cannot store this information.
+// ImportBans adds the passed entries.
 func (a *AuthMTSQLite3) ImportBans(in []Ban) error {
-	return ErrBanNotSupported
+	for _, b := range in {
+		if err := a.Ban(b.Addr, b.Name); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// ExportBans always returns an empty list of ban entries
-// since the Minetest database schema cannot store this information.
+// ExportBans returns data that can be processed by ImportBans
+// or an error.
 func (a *AuthMTSQLite3) ExportBans() ([]Ban, error) {
-	return []Ban{}, nil
+	bans, err := a.readBans()
+	if err != nil {
+		return nil, err
+	}
+
+	var unmapped []Ban
+	for addr, name := range bans {
+		unmapped = append(unmapped, Ban{
+			Addr: addr,
+			Name: name,
+		})
+	}
+
+	return unmapped, nil
 }
 
 func (a *AuthMTSQLite3) setTimestamp(name string, t time.Time) {
@@ -202,4 +253,46 @@ func (a *AuthMTSQLite3) setTimestamp(name string, t time.Time) {
 
 func (a *AuthMTSQLite3) updateTimestamp(name string) {
 	a.setTimestamp(name, time.Now().Local())
+}
+
+func (a *AuthMTSQLite3) readBans() (map[string]string, error) {
+	f, err := os.OpenFile(Path("ipban.txt"), os.O_RDONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	bans := make(map[string]string)
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		ban := scanner.Text()
+
+		addr := strings.Split(ban, "|")[0]
+		name := strings.Split(ban, "|")[1]
+
+		bans[addr] = name
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return bans, nil
+}
+
+func (a *AuthMTSQLite3) writeBans(bans map[string]string) error {
+	f, err := os.OpenFile(Path("ipban.txt"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	for addr, name := range bans {
+		if _, err := fmt.Fprintln(f, addr+"|"+name); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

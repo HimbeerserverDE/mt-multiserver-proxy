@@ -11,7 +11,6 @@ var authIface AuthBackend
 
 var (
 	ErrAuthBackendExists   = errors.New("auth backend already set")
-	ErrBanNotSupported     = errors.New("auth backend does not support bans")
 	ErrInvalidSRPHeader    = errors.New("encoded password is not SRP")
 	ErrLastSrvNotSupported = errors.New("auth backend does not support server information")
 )
