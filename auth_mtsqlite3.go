@@ -103,13 +103,13 @@ func (a *AuthMTSQLite3) Timestamp(name string) (time.Time, error) {
 }
 
 // Import adds the passed users.
-func (a *AuthMTSQLite3) Import(in []user) error {
+func (a *AuthMTSQLite3) Import(in []User) error {
 	for _, u := range in {
-		if err := a.SetPasswd(u.name, u.salt, u.verifier); err != nil {
+		if err := a.SetPasswd(u.Name, u.Salt, u.Verifier); err != nil {
 			return err
 		}
 
-		a.setTimestamp(u.name, u.timestamp)
+		a.setTimestamp(u.Name, u.Timestamp)
 	}
 
 	return nil
@@ -117,7 +117,7 @@ func (a *AuthMTSQLite3) Import(in []user) error {
 
 // Export returns data that can be processed by Import
 // or an error.
-func (a *AuthMTSQLite3) Export() ([]user, error) {
+func (a *AuthMTSQLite3) Export() ([]User, error) {
 	var names []string
 	result := a.db.QueryRow("SELECT name FROM auth;")
 
@@ -134,17 +134,17 @@ func (a *AuthMTSQLite3) Export() ([]user, error) {
 		names = append(names, name)
 	}
 
-	var out []user
+	var out []User
 	for _, name := range names {
-		u := user{name: name}
+		u := User{Name: name}
 
 		var err error
-		u.timestamp, err = a.Timestamp(u.name)
+		u.Timestamp, err = a.Timestamp(u.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		u.salt, u.verifier, err = a.Passwd(u.name)
+		u.Salt, u.Verifier, err = a.Passwd(u.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -175,14 +175,14 @@ func (a *AuthMTSQLite3) Banned(_ *net.UDPAddr) bool {
 
 // ImportBans always returns an error
 // since the Minetest database schema cannot store this information.
-func (a *AuthMTSQLite3) ImportBans(in []ban) error {
+func (a *AuthMTSQLite3) ImportBans(in []Ban) error {
 	return ErrBanNotSupported
 }
 
 // ExportBans always returns an empty list of ban entries
 // since the Minetest database schema cannot store this information.
-func (a *AuthMTSQLite3) ExportBans() ([]ban, error) {
-	return []ban{}, nil
+func (a *AuthMTSQLite3) ExportBans() ([]Ban, error) {
+	return []Ban{}, nil
 }
 
 func (a *AuthMTSQLite3) setTimestamp(name string, t time.Time) {

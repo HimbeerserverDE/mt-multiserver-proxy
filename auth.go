@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var authIface authBackend
+var authIface AuthBackend
 
 var (
 	ErrAuthBackendExists   = errors.New("auth backend already set")
@@ -16,36 +16,36 @@ var (
 	ErrLastSrvNotSupported = errors.New("auth backend does not support server information")
 )
 
-type user struct {
-	name      string
-	salt      []byte
-	verifier  []byte
-	timestamp time.Time
+type User struct {
+	Name      string
+	Salt      []byte
+	Verifier  []byte
+	Timestamp time.Time
 }
 
-type ban struct {
-	addr string
-	name string
+type Ban struct {
+	Addr string
+	Name string
 }
 
-type authBackend interface {
+type AuthBackend interface {
 	Exists(name string) bool
 	Passwd(name string) (salt, verifier []byte, err error)
 	SetPasswd(name string, salt, verifier []byte) error
 	LastSrv(name string) (string, error)
 	SetLastSrv(name, srv string) error
 	Timestamp(name string) (time.Time, error)
-	Import(in []user) error
-	Export() ([]user, error)
+	Import(in []User) error
+	Export() ([]User, error)
 
 	Ban(addr, name string) error
 	Unban(id string) error
 	Banned(addr *net.UDPAddr) bool
-	ImportBans(in []ban) error
-	ExportBans() ([]ban, error)
+	ImportBans(in []Ban) error
+	ExportBans() ([]Ban, error)
 }
 
-func setAuthBackend(ab authBackend) error {
+func setAuthBackend(ab AuthBackend) error {
 	if authIface != nil {
 		return ErrAuthBackendExists
 	}

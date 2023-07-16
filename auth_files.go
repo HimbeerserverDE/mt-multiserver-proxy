@@ -84,15 +84,15 @@ func (a authFiles) Timestamp(name string) (time.Time, error) {
 }
 
 // Import deletes all users and adds the passed users.
-func (a authFiles) Import(in []user) error {
+func (a authFiles) Import(in []User) error {
 	os.Mkdir(Path("auth"), 0700)
 
 	for _, u := range in {
-		if err := a.SetPasswd(u.name, u.salt, u.verifier); err != nil {
+		if err := a.SetPasswd(u.Name, u.Salt, u.Verifier); err != nil {
 			return err
 		}
 
-		if err := os.Chtimes(Path("auth/", u.name, "/timestamp"), u.timestamp, u.timestamp); err != nil {
+		if err := os.Chtimes(Path("auth/", u.Name, "/timestamp"), u.Timestamp, u.Timestamp); err != nil {
 			return err
 		}
 	}
@@ -102,22 +102,22 @@ func (a authFiles) Import(in []user) error {
 
 // Export returns data that can be processed by Import
 // or an error.
-func (a authFiles) Export() ([]user, error) {
+func (a authFiles) Export() ([]User, error) {
 	dir, err := os.ReadDir(Path("auth"))
 	if err != nil {
 		return nil, err
 	}
 
-	var out []user
+	var out []User
 	for _, f := range dir {
-		u := user{name: f.Name()}
+		u := User{Name: f.Name()}
 
-		u.timestamp, err = a.Timestamp(u.name)
+		u.Timestamp, err = a.Timestamp(u.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		u.salt, u.verifier, err = a.Passwd(u.name)
+		u.Salt, u.Verifier, err = a.Passwd(u.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -176,11 +176,11 @@ func (a authFiles) Banned(addr *net.UDPAddr) bool {
 }
 
 // ImportBans deletes all ban entries and adds the passed entries.
-func (a authFiles) ImportBans(in []ban) error {
+func (a authFiles) ImportBans(in []Ban) error {
 	os.Mkdir(Path("ban"), 0700)
 
 	for _, b := range in {
-		if err := a.Ban(b.addr, b.name); err != nil {
+		if err := a.Ban(b.Addr, b.Name); err != nil {
 			return err
 		}
 	}
@@ -190,7 +190,7 @@ func (a authFiles) ImportBans(in []ban) error {
 
 // ExportBans returns data that can be processed by ImportBans
 // or an error,
-func (a authFiles) ExportBans() ([]ban, error) {
+func (a authFiles) ExportBans() ([]Ban, error) {
 	os.Mkdir(Path("ban"), 0700)
 
 	dir, err := os.ReadDir(Path("ban"))
@@ -198,16 +198,16 @@ func (a authFiles) ExportBans() ([]ban, error) {
 		return nil, err
 	}
 
-	var out []ban
+	var out []Ban
 	for _, f := range dir {
-		b := ban{addr: f.Name()}
+		b := Ban{Addr: f.Name()}
 
 		name, err := os.ReadFile(Path("ban/", f.Name()))
 		if err != nil {
 			return nil, err
 		}
 
-		b.name = string(name)
+		b.Name = string(name)
 		out = append(out, b)
 	}
 
