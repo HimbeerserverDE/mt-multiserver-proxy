@@ -3,11 +3,13 @@ package proxy
 import (
 	"errors"
 	"net"
+	"strings"
 	"time"
 )
 
 var authIface authBackend
 var ErrAuthBackendExists = errors.New("auth backend already set")
+var ErrInvalidSRPHeader = errors.New("encoded password is not SRP")
 
 type user struct {
 	name      string
@@ -45,4 +47,26 @@ func setAuthBackend(ab authBackend) error {
 
 	authIface = ab
 	return nil
+}
+
+func encodeVerifierAndSalt(salt, verifier []byte) string {
+	return "#1#" + b64.EncodeToString(salt) + "#" + b64.EncodeToString(verifier)
+}
+
+func decodeVerifierAndSalt(encodedPasswd string) ([]byte, []byte, error) {
+	if !strings.HasPrefix(encodedPasswd, "#1#") {
+		return nil, nil, ErrInvalidSRPHeader
+	}
+
+	salt, err := b64.DecodeString(strings.Split(encodedPasswd, "#")[2])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	verifier, err := b64.DecodeString(strings.Split(encodedPasswd, "#")[3])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return salt, verifier, nil
 }
