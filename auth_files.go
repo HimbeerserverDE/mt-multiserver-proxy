@@ -9,6 +9,7 @@ import (
 type authFiles struct{}
 
 // Exists reports whether a user is registered.
+// Error cases count as inexistent.
 func (a authFiles) Exists(name string) bool {
 	os.Mkdir(Path("auth"), 0700)
 
@@ -83,13 +84,20 @@ func (a authFiles) Timestamp(name string) (time.Time, error) {
 }
 
 // Import deletes all users and adds the passed users.
-func (a authFiles) Import(in []user) {
+func (a authFiles) Import(in []user) error {
 	os.Mkdir(Path("auth"), 0700)
 
 	for _, u := range in {
-		a.SetPasswd(u.name, u.salt, u.verifier)
-		os.Chtimes(Path("auth/", u.name, "/timestamp"), u.timestamp, u.timestamp)
+		if err := a.SetPasswd(u.name, u.salt, u.verifier); err != nil {
+			return err
+		}
+
+		if err := os.Chtimes(Path("auth/", u.name, "/timestamp"), u.timestamp, u.timestamp); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // Export returns data that can be processed by Import
@@ -155,6 +163,7 @@ func (a authFiles) Unban(id string) error {
 }
 
 // Banned reports whether a network address is banned.
+// Error cases count as banned.
 func (a authFiles) Banned(addr *net.UDPAddr) bool {
 	os.Mkdir(Path("ban"), 0700)
 
@@ -167,12 +176,16 @@ func (a authFiles) Banned(addr *net.UDPAddr) bool {
 }
 
 // ImportBans deletes all ban entries and adds the passed entries.
-func (a authFiles) ImportBans(in []ban) {
+func (a authFiles) ImportBans(in []ban) error {
 	os.Mkdir(Path("ban"), 0700)
 
 	for _, b := range in {
-		a.Ban(b.addr, b.name)
+		if err := a.Ban(b.addr, b.name); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // ExportBans returns data that can be processed by ImportBans

@@ -28,13 +28,13 @@ type authBackend interface {
 	LastSrv(name string) (string, error)
 	SetLastSrv(name, srv string) error
 	Timestamp(name string) (time.Time, error)
-	Import(in []user)
+	Import(in []user) error
 	Export() ([]user, error)
 
 	Ban(addr, name string) error
 	Unban(id string) error
 	Banned(addr *net.UDPAddr) bool
-	ImportBans(in []ban)
+	ImportBans(in []ban) error
 	ExportBans() ([]ban, error)
 }
 
