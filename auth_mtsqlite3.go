@@ -127,7 +127,7 @@ func (a *AuthMTSQLite3) Export() ([]User, error) {
 		return nil, err
 	}
 
-	for {
+	for result.Next() {
 		var name string
 		if err := result.Scan(&name); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -138,6 +138,10 @@ func (a *AuthMTSQLite3) Export() ([]User, error) {
 		}
 
 		names = append(names, name)
+	}
+
+	if err := result.Err(); err != nil {
+		return nil, err
 	}
 
 	var out []User
