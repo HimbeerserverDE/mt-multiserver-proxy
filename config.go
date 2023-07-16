@@ -125,7 +125,7 @@ func AddServer(name string, s Server) bool {
 
 	var poolMembers bool
 	for _, srv := range config.Servers {
-		if srv.MediaPool == s.MediaPool {
+		if !srv.dynamic && srv.MediaPool == s.MediaPool {
 			poolMembers = true
 		}
 	}
