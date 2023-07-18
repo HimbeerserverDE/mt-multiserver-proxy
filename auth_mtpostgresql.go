@@ -134,7 +134,7 @@ func (a *AuthMTPostgreSQL) Passwd(name string) (salt, verifier []byte, err error
 func (a *AuthMTPostgreSQL) SetPasswd(name string, salt, verifier []byte) error {
 	encodedPasswd := encodeVerifierAndSalt(salt, verifier)
 
-	_, err := a.db.Exec("REPLACE INTO auth (name, password, last_login) VALUES ($1, $2, unixepoch());", name, encodedPasswd)
+	_, err := a.db.Exec("INSERT INTO auth (name, password, last_login) VALUES ($1, $2, extract(epoch from now())) ON CONFLICT (name) DO UPDATE SET password = EXCLUDED.password, last_login = extract(epoch from now());", name, encodedPasswd)
 	return err
 }
 
