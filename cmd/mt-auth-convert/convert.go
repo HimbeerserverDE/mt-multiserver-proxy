@@ -3,10 +3,12 @@ mt-auth-convert converts between authentication backends.
 
 Usage:
 
-	mt-auth-convert from to
+	mt-auth-convert from to inconn outconn
 
 where from is the format to convert from
 and to is the format to convert to
+and inconn is the postgres connection string for the source database
+and outconn is the postgres connection string for the destination database.
 */
 package main
 
@@ -18,8 +20,8 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 3 {
-		log.Fatal("usage: mt-auth-convert from to")
+	if len(os.Args) != 5 {
+		log.Fatal("usage: mt-auth-convert from to inconn outconn")
 	}
 
 	var inBackend proxy.AuthBackend
@@ -29,6 +31,12 @@ func main() {
 	case "mtsqlite3":
 		var err error
 		inBackend, err = proxy.NewAuthMTSQLite3()
+		if err != nil {
+			log.Fatal(err)
+		}
+	case "mtpostgresql":
+		var err error
+		inBackend, err = proxy.NewAuthMTPostgreSQL(os.Args[3])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -43,6 +51,12 @@ func main() {
 	case "mtsqlite3":
 		var err error
 		outBackend, err = proxy.NewAuthMTSQLite3()
+		if err != nil {
+			log.Fatal(err)
+		}
+	case "mtpostgresql":
+		var err error
+		outBackend, err = proxy.NewAuthMTPostgreSQL(os.Args[4])
 		if err != nil {
 			log.Fatal(err)
 		}
