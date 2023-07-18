@@ -35,7 +35,8 @@ Description: Plugins are not loaded if this is true.
 ```
 Type: string
 Default: ">"
-Description: A chat message is handled as a chat command if it is prefixed by this.
+Description: A chat message is handled as a chat command
+if it is prefixed by this.
 ```
 
 > `RequirePasswd`
@@ -49,14 +50,16 @@ Description: Empty passwords are rejected if this is true.
 ```
 Type: float32
 Default: 0.09
-Description: The recommended send interval for clients. The proxy itself doesn't have a fixed send interval.
+Description: The recommended send interval for clients.
+The proxy itself doesn't have a fixed send interval.
 ```
 
 > `UserLimit`
 ```
 Type: int
 Default: 10
-Description: The maximum number of players that can be connected to the proxy at the same time.
+Description: The maximum number of players that can be connected to the proxy
+at the same time.
 ```
 
 > `AuthBackend`
@@ -64,7 +67,8 @@ Description: The maximum number of players that can be connected to the proxy at
 Type: string
 Default: "files"
 Values: "files", "mtsqlite3", "mtpostgresql"
-Description: The authentication backend to use. Consider converting your existing database instead of loading it directly.
+Description: The authentication backend to use.
+Consider converting your existing database instead of loading it directly.
 ```
 
 > `AuthPostgresConn`
@@ -146,7 +150,8 @@ the server they were playing on if this is true.
 ```
 Type: CSMRF
 Default: CSMRF{}
-Description: The CSM Restriction Flags to send to clients. Don't rely on this since it can trivially be bypassed.
+Description: The CSM Restriction Flags to send to clients.
+Don't rely on this since it can trivially be bypassed.
 ```
 
 > `CSMRF.NoCSMs`
@@ -202,7 +207,9 @@ Description: The maximum distance from which CSMs can read the map.
 ```
 Type: []string
 Default: []string{}
-Description: General Fallback servers if server stopps and clients are connected.
+Description: Names of general fallback servers to connect to
+if a connection attempt fails or an existing connection
+to a game server is lost.
 ```
 
 > `DropCSMRF`
