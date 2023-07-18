@@ -88,8 +88,15 @@ func runFunc() {
 
 		for cc := range clts {
 			go func(cc *ClientConn) {
+				sc := cc.server()
+
 				cc.Kick("Proxy shutting down.")
 				<-cc.Closed()
+
+				if sc != nil {
+					<-sc.Closed()
+				}
+
 				wg.Done()
 			}(cc)
 		}
