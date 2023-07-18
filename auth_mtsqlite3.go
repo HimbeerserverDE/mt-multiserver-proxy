@@ -35,6 +35,7 @@ func NewAuthMTSQLite3() (*AuthMTSQLite3, error) {
 
 	// Initialize the database if necessary.
 	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS auth (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(32) UNIQUE, password VARCHAR(512), last_login INTEGER);"); err != nil {
+		db.Close()
 		return nil, err
 	}
 
