@@ -34,6 +34,13 @@ func runFunc() {
 		}
 
 		setAuthBackend(ab)
+	case "mtpostgresql":
+		ab, err := NewAuthMTPostgreSQL(Conf().AuthPostgresConn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		setAuthBackend(ab)
 	default:
 		log.Fatal("invalid auth backend")
 	}

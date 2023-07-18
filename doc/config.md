@@ -63,8 +63,16 @@ Description: The maximum number of players that can be connected to the proxy at
 ```
 Type: string
 Default: "files"
-Values: "files", "mtsqlite3"
+Values: "files", "mtsqlite3", "mtpostgresql"
 Description: The authentication backend to use. Consider converting your existing database instead of loading it directly.
+```
+
+> `AuthPostgresConn`
+```
+Type: string
+Default: ""
+Description: The postgres connection string for the authentication database.
+Used in conjunction with the mtpostgresql authentication backend.
 ```
 
 > `NoTelnet`

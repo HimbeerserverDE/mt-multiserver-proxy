@@ -34,19 +34,20 @@ type Server struct {
 // A Config contains information from the configuration file
 // that affects the way the proxy works.
 type Config struct {
-	NoPlugins       bool
-	CmdPrefix       string
-	RequirePasswd   bool
-	SendInterval    float32
-	UserLimit       int
-	AuthBackend     string
-	NoTelnet        bool
-	TelnetAddr      string
-	BindAddr        string
-	Servers         map[string]Server
-	ForceDefaultSrv bool
-	FallbackServers []string
-	CSMRF           struct {
+	NoPlugins        bool
+	CmdPrefix        string
+	RequirePasswd    bool
+	SendInterval     float32
+	UserLimit        int
+	AuthBackend      string
+	AuthPostgresConn string
+	NoTelnet         bool
+	TelnetAddr       string
+	BindAddr         string
+	Servers          map[string]Server
+	ForceDefaultSrv  bool
+	FallbackServers  []string
+	CSMRF            struct {
 		NoCSMs          bool
 		ChatMsgs        bool
 		ItemDefs        bool
