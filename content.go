@@ -457,6 +457,8 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			for k, v := range def.ConnectTo {
 				def.ConnectTo[k] = p0Map[cc.name][v]
 			}
+			prepend(cc.mediaPool, &def.FlowingAlt)
+			prepend(cc.mediaPool, &def.SrcAlt)
 			prepend(cc.mediaPool, &def.FootstepSnd.Name)
 			prepend(cc.mediaPool, &def.DiggingSnd.Name)
 			prepend(cc.mediaPool, &def.DugSnd.Name)
