@@ -14,6 +14,18 @@ go build -buildmode=plugin
 A .so file will be created. Copy or move this file into the `plugins`
 directory. Restart the proxy to load the plugin.
 
+### Automatic version management
+To make dealing with version issues easier for end users
+the `mt-build-plugin` tool is provided. It automatically detects
+the correct proxy version and builds the plugin in the working directory
+against it. The resulting .so file can then be used as explained above.
+
+To use this, clone the plugin repository, cd into it and run:
+
+```
+mt-build-plugin
+```
+
 ## Developing plugins
 A plugin is simply a main package without a main function. Use the init
 functions instead. Plugins can import
