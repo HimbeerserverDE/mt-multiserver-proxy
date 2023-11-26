@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -10,18 +11,34 @@ import (
 
 var pluginsOnce sync.Once
 
+func BuildPlugin() error {
+	version, ok := Version()
+	if !ok {
+		return fmt.Errorf("unable to retrieve proxy version")
+	}
+
+	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
+
+	if err := goCmd("get", "-u", pathVer); err != nil {
+		return err
+	}
+
+	if err := goCmd("mod", "tidy"); err != nil {
+		return err
+	}
+
+	if err := goCmd("build", "-buildmode=plugin"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func loadPlugins() {
 	pluginsOnce.Do(openPlugins)
 }
 
 func openPlugins() {
-	version, ok := Version()
-	if !ok {
-		log.Fatal("unable to retrieve proxy version")
-	}
-
-	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
-
 	path := Path("plugins")
 	os.Mkdir(path, 0777)
 
@@ -43,15 +60,7 @@ func openPlugins() {
 				log.Fatal(err)
 			}
 
-			if err := goCmd("get", "-u", pathVer); err != nil {
-				log.Fatal(err)
-			}
-
-			if err := goCmd("mod", "tidy"); err != nil {
-				log.Fatal(err)
-			}
-
-			if err := goCmd("build", "-buildmode=plugin"); err != nil {
+			if err := BuildPlugin(); err != nil {
 				log.Fatal(err)
 			}
 
