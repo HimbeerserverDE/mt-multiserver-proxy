@@ -50,3 +50,8 @@ The default chat commands can be installed as a [plugin](https://github.com/Himb
 Chat commands can also be executed over a telnet connection.
 See [doc/telnet.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/telnet.md)
 for details.
+
+## Plugins
+This proxy supports loading Go plugins.
+Consult [doc/plugins.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md)
+for details on how to develop or install them.
