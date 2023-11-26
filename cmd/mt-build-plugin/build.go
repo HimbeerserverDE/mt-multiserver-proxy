@@ -32,6 +32,10 @@ func main() {
 	if err := goCmd("build", "-buildmode=plugin"); err != nil {
 		log.Fatalln("error building plugin:", err)
 	}
+
+	if err := goCmd("mod", "tidy"); err != nil {
+		log.Fatalln("error tidying modules:", err)
+	}
 }
 
 func goCmd(args ...string) error {
