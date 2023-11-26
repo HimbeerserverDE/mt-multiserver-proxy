@@ -23,18 +23,8 @@ func main() {
 
 	log.Println("version:", version)
 
-	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
-
-	if err := goCmd("get", "-u", pathVer); err != nil {
-		log.Fatalln("error updating proxy dependency:", err)
-	}
-
-	if err := goCmd("mod", "tidy"); err != nil {
-		log.Fatalln("error tidying modules:", err)
-	}
-
-	if err := goCmd("build", "-buildmode=plugin"); err != nil {
-		log.Fatalln("error building plugin:", err)
+	if err := proxy.BuildPlugin(); err != nil {
+		log.Fatal(err)
 	}
 }
 
