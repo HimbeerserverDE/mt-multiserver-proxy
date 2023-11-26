@@ -38,6 +38,8 @@ To use this, clone the plugin repository, cd into it and run:
 mt-build-plugin
 ```
 
+This tool won't work in development builds.
+
 ## Developing plugins
 A plugin is simply a main package without a main function. Use the init
 functions instead. Plugins can import
