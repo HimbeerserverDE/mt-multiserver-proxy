@@ -43,10 +43,10 @@ func Path(path ...string) string {
 }
 
 // Version returns the version string of the running instance.
-func Version() (version string, ok bool) {
+func Version() (string, bool) {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
-		return
+		return "", false
 	}
 
 	for _, dep := range info.Deps {
@@ -55,5 +55,5 @@ func Version() (version string, ok bool) {
 		}
 	}
 
-	return
+	return "", false
 }
