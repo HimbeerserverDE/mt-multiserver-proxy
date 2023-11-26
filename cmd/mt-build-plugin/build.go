@@ -9,6 +9,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"os/exec"
 
 	proxy "github.com/HimbeerserverDE/mt-multiserver-proxy"
@@ -24,11 +25,21 @@ func main() {
 
 	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
 
-	if err := exec.Command("go", "get", "-u", pathVer); err != nil {
+	if err := goCmd("get", "-u", pathVer); err != nil {
 		log.Fatalln("error updating proxy dependency:", err)
 	}
 
-	if err := exec.Command("go", "build", "-buildmode=plugin"); err != nil {
+	if err := goCmd("build", "-buildmode=plugin"); err != nil {
 		log.Fatalln("error building plugin:", err)
 	}
+}
+
+func goCmd(args ...string) error {
+	cmd := exec.Command("go", args...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }
