@@ -51,3 +51,12 @@ func Version() (string, bool) {
 
 	return info.Main.Version, true
 }
+
+func init() {
+	version, ok := Version()
+	if !ok {
+		log.Fatal("unable to retrieve proxy version")
+	}
+
+	log.Println("version:", version)
+}

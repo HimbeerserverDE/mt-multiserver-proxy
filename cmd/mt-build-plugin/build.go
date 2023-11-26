@@ -21,8 +21,6 @@ func main() {
 		log.Fatal("unable to retrieve proxy version")
 	}
 
-	log.Println("version:", version)
-
 	if err := proxy.BuildPlugin(); err != nil {
 		log.Fatal(err)
 	}
