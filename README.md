@@ -10,13 +10,24 @@ This project was made possible by [anon55555's mt module](https://github.com/ano
 Go 1.18 or higher is required. Run
 
 ```
-go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver-proxy@latest
+go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...@latest
 ```
 
 to download and compile the project. A mt-multiserver-proxy executable
-will be created in your $GOBIN directory. The same command is also
+will be created in your ${GOBIN} directory. The same command is also
 used to upgrade to the latest version. You will need to recompile
 all plugins after upgrading.
+
+In addition to the main `mt-multiserver-proxy` binary the following
+additional utilities are installed:
+
+* [mt-auth-convert](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/auth_backends.md#mt-auth-convert): Helper program to convert between authentication database formats.
+* [mt-build-plugin](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md#automatic-version-management): Utility for building plugins against the correct proxy version.
+
+You can replace the `...` in the installation command
+with any of the binary names to limit installation and updating
+to a single executable. **This is not recommended, however,
+as it can cause version mismatches between them.**
 
 ## Usage
 
@@ -35,8 +46,8 @@ they have timed out.
 ## Configuration
 The configuration file name and format including a minimal example
 are described in [doc/config.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/config.md).
-__All internal servers need to allow empty passwords
-and must not be reachable from the internet!__
+**All internal servers need to allow empty passwords
+and must not be reachable from the internet!**
 
 ## Authentication database migration
 It is possible to import existing Minetest authentication databases.
