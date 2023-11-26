@@ -48,7 +48,7 @@ func openPlugins() {
 	}
 
 	for _, pl := range dir {
-		if pl.IsDir() {
+		if pl.IsDir() && !Conf().NoAutoPlugins {
 			plPath := path + "/" + pl.Name()
 
 			wd, err := os.Getwd()
