@@ -5,7 +5,19 @@ from being loaded. Plugins **cannot** be (re)loaded at runtime, you
 need to restart the proxy.
 
 ## Installing plugins
-To install a plugin, clone the repository, cd into it and run:
+The recommended way to install plugins is cd'ing into the `plugins` directory,
+downloading the source code (e.g. using `git clone`) into it
+and starting the proxy without setting the `NoAutoPlugins` config option
+to `true`.
+
+The proxy will detect its own version automatically
+and attempt to build the plugin against it, making this the easiest way
+for end users to deal with versioning.
+
+This won't work in development builds.
+
+### Manual installation
+To install a plugin manually, clone the repository, cd into it and run:
 
 ```
 go build -buildmode=plugin
