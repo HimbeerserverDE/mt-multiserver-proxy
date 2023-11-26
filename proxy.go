@@ -49,11 +49,5 @@ func Version() (string, bool) {
 		return "", false
 	}
 
-	for _, dep := range info.Deps {
-		if dep.Path == "github.com/HimbeerserverDE/mt-multiserver-proxy" {
-			return dep.Version, true
-		}
-	}
-
-	return "", false
+	return info.Main.Version, true
 }
