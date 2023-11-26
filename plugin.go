@@ -73,7 +73,7 @@ func openPlugins() {
 				log.Print(err)
 				continue
 			}
-		} else {
+		} else if !pl.IsDir() {
 			_, err := plugin.Open(path + "/" + pl.Name())
 			if err != nil {
 				log.Print(err)
