@@ -35,6 +35,7 @@ type Server struct {
 // that affects the way the proxy works.
 type Config struct {
 	NoPlugins        bool
+	NoAutoPlugins    bool
 	CmdPrefix        string
 	RequirePasswd    bool
 	SendInterval     float32

@@ -31,6 +31,13 @@ Default: false
 Description: Plugins are not loaded if this is true.
 ```
 
+> `NoAutoPlugins`
+```
+Type: bool
+Default: false
+Description: Plugin subdirectories are not built automatically if this is true.
+```
+
 > `CmdPrefix`
 ```
 Type: string
