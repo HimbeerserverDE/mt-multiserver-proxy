@@ -2,7 +2,7 @@
 
 ## `go version`
 ```
-go version go1.18.1 linux/amd64
+go version go1.21.4 linux/amd64
 ```
 
 ## Build commands
@@ -10,16 +10,16 @@ All commands are run in the project root directory.
 
 ### Compile development version to check for errors
 ```
-go install -race github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver-proxy
+go install -race github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...
 ```
 
 ### Install and run latest version
 ```
-go install -race github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-multiserver-proxy@latest && ~/go/bin/mt-multiserver-proxy
+go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...@latest && mt-multiserver-proxy
 ```
 
 ## Formatting
 ```
 goimports -l -w .
-go fmt
+# go fmt
 ```
