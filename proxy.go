@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"strings"
 	"sync"
 )
@@ -39,4 +40,20 @@ func Path(path ...string) string {
 	})
 
 	return proxyDir + "/" + strings.Join(path, "")
+}
+
+// Version returns the version string of the running instance.
+func Version() (version string, ok bool) {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return
+	}
+
+	for _, dep := range info.Deps {
+		if dep.Path == "github.com/HimbeerserverDE/mt-multiserver-proxy" {
+			return dep.Version, true
+		}
+	}
+
+	return
 }
