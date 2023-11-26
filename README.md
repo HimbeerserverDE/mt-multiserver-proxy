@@ -7,7 +7,7 @@ multiple Minetest servers together. It is the successor to multiserver.
 This project was made possible by [anon55555's mt module](https://github.com/anon55555/mt).
 
 ## Installation
-Go 1.18 or higher is required. Run
+Go 1.21 or higher is required. Run
 
 ```
 go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...@latest
