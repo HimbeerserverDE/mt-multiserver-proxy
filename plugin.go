@@ -59,7 +59,7 @@ func openPlugins() {
 				log.Fatal(err)
 			}
 
-			_, err = plugin.Open(path + "/" + pl.Name() + ".so")
+			_, err = plugin.Open(path + "/" + pl.Name() + "/" + pl.Name() + ".so")
 			if err != nil {
 				log.Print(err)
 				continue
