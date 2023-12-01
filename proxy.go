@@ -28,7 +28,7 @@ var proxyDir string
 var proxyDirOnce sync.Once
 
 // Path prepends the directory the executable is in to the given path.
-// It does not follow symlinks.
+// It follows symlinks to the executable.
 func Path(path ...string) string {
 	proxyDirOnce.Do(func() {
 		executable, err := os.Executable()

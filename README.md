@@ -33,9 +33,9 @@ as it can cause version mismatches between them.**
 
 ### Starting
 Run `${GOBIN}/mt-multiserver-proxy`. The configuration file and other required
-files are created automatically in the directory the executable
-(or symlink to said executable) is in, so make sure to move the
-executable to the desired location or use a symlink.
+files are created automatically in the directory the executable is in,
+so make sure to install the executable to the desired location.
+Symlinks to the executable will be followed, only the real path matters.
 
 ### Stopping
 mt-multiserver-proxy reacts to SIGINT, SIGTERM and SIGHUP. It stops listening

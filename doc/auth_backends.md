@@ -59,7 +59,7 @@ go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/mt-auth-convert@l
 Please specify the version explicitly if @latest differs from your proxy version.
 
 ### Usage
-1. Move the binary to the directory the proxy binary is located in. The same rules apply regarding symlinks.
+1. Move the binary to the directory the proxy binary is located in. The same rules apply regarding symlinks (see [README](https://github.com/HimbeerserverDE/mt-multiserver-proxy#readme)).
 2. Move or copy the source database to the directory.
 3. Stop the proxy.
 4. Run the conversion tool.
