@@ -19,7 +19,7 @@ func BuildPlugin() error {
 
 	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
 
-	if err := goCmd("get", "-u", pathVer); err != nil {
+	if err := goCmd("get", pathVer); err != nil {
 		return err
 	}
 
