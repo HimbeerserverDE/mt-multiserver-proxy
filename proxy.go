@@ -5,6 +5,7 @@ It also provides an API for plugins.
 package proxy
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,6 +22,8 @@ const (
 	maxPlayerNameLen   = 20
 	bytesPerMediaBunch = 5000
 )
+
+var ErrNoBuildInfo = errors.New("unable to retrieve proxy version: no build info")
 
 var playerNameChars = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
 
@@ -43,19 +46,19 @@ func Path(path ...string) string {
 }
 
 // Version returns the version string of the running instance.
-func Version() (string, bool) {
+func Version() (string, error) {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
-		return "", false
+		return "", ErrNoBuildInfo
 	}
 
-	return info.Main.Version, true
+	return info.Main.Version, nil
 }
 
 func init() {
-	version, ok := Version()
-	if !ok {
-		log.Fatal("unable to retrieve proxy version")
+	version, err := Version()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	log.Println("version:", version)

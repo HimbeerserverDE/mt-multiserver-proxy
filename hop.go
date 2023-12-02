@@ -1,11 +1,17 @@
 package proxy
 
 import (
-	"fmt"
+	"errors"
 	"image/color"
 	"net"
 
 	"github.com/HimbeerserverDE/mt"
+)
+
+var (
+	ErrNoServerConn = errors.New("no server connection")
+	ErrNoSuchServer = errors.New("inexistent server")
+	ErrNewMediaPool = errors.New("media pool unknown to client")
 )
 
 // Hop connects the ClientConn to the specified upstream server.
@@ -18,9 +24,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.Log("<->", "hop", serverName)
 
 	if cc.server() == nil {
-		err := fmt.Errorf("no server connection")
-		cc.Log("<->", err)
-		return err
+		return ErrNoServerConn
 	}
 
 	var newSrv *Server
@@ -32,11 +36,11 @@ func (cc *ClientConn) Hop(serverName string) error {
 	}
 
 	if newSrv == nil {
-		return fmt.Errorf("inexistent server")
+		return ErrNoSuchServer
 	}
 
 	if newSrv.poolAdded.After(cc.created) {
-		return fmt.Errorf("media pool unknown to client")
+		return ErrNewMediaPool
 	}
 
 	// This needs to be done before the ServerConn is closed

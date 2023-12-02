@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -12,9 +11,9 @@ import (
 var pluginsOnce sync.Once
 
 func BuildPlugin() error {
-	version, ok := Version()
-	if !ok {
-		return fmt.Errorf("unable to retrieve proxy version")
+	version, err := Version()
+	if err != nil {
+		return err
 	}
 
 	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
