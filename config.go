@@ -275,10 +275,12 @@ func LoadConfig() error {
 	config.AuthBackend = defaultAuthBackend
 	config.TelnetAddr = defaultTelnetAddr
 	config.BindAddr = defaultBindAddr
+	config.Servers = make(map[string]Server)
 	config.FallbackServers = make([]string, 0)
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
 	config.List.Interval = defaultListInterval
+	config.List.Mods = make([]string, 0)
 
 	f, err := os.OpenFile(Path("config.json"), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
