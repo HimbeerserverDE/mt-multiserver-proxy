@@ -38,8 +38,6 @@ To use this, clone the plugin repository, cd into it and run:
 mt-build-plugin
 ```
 
-This tool won't work in development builds.
-
 ## Developing plugins
 A plugin is simply a main package without a main function. Use the init
 functions instead. Plugins can import
@@ -84,6 +82,9 @@ and copy everything excluding the `require `. Then append a new line:
 `replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo/`.
 Now rebuild and install the plugin and it should be loaded.
 
-As of now there is no way to automate this, though the go toolchain
-provides everything needed to implement it.
-Expect this feature to be added soon.
+### Automatic development version management
+The `mt-build-plugin` tool as well as the proxy itself are capable of
+handling development versions, but the former only works if it's located
+in the same directory as the proxy executable. See
+[Automatic version management](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md#automatic-version-management)
+for details.

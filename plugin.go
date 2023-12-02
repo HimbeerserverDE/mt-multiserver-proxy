@@ -16,6 +16,14 @@ func BuildPlugin() error {
 		return err
 	}
 
+	if version == "(devel)" {
+		return buildPluginDev(version)
+	}
+
+	return buildPlugin(version)
+}
+
+func buildPlugin(version string) error {
 	pathVer := "github.com/HimbeerserverDE/mt-multiserver-proxy@" + version
 
 	if err := goCmd("get", pathVer); err != nil {
@@ -27,6 +35,29 @@ func BuildPlugin() error {
 	}
 
 	if err := goCmd("build", "-buildmode=plugin"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func buildPluginDev(version string) error {
+	replace := "-replace=github.com/HimbeerserverDE/mt-multiserver-proxy=" + Path()
+	const dropReplace = "-dropreplace=github.com/HimbeerserverDE/mt-multiserver-proxy"
+
+	if err := goCmd("mod", "edit", replace); err != nil {
+		return err
+	}
+
+	if err := goCmd("mod", "tidy"); err != nil {
+		return err
+	}
+
+	if err := goCmd("build", "-buildmode=plugin"); err != nil {
+		return err
+	}
+
+	if err := goCmd("mod", "edit", dropReplace); err != nil {
 		return err
 	}
 
