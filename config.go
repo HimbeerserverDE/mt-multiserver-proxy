@@ -303,6 +303,7 @@ func LoadConfig() error {
 			if poolServers, ok := oldConf.Pools()[srv.MediaPool]; ok {
 				for _, s2 := range poolServers {
 					srv.poolAdded = s2.poolAdded
+					log.Println("[debug] pool exists:", name)
 				}
 			} else { // New media pool.
 				srv.poolAdded = time.Now()
@@ -310,9 +311,13 @@ func LoadConfig() error {
 				if config.KickOnNewPool {
 					poolKickOnce()
 				}
+
+				log.Println("[debug] pool is new:", name)
 			}
 
 			config.Servers[name] = srv
+		} else {
+			log.Println("[debug] server skipped:", name)
 		}
 	}
 
