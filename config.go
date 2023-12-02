@@ -318,8 +318,6 @@ func LoadConfig() error {
 					return fmt.Errorf("can't delete server %s with players", name)
 				}
 			}
-
-			delete(config.Servers, name)
 		}
 	}
 
