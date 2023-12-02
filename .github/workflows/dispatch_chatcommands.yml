@@ -8,6 +8,8 @@ jobs:
   dispatch_chatcommands:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Dispatch auto update
         run: |
-          curl --fail-with-body -sSL -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/HimbeerserverDE/mt-multiserver-chatcommands/actions/workflows/upgrade_proxy.yml/dispatches --data '{"ref": "main", "event_type": "proxy_update", "client_payload": {"proxy_version": "'"v0.0.0-$(date -d \"$(git log -1 --format=%cI)\" -u +%Y%m%d%H%M%S)-$(git rev-parse HEAD | head -c 12)"'"}}'
+          curl --fail-with-body -sSL -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/HimbeerserverDE/mt-multiserver-chatcommands/actions/workflows/upgrade_proxy.yml/dispatches --data '{"ref": "main", "inputs": {"proxy_version": "'"v0.0.0-$(date -d $(git log -1 --format=%cI) -u +%Y%m%d%H%M%S)-$(git rev-parse HEAD | head -c 12)"'"}}'
