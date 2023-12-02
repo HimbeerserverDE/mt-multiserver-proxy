@@ -153,6 +153,14 @@ Description: Players are connected to the default server instead of
 the server they were playing on if this is true.
 ```
 
+> `KickOnNewPool`
+```
+Type: bool
+Default: false
+Description: Players are kicked if a new media pool is added
+by reloading the config if this is true.
+```
+
 > `CSMRF`
 ```
 Type: CSMRF

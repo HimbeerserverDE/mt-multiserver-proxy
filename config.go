@@ -49,6 +49,7 @@ type Config struct {
 	BindAddr         string
 	Servers          map[string]Server
 	ForceDefaultSrv  bool
+	KickOnNewPool    bool
 	FallbackServers  []string
 	CSMRF            struct {
 		NoCSMs          bool
@@ -291,15 +292,25 @@ func LoadConfig() error {
 		}
 	}
 
-	// Set creation timestamp on new non-dynamic servers.
+	poolKickOnce := sync.OnceFunc(func() {
+		for cc := range Clts() {
+			cc.Kick("A server with new media has been added to the network. Please reconnect to access it.")
+		}
+	})
+
+	// Set creation timestamp on new non-dynamic media pools.
 	for name, srv := range config.Servers {
 		if _, ok := oldConf.Servers[name]; !ok && !srv.dynamic {
 			if poolServers, ok := oldConf.Pools()[srv.MediaPool]; ok {
 				for _, s2 := range poolServers {
 					srv.poolAdded = s2.poolAdded
 				}
-			} else {
+			} else { // New media pool.
 				srv.poolAdded = time.Now()
+
+				if config.KickOnNewPool {
+					poolKickOnce()
+				}
 			}
 
 			config.Servers[name] = srv
