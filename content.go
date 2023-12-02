@@ -511,7 +511,7 @@ func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias
 	var conns []*contentConn
 
 PoolLoop:
-	for _, pool := range PoolServers() {
+	for _, pool := range Conf().Pools() {
 		var addr *net.UDPAddr
 
 		for name, srv := range pool {

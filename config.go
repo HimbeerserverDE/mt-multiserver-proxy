@@ -94,20 +94,6 @@ func Conf() Config {
 	return config
 }
 
-// PoolServers returns all media pools and their member servers.
-func PoolServers() map[string]map[string]Server {
-	pools := make(map[string]map[string]Server)
-	for name, srv := range Conf().Servers {
-		if pools[srv.MediaPool] == nil {
-			pools[srv.MediaPool] = make(map[string]Server)
-		}
-
-		pools[srv.MediaPool][name] = srv
-	}
-
-	return pools
-}
-
 // AddServer dynamically configures a new Server at runtime.
 // Servers added in this way are ephemeral and will be lost
 // when the proxy shuts down.
