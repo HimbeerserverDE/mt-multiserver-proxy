@@ -23,16 +23,20 @@ func (cc *ClientConn) Hop(serverName string) error {
 		return err
 	}
 
-	var strAddr string
+	var newSrv *Server
 	for name, srv := range Conf().Servers {
 		if name == serverName {
-			strAddr = srv.Addr
+			newSrv = &srv
 			break
 		}
 	}
 
-	if strAddr == "" {
+	if newSrv == nil {
 		return fmt.Errorf("inexistent server")
+	}
+
+	if newSrv.poolAdded.After(cc.created) {
+		return fmt.Errorf("media pool unknown to client")
 	}
 
 	// This needs to be done before the ServerConn is closed
@@ -142,7 +146,7 @@ func (cc *ClientConn) Hop(serverName string) error {
 	cc.srv = nil
 	cc.mu.Unlock()
 
-	addr, err := net.ResolveUDPAddr("udp", strAddr)
+	addr, err := net.ResolveUDPAddr("udp", newSrv.Addr)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/HimbeerserverDE/mt"
 	"github.com/HimbeerserverDE/mt/rudp"
@@ -22,8 +23,9 @@ const (
 // A ClientConn is a connection to a minetest client.
 type ClientConn struct {
 	mt.Peer
-	srv *ServerConn
-	mu  sync.RWMutex
+	created time.Time
+	srv     *ServerConn
+	mu      sync.RWMutex
 
 	logger *log.Logger
 

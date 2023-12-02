@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 const (
@@ -28,7 +29,8 @@ type Server struct {
 	MediaPool string
 	Fallbacks []string
 
-	dynamic bool
+	dynamic   bool
+	poolAdded time.Time
 }
 
 // A Config contains information from the configuration file
@@ -120,6 +122,7 @@ func AddServer(name string, s Server) bool {
 	defer configMu.Unlock()
 
 	s.dynamic = true
+	s.poolAdded = startTime
 
 	if _, ok := config.Servers[name]; ok {
 		return false
@@ -193,6 +196,20 @@ func (cnf Config) DefaultServerName() string {
 func (cnf Config) DefaultServer() Server {
 	_, srv := cnf.DefaultServerInfo()
 	return srv
+}
+
+// Pools returns all media pools and their member servers.
+func (cnf Config) Pools() map[string]map[string]Server {
+	pools := make(map[string]map[string]Server)
+	for name, srv := range cnf.Servers {
+		if pools[srv.MediaPool] == nil {
+			pools[srv.MediaPool] = make(map[string]Server)
+		}
+
+		pools[srv.MediaPool][name] = srv
+	}
+
+	return pools
 }
 
 // FallbackServers returns a slice of server names that
@@ -285,6 +302,21 @@ func LoadConfig() error {
 			s := config.Servers[name]
 			s.MediaPool = name
 			config.Servers[name] = s
+		}
+	}
+
+	// Set creation timestamp on new non-dynamic servers.
+	for name, srv := range config.Servers {
+		if _, ok := oldConf.Servers[name]; !ok && !srv.dynamic {
+			if poolServers, ok := oldConf.Pools()[srv.MediaPool]; ok {
+				for _, s2 := range poolServers {
+					srv.poolAdded = s2.poolAdded
+				}
+			} else {
+				srv.poolAdded = time.Now()
+			}
+
+			config.Servers[name] = srv
 		}
 	}
 

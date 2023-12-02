@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/HimbeerserverDE/mt"
 )
@@ -71,10 +72,11 @@ func (l *listener) accept() (*ClientConn, error) {
 
 	prefix := fmt.Sprintf("[%s] ", p.RemoteAddr())
 	cc := &ClientConn{
-		Peer:   p,
-		logger: log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix),
-		initCh: make(chan struct{}),
-		modChs: make(map[string]struct{}),
+		Peer:    p,
+		created: time.Now(),
+		logger:  log.New(logWriter, prefix, log.LstdFlags|log.Lmsgprefix),
+		initCh:  make(chan struct{}),
+		modChs:  make(map[string]struct{}),
 	}
 
 	l.mu.Lock()
