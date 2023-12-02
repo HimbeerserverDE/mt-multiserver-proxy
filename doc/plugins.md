@@ -74,6 +74,9 @@ My build environment can be found in
 [build_env.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/build_env.md).
 
 ## Using plugins with development builds
+You can build a development version by following the instructions in
+[README.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/README.md#development-builds).
+
 If you want to use plugins with a proxy binary produced by `go build`
 or `go run` (usually for contributing to the proxy), you have to temporarily
 edit the go.mod file of your plugin. Find the line that says

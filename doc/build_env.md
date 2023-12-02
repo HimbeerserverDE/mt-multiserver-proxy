@@ -10,7 +10,9 @@ All commands are run in the project root directory.
 
 ### Compile development version to check for errors
 ```
-go install -race github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...
+go build -race ./cmd/mt-auth-convert
+go build -race ./cmd/mt-build-plugin
+go build -race ./cmd/mt-multiserver-proxy
 ```
 
 ### Install and run latest version

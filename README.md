@@ -29,6 +29,17 @@ with any of the binary names to limit installation and updating
 to a single executable. **This is not recommended, however,
 as it can cause version mismatches between them.**
 
+### Development builds
+Build the following binaries from the proxy repository directory:
+
+```
+go build -race ./cmd/mt-auth-convert
+go build -race ./cmd/mt-build-plugin
+go build -race ./cmd/mt-multiserver-proxy
+```
+
+*Do not move the binaries! Doing so breaks automatic plugin builds.*
+
 ## Usage
 
 ### Starting
