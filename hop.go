@@ -27,15 +27,8 @@ func (cc *ClientConn) Hop(serverName string) error {
 		return ErrNoServerConn
 	}
 
-	var newSrv *Server
-	for name, srv := range Conf().Servers {
-		if name == serverName {
-			newSrv = &srv
-			break
-		}
-	}
-
-	if newSrv == nil {
+	newSrv, ok := Conf().Servers[serverName]
+	if !ok {
 		return ErrNoSuchServer
 	}
 
