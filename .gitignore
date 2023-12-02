@@ -13,3 +13,13 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Files created by the proxy and associated tools
+auth/
+cache/
+plugins/
+config.json
+*.log
+mt-auth-convert
+mt-build-plugin
+mt-multiserver-proxy
