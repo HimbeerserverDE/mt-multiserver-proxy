@@ -231,6 +231,9 @@ Description: The list of permission groups.
 Type: []string
 Default: []string{}
 Description: The list of permissions the group has.
+Trailing wildcards are supported: Permissions with an asterisk at the end
+match any permission requirement that starts with the string preceeding it.
+Asterisks in other places are treated as regular characters.
 ```
 
 > `UserGroups`
