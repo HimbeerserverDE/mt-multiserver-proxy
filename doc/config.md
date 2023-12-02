@@ -86,21 +86,6 @@ Description: The postgres connection string for the authentication database.
 Used in conjunction with the mtpostgresql authentication backend.
 ```
 
-> `NoTelnet`
-```
-Type: bool
-Default: false
-Description: The telnet server is not started if this is true.
-```
-
-> `TelnetAddr`
-```
-Type: string
-Default: "[::1]:40010"
-Description: The telnet server will listen for new clients on this
-address.
-```
-
 > `BindAddr`
 ```
 Type: string
