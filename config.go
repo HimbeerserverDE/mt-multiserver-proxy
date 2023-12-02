@@ -92,7 +92,7 @@ func Conf() Config {
 	configMu.RLock()
 	defer configMu.RUnlock()
 
-	return config
+	return config.clone()
 }
 
 // AddServer dynamically configures a new Server at runtime.
@@ -155,6 +155,43 @@ func RmServer(name string) bool {
 
 	delete(config.Servers, name)
 	return true
+}
+
+func (cnf Config) clone() Config {
+	newConfig := cnf
+
+	newConfig.Servers = copyMap(cnf.Servers)
+
+	newConfig.FallbackServers = make([]string, len(cnf.FallbackServers))
+	copy(newConfig.FallbackServers, cnf.FallbackServers)
+
+	newConfig.Groups = copyMapSlice(cnf.Groups)
+	newConfig.UserGroups = copyMap(cnf.UserGroups)
+
+	newConfig.List.Mods = make([]string, len(cnf.List.Mods))
+	copy(newConfig.List.Mods, cnf.List.Mods)
+
+	return newConfig
+}
+
+// WARNING: Doesn't handle nested maps.
+func copyMap[K comparable, V any](in map[K]V) map[K]V {
+	out := make(map[K]V)
+	for k, v := range in {
+		out[k] = v
+	}
+
+	return out
+}
+
+func copyMapSlice[K comparable, V any](in map[K][]V) map[K][]V {
+	out := make(map[K][]V)
+	for k, v := range in {
+		out[k] = make([]V, len(v))
+		copy(out[k], v)
+	}
+
+	return out
 }
 
 // DefaultServerInfo returns both the name of the default server
@@ -230,7 +267,7 @@ func LoadConfig() error {
 	configMu.Lock()
 	defer configMu.Unlock()
 
-	oldConf := config
+	oldConf := config.clone()
 
 	config.CmdPrefix = defaultCmdPrefix
 	config.SendInterval = defaultSendInterval
@@ -245,7 +282,7 @@ func LoadConfig() error {
 
 	f, err := os.OpenFile(Path("config.json"), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		config = oldConf
+		config = oldConf.clone()
 		return err
 	}
 	defer f.Close()
@@ -257,7 +294,7 @@ func LoadConfig() error {
 
 	decoder := json.NewDecoder(f)
 	if err := decoder.Decode(&config); err != nil {
-		config = oldConf
+		config = oldConf.clone()
 		return err
 	}
 
@@ -265,7 +302,7 @@ func LoadConfig() error {
 	for name, srv := range oldConf.Servers {
 		if srv.dynamic {
 			if _, ok := config.Servers[name]; ok {
-				config = oldConf
+				config = oldConf.clone()
 				return fmt.Errorf("duplicate server %s", name)
 			}
 
@@ -277,7 +314,7 @@ func LoadConfig() error {
 
 			for cc := range Clts() {
 				if cc.ServerName() == name {
-					config = oldConf
+					config = oldConf.clone()
 					return fmt.Errorf("can't delete server %s with players", name)
 				}
 			}
