@@ -9,4 +9,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch auto update
-        run: curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/HimbeerserverDE/mt-multiserver-chatcommands/actions/workflows/upgrade_proxy.yml/dispatches --data '{"ref": "main"}'
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/HimbeerserverDE/mt-multiserver-chatcommands/actions/workflows/upgrade_proxy.yml/dispatches --data '{"ref": "main"}'
