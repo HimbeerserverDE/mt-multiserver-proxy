@@ -46,25 +46,44 @@ functions instead. Plugins can import
 `github.com/HimbeerserverDE/mt-multiserver-proxy` and use the exported
 symbols to control the behavior of the proxy. The API is documented
 [here](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy).
-__The plugin API may change at any time without warning.__
+**The plugin API may change at any time without warning.
+Crucially, symbols may be renamed or deleted and fields may be deleted
+from type definitions.**
 
 ## Common issues
-If mt-multiserver-proxy prints an error like this:
+If mt-multiserver-proxy prints an error similar to this:
+
 ```
 plugin.Open: plugin was built with a different version of package github.com/HimbeerserverDE/mt-multiserver-proxy
 ```
+
 it usually means that either the plugin or the proxy is out of date.
-Upgrade the proxy, then run
-`go get -u github.com/HimbeerserverDE/mt-multiserver-proxy` in the plugin
-repository and rebuild it. You should compile the plugin and the proxy
+Upgrade the proxy and associated helper programs, then run
+
+```
+mt-build-plugin
+```
+
+in the plugin repository. It is also possible to manually run
+
+```
+go get github.com/HimbeerserverDE/mt-multiserver-proxy
+```
+
+and rebuild the plugin. You should compile the plugin and the proxy
 on the same machine since the build environment needs to be identical.
 My build environment can be found in
 [build_env.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/build_env.md).
 
-If the above steps didn't fix the error, or if you are making changes
-to the proxy itself and want to use plugins, you have to temporarily
+## Using plugins with development builds
+If you want to use plugins with a proxy binary produced by `go build`
+or `go run` (usually for contributing to the proxy), you have to temporarily
 edit the go.mod file of your plugin. Find the line that says
 `require github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION`
 and copy everything excluding the `require `. Then append a new line:
 `replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo/`.
 Now rebuild and install the plugin and it should be loaded.
+
+As of now there is no way to automate this, though the go toolchain
+provides everything needed to implement it.
+Expect this feature to be added soon.
