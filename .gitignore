@@ -20,6 +20,6 @@ cache/
 plugins/
 config.json
 *.log
-mt-auth-convert
-mt-build-plugin
-mt-multiserver-proxy
+/mt-auth-convert
+/mt-build-plugin
+/mt-multiserver-proxy
