@@ -286,9 +286,8 @@ func LoadConfig() error {
 
 	for name, srv := range config.Servers {
 		if srv.MediaPool == "" {
-			s := config.Servers[name]
-			s.MediaPool = name
-			config.Servers[name] = s
+			srv.MediaPool = name
+			config.Servers[name] = srv
 		}
 	}
 
