@@ -14,10 +14,41 @@ var (
 	ErrNewMediaPool = errors.New("media pool unknown to client")
 )
 
-// Hop connects the ClientConn to the specified upstream server.
+// Hop connects the ClientConn to the specified upstream server
+// or the first working fallback server, saving the player's last server.
+// If all attempts fail the client is kicked.
 // At the moment the ClientConn is NOT fixed if an error occurs
 // so the player may have to reconnect.
-func (cc *ClientConn) Hop(serverName string) error {
+func (cc *ClientConn) Hop(serverName string) (err error) {
+	defer func() {
+		if !Conf().ForceDefaultSrv {
+			err = authIface.SetLastSrv(cc.Name(), serverName)
+		}
+	}()
+
+	if err = cc.HopRaw(serverName); err != nil {
+		for _, srvName := range FallbackServers(serverName) {
+			if err = cc.HopRaw(srvName); err != nil {
+				cc.Log("<-", err)
+			}
+
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+// HopRaw connects the ClientConn to the specified upstream server.
+// At the moment the ClientConn is NOT fixed if an error occurs
+// so the player may have to reconnect.
+//
+// This method ignores fallback servers and doesn't save the player's
+// last server.
+// You may use the `Hop` wrapper for these purposes.
+func (cc *ClientConn) HopRaw(serverName string) error {
 	cc.hopMu.Lock()
 	defer cc.hopMu.Unlock()
 
@@ -163,10 +194,6 @@ func (cc *ClientConn) Hop(serverName string) error {
 	}
 
 	cc.server().SendCmd(cc.cltInfo)
-
-	if !Conf().ForceDefaultSrv {
-		return authIface.SetLastSrv(cc.Name(), serverName)
-	}
 
 	return nil
 }
