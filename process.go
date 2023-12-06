@@ -49,10 +49,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		if cmd.MaxProtoVer < protoVer || cmd.MinProtoVer > protoVer {
-			min := cmd.MinProtoVer
-			max := cmd.MaxProtoVer
-
-			cc.Log("<-", "unsupported protoVer range min", min, "max", max, "expect", protoVer)
+			cc.Log("<-", "unsupported protoVer range min", cmd.MinProtoVer, "max", cmd.MaxProtoVer, "expect", protoVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
 			select {
