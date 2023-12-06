@@ -467,6 +467,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			case <-done:
 			case <-time.After(ChatCmdTimeout):
 				cmdName := strings.Split(cmd.Msg, " ")[0]
+				cc.Log("<-", "timeout command", cmd.Msg)
 				cc.SendChatMsg("Command", cmdName, "is taking suspiciously long to execute.")
 			}
 		}(done)
