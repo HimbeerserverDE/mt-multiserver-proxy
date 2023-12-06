@@ -46,8 +46,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		protoVerCommon := min(cmd.MaxProtoVer, protoVer)
-		if protoVerCommon < cmd.MinProtoVer || protoVerCommon != protoVer {
+		if cmd.MaxProtoVer < protoVer || cmd.MinProtoVer > protoVer {
 			cc.Log("<-", "unsupported protoVer range min", cmd.MinProtoVer, "max", cmd.MaxProtoVer, "expect", protoVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
@@ -150,7 +149,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		cc.SendCmd(&mt.ToCltHello{
 			SerializeVer: serializeVer,
-			ProtoVer:     protoVerCommon,
+			ProtoVer:     protoVer,
 			AuthMethods:  cc.auth.method,
 			Username:     cc.Name(),
 		})
