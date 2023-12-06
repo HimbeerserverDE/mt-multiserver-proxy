@@ -27,6 +27,10 @@ func (cc *ClientConn) Hop(serverName string) (err error) {
 	}()
 
 	if err = cc.HopRaw(serverName); err != nil {
+		if errors.Is(err, ErrNoSuchServer) || errors.Is(err, ErrNewMediaPool) {
+			return err
+		}
+
 		cc.Log("<-", err)
 		cc.SendChatMsg("Could not switch servers, triggering fallback. Error:", err.Error())
 
