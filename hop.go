@@ -84,7 +84,7 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 	cc.server().Close()
 
 	// Player CAO is a good indicator for full client initialization.
-	if !cc.hasPlayerCAO() {
+	if cc.hasPlayerCAO() {
 		// Reset the client to its initial state
 		for _, inv := range cc.server().detachedInvs {
 			cc.SendCmd(&mt.ToCltDetachedInv{
