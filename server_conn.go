@@ -104,6 +104,7 @@ func handleSrv(sc *ServerConn) {
 		}
 	}()
 
+RecvLoop:
 	for {
 		pkt, err := sc.Recv()
 		if err != nil {
@@ -115,6 +116,21 @@ func handleSrv(sc *ServerConn) {
 				}
 
 				if sc.client() != nil {
+					if errors.Is(sc.WhyClosed(), rudp.ErrTimedOut) {
+						sc.client().SendChatMsg("Server connection timed out, triggering fallback.")
+					} else {
+						sc.client().SendChatMsg("Server connection lost, triggering fallback.")
+					}
+
+					for _, srvName := range FallbackServers(sc.name) {
+						if err := sc.client().HopRaw(srvName); err != nil {
+							sc.client().Log("<-", err)
+							sc.client().SendChatMsg("Could not connect to "+srvName+", continuing fallback. Error:", err.Error())
+						}
+
+						break RecvLoop
+					}
+
 					ack, _ := sc.client().SendCmd(&mt.ToCltKick{
 						Reason: mt.Custom,
 						Custom: "Server connection closed unexpectedly.",
