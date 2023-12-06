@@ -247,17 +247,7 @@ func FallbackServers(server string) []string {
 	}
 
 	fallbacks := srv.Fallbacks
-
-	// global fallbacks
-	if len(conf.FallbackServers) == 0 {
-		if len(conf.Servers) == 0 {
-			return fallbacks
-		}
-
-		return append(fallbacks, conf.DefaultServerName())
-	} else {
-		return append(fallbacks, conf.FallbackServers...)
-	}
+	return append(fallbacks, conf.FallbackServers...)
 }
 
 // LoadConfig attempts to parse the configuration file.
