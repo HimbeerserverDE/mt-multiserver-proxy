@@ -33,9 +33,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.setState(csInit)
-
-		serializeVerCommon := min(cmd.SerializeVer, serializeVer)
-		if serializeVerCommon != serializeVer {
+		if cmd.SerializeVer != serializeVer {
 			cc.Log("<-", "unsupported serializeVer", cmd.SerializeVer, "expect", serializeVer)
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.UnsupportedVer})
 
@@ -151,7 +149,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		cc.SendCmd(&mt.ToCltHello{
-			SerializeVer: serializeVerCommon,
+			SerializeVer: serializeVer,
 			ProtoVer:     protoVerCommon,
 			AuthMethods:  cc.auth.method,
 			Username:     cc.Name(),
