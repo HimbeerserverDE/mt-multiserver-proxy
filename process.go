@@ -701,7 +701,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			if ao.InitData.Name == clt.name {
 				clt.currentCAO = ao.ID
 
-				if clt.playerCAO == 0 {
+				if !clt.hasPlayerCAO() {
 					clt.playerCAO = ao.ID
 					for _, msg := range ao.InitData.Msgs {
 						sc.handleAOMsg(msg)
