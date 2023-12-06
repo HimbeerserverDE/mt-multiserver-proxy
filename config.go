@@ -247,7 +247,16 @@ func FallbackServers(server string) []string {
 	}
 
 	fallbacks := srv.Fallbacks
-	return append(fallbacks, conf.FallbackServers...)
+	fallbacks = append(fallbacks, conf.FallbackServers...)
+
+	final := make([]string, 0, len(fallbacks))
+	for _, srvName := range fallbacks {
+		if srvName != server {
+			final = append(final, srvName)
+		}
+	}
+
+	return final
 }
 
 // LoadConfig attempts to parse the configuration file.
