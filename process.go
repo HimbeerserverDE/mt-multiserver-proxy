@@ -573,7 +573,6 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			for _, srvName := range FallbackServers(sc.name) {
 				if err := clt.HopRaw(srvName); err != nil {
 					clt.Log("<-", err)
-					break
 				}
 
 				return
