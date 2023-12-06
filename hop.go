@@ -201,7 +201,9 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 		cc.server().SendCmd(&mt.ToSrvJoinModChan{Channel: ch})
 	}
 
-	cc.server().SendCmd(cc.cltInfo)
+	if cc.cltInfo != nil { // May not be initialized yet if this is an early fallback.
+		cc.server().SendCmd(cc.cltInfo)
+	}
 
 	return nil
 }
