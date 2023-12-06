@@ -57,9 +57,15 @@ and experience major breakage.** This is because the protocol version
 isn't bumped when a new development phase is started after a release.
 
 ## Installation
+It is recommended to explicitly set the `GOBIN` environment variable
+to a directory that is only used for the proxy binaries, databases
+and configuration files.
+
 Go 1.21 or higher is required. Run
 
 ```
+export GOBIN=~/.local/share/mt-multiserver-proxy
+mkdir -p ${GOBIN}
 go install github.com/HimbeerserverDE/mt-multiserver-proxy/cmd/...@latest
 ```
 
