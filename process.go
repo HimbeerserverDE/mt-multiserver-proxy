@@ -569,7 +569,14 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == mt.TooManyClts || cmd.Reason == mt.UnsupportedVer {
 			clt.SendChatMsg(cmd.String())
-			for _, srvName := range FallbackServers(sc.name) {
+
+			fallbacks := FallbackServers(sc.name)
+			if len(fallbacks) == 0 {
+				// no fallback servers to try
+				break
+			}
+
+			for _, srvName := range fallbacks {
 				if err := clt.Hop(srvName); err != nil {
 					clt.Log("<-", err)
 					break
