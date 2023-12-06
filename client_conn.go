@@ -67,7 +67,7 @@ type ClientConn struct {
 // Name returns the player name of the ClientConn.
 func (cc *ClientConn) Name() string { return cc.name }
 
-func (cc *ClientConn) hasPlayerCAO() bool { return cc.playerCAO == 0 }
+func (cc *ClientConn) hasPlayerCAO() bool { return cc.playerCAO != 0 }
 
 func (cc *ClientConn) server() *ServerConn {
 	cc.mu.RLock()
