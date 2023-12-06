@@ -27,9 +27,13 @@ func (cc *ClientConn) Hop(serverName string) (err error) {
 	}()
 
 	if err = cc.HopRaw(serverName); err != nil {
+		cc.Log("<-", err)
+		cc.SendChatMsg("Could not switch servers, triggering fallback. Error:", err.Error())
+
 		for _, srvName := range FallbackServers(serverName) {
 			if err = cc.HopRaw(srvName); err != nil {
 				cc.Log("<-", err)
+				cc.SendChatMsg("Could not connect, continuing fallback. Error:", err.Error())
 			}
 
 			return nil
