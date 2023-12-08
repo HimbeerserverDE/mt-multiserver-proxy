@@ -238,6 +238,22 @@ func (cnf Config) Pools() map[string]map[string]Server {
 	return pools
 }
 
+// Groups returns all server groups and their member servers.
+func (cnf Config) ServerGroups() map[string]map[string]Server {
+	groups := make(map[string]map[string]Server)
+	for name, srv := range cnf.Servers {
+		for _, group := range srv.Groups {
+			if groups[group] == nil {
+				groups[group] = make(map[string]Server)
+			}
+
+			groups[group][name] = srv
+		}
+	}
+
+	return groups
+}
+
 // RandomGroupServer returns the name of a random member of a server group
 // or the input string if it is a valid, existent server name.
 // It also returns a boolean indicating success.
