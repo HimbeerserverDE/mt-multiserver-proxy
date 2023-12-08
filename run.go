@@ -120,15 +120,14 @@ func runFunc() {
 
 			srvName, srv := conf.DefaultServerInfo()
 			lastSrv, err := authIface.LastSrv(cc.Name())
-			if err == nil && !Conf().ForceDefaultSrv && lastSrv != srvName {
-				for name, s := range conf.Servers {
-					if name == lastSrv {
-						srvName = name
-						srv = s
-
-						break
-					}
+			if err == nil && !conf.ForceDefaultSrv && lastSrv != srvName {
+				choice, ok := conf.RandomGroupServer(lastSrv)
+				if !ok {
+					cc.Log("<-", "inexistent previous server")
 				}
+
+				srvName = choice
+				srv, _ = conf.Servers[choice] // Existence already checked.
 			}
 
 			addr, err := net.ResolveUDPAddr("udp", srv.Addr)

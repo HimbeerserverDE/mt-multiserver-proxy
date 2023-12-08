@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -27,6 +28,7 @@ var loadConfigOnce sync.Once
 type Server struct {
 	Addr      string
 	MediaPool string
+	Groups    []string
 	Fallbacks []string
 
 	dynamic   bool
@@ -234,6 +236,32 @@ func (cnf Config) Pools() map[string]map[string]Server {
 	}
 
 	return pools
+}
+
+// RandomGroupServer returns the name of a random member of a server group
+// or the input string if it is a valid, existent server name.
+// It also returns a boolean indicating success.
+// The returned string is blank if there is a failure,
+// i.e. if the input string is neither a server nor a group.
+func (cnf Config) RandomGroupServer(search string) (string, bool) {
+	candidates := make([]string, 0)
+	for name, srv := range cnf.Servers {
+		if name == search {
+			return name, true
+		}
+
+		for _, grp := range srv.Groups {
+			if grp == search {
+				candidates = append(candidates, name)
+			}
+		}
+	}
+
+	if len(candidates) == 0 {
+		return "", false
+	}
+
+	return candidates[rand.Intn(len(candidates))], true
 }
 
 // FallbackServers returns a slice of server names that

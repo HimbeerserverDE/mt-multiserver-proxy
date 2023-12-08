@@ -15,7 +15,8 @@ var (
 )
 
 // Hop connects the ClientConn to the specified upstream server
-// or the first working fallback server, saving the player's last server.
+// or the first working fallback server, saving the player's last server
+// unless `ForceDefaultSrv` is enabled.
 // If all attempts fail the client is kicked.
 // At the moment the ClientConn is NOT fixed if an error occurs
 // so the player may have to reconnect.
@@ -47,6 +48,23 @@ func (cc *ClientConn) Hop(serverName string) (err error) {
 	}
 
 	return nil
+}
+
+// HopGroup connects the ClientConn to the specified server group
+// or the first working fallback server, saving the player's last server
+// unless `ForceDefaultSrv` is enabled.
+// See the documentation on `Server.Groups` in `doc/config.md`
+// for details on how a specific game server is selected from the group name.
+// If all attempts fail the client is kicked.
+// At the moment the ClientConn is NOT fixed if an error occurs
+// so the player may have to reconnect.
+func (cc *ClientConn) HopGroup(groupName string) error {
+	choice, ok := Conf().RandomGroupServer(groupName)
+	if !ok {
+		return ErrNoSuchServer
+	}
+
+	return cc.Hop(choice)
 }
 
 // HopRaw connects the ClientConn to the specified upstream server.
