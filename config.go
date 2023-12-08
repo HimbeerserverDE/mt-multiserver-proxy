@@ -49,6 +49,7 @@ type Config struct {
 	NoTelnet         bool
 	TelnetAddr       string
 	BindAddr         string
+	DefaultSrv       string
 	Servers          map[string]Server
 	ForceDefaultSrv  bool
 	KickOnNewPool    bool
@@ -200,12 +201,17 @@ func copyMapSlice[K comparable, V any](in map[K][]V) map[K][]V {
 // and information about it. The return values are uninitialized
 // if no servers exist.
 func (cnf Config) DefaultServerInfo() (string, Server) {
-	for name, srv := range Conf().Servers {
-		return name, srv
+	name, ok := cnf.RandomGroupServer(cnf.DefaultSrv)
+	if !ok {
+		return "", Server{}
 	}
 
-	// No servers are configured.
-	return "", Server{}
+	srv, ok := cnf.Servers[name]
+	if !ok {
+		return "", Server{}
+	}
+
+	return name, srv
 }
 
 // DefaultServerName returns the name of the default server.

@@ -117,6 +117,11 @@ func runFunc() {
 				cc.Kick("No servers are configured.")
 				return
 			}
+			if _, ok := conf.Servers[""]; !ok && conf.DefaultServerName() == "" {
+				cc.Log("<-", "no default server")
+				cc.Kick("No valid default server is configured.")
+				return
+			}
 
 			srvName, srv := conf.DefaultServerInfo()
 			lastSrv, err := authIface.LastSrv(cc.Name())

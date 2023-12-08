@@ -93,6 +93,13 @@ Default: ":40000"
 Description: The proxy will listen for new clients on this address.
 ```
 
+> `DefaultSrv`
+```
+Type: string
+Default: ""
+Description: The default server to connect new clients to. May be a group.
+```
+
 > `Servers`
 ```
 Type: map[string]Server
