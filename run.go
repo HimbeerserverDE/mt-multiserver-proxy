@@ -135,21 +135,42 @@ func runFunc() {
 				srv, _ = conf.Servers[choice] // Existence already checked.
 			}
 
-			addr, err := net.ResolveUDPAddr("udp", srv.Addr)
-			if err != nil {
-				cc.Log("<-", "address resolution fail")
-				cc.Kick("Server address resolution failed.")
-				return
+			doConnect := func(srvName string, srv Server) error {
+				addr, err := net.ResolveUDPAddr("udp", srv.Addr)
+				if err != nil {
+					cc.Log("<-", "address resolution fail")
+					// cc.Kick("Server address resolution failed.")
+					return err
+				}
+
+				conn, err := net.DialUDP("udp", nil, addr)
+				if err != nil {
+					cc.Log("<-", "connection fail")
+					// cc.Kick("Server connection failed.")
+					return err
+				}
+
+				connect(conn, srvName, cc)
+				return nil
 			}
 
-			conn, err := net.DialUDP("udp", nil, addr)
-			if err != nil {
-				cc.Log("<-", "connection fail")
-				cc.Kick("Server connection failed.")
-				return
-			}
+			if err := doConnect(srvName, srv); err != nil {
+				cc.Log("<-", err)
+				cc.SendChatMsg("Could not connect, triggering fallback. Error:", err.Error())
 
-			connect(conn, srvName, cc)
+				for _, fbName := range FallbackServers(srvName) {
+					fb, ok := conf.Servers[fbName]
+					if !ok {
+						cc.Log("<-", "invalid fallback")
+						continue
+					}
+
+					if err := doConnect(fbName, fb); err != nil {
+						cc.Log("<-", err)
+						cc.SendChatMsg("Could not connect, continuing fallback. Error:", err.Error())
+					}
+				}
+			}
 		}()
 	}
 
