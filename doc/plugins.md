@@ -16,8 +16,6 @@ The proxy will detect its own version automatically
 and attempt to build the plugin against it, making this the easiest way
 for end users to deal with versioning.
 
-This won't work in development builds.
-
 ### Manual installation
 
 To install a plugin manually, clone the repository, cd into it and run:
@@ -81,6 +79,14 @@ My build environment can be found in
 
 ## Using plugins with development builds
 
+The `mt-build-plugin` tool as well as the proxy itself are capable of
+handling development versions, but the former only works if it's located
+in the same directory as the proxy executable. See
+[Automatic version management](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md#automatic-version-management)
+for details.
+
+### Manual version management
+
 You can build a development version by following the instructions in
 [README.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/README.md#development-builds).
 
@@ -91,11 +97,3 @@ edit the go.mod file of your plugin. Find the line that says
 and copy everything excluding the `require `. Then append a new line:
 `replace github.com/HimbeerserverDE/mt-multiserver-proxy SOMEVERSION => ../path/to/proxy/repo/`.
 Now rebuild and install the plugin and it should be loaded.
-
-### Automatic development version management
-
-The `mt-build-plugin` tool as well as the proxy itself are capable of
-handling development versions, but the former only works if it's located
-in the same directory as the proxy executable. See
-[Automatic version management](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md#automatic-version-management)
-for details.
