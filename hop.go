@@ -91,6 +91,10 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 		return ErrNoSuchServer
 	}
 
+	if _, ok := cc.denyPools[newSrv.MediaPool]; ok {
+		return ErrNewMediaPool
+	}
+
 	if newSrv.poolAdded.After(cc.created) {
 		return ErrNewMediaPool
 	}

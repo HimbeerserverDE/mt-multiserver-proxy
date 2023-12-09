@@ -32,6 +32,7 @@ type mediaFile struct {
 
 type contentConn struct {
 	mt.Peer
+	denied bool
 
 	logger *log.Logger
 
@@ -228,6 +229,7 @@ func handleContent(cc *contentConn) {
 				M: M,
 			})
 		case *mt.ToCltKick:
+			cc.denied = true
 			cc.log("<-", "deny access", cmd)
 		case *mt.ToCltAcceptAuth:
 			cc.auth.method = 0
@@ -346,6 +348,20 @@ type param0Map map[string]map[mt.Content]mt.Content
 type param0SrvMap map[mt.Content]struct {
 	name   string
 	param0 mt.Content
+}
+
+func muxErrors(conns []*contentConn) map[string]struct{} {
+	denyPools := make(map[string]struct{})
+
+	for _, cc := range conns {
+		<-cc.done()
+
+		if cc.denied {
+			denyPools[cc.mediaPool] = struct{}{}
+		}
+	}
+
+	return denyPools
 }
 
 func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig string }) {
@@ -507,11 +523,12 @@ func muxRemotes(conns []*contentConn) []string {
 	return urls
 }
 
-func muxContent(userName string) (itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
+func muxContent(userName string) (denyPools map[string]struct{}, itemDefs []mt.ItemDef, aliases []struct{ Alias, Orig string }, nodeDefs []mt.NodeDef, p0Map param0Map, p0SrvMap param0SrvMap, media []mediaFile, remotes []string, err error) {
 	var conns []*contentConn
+	denyPools = make(map[string]struct{})
 
 PoolLoop:
-	for _, pool := range Conf().Pools() {
+	for poolName, pool := range Conf().Pools() {
 		var addr *net.UDPAddr
 
 		for name, srv := range pool {
@@ -537,15 +554,19 @@ PoolLoop:
 			continue PoolLoop
 		}
 
-		// There's a pool with no reachable servers.
-		// We can't safely let clients join.
-		return
+		denyPools[poolName] = struct{}{}
 	}
 
+	failedPools := muxErrors(conns)
 	itemDefs, aliases = muxItemDefs(conns)
 	nodeDefs, p0Map, p0SrvMap = muxNodeDefs(conns)
 	media = muxMedia(conns)
 	remotes = muxRemotes(conns)
+
+	for pool := range failedPools {
+		denyPools[pool] = struct{}{}
+	}
+
 	return
 }
 
