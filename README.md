@@ -133,3 +133,9 @@ for details.
 This proxy supports loading Go plugins.
 Consult [doc/plugins.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/plugins.md)
 for details on how to develop or install them.
+
+## Docker
+
+The proxy can be run in Docker.
+See [doc/docker.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/docker.md)
+for details.
