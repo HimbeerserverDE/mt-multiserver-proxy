@@ -1,10 +1,12 @@
 # Plugins
+
 mt-multiserver-proxy loads all plugin files in the `plugins` directory
 on startup. Any errors will be logged and do not prevent other plugins
 from being loaded. Plugins **cannot** be (re)loaded at runtime, you
 need to restart the proxy.
 
 ## Installing plugins
+
 The recommended way to install plugins is cd'ing into the `plugins` directory,
 downloading the source code (e.g. using `git clone`) into it
 and starting the proxy without setting the `NoAutoPlugins` config option
@@ -17,6 +19,7 @@ for end users to deal with versioning.
 This won't work in development builds.
 
 ### Manual installation
+
 To install a plugin manually, clone the repository, cd into it and run:
 
 ```
@@ -27,6 +30,7 @@ A .so file will be created. Copy or move this file into the `plugins`
 directory. Restart the proxy to load the plugin.
 
 ### Automatic version management
+
 To make dealing with version issues easier for end users
 the `mt-build-plugin` tool is provided. It automatically detects
 the correct proxy version and builds the plugin in the working directory
@@ -39,6 +43,7 @@ mt-build-plugin
 ```
 
 ## Developing plugins
+
 A plugin is simply a main package without a main function. Use the init
 functions instead. Plugins can import
 `github.com/HimbeerserverDE/mt-multiserver-proxy` and use the exported
@@ -49,6 +54,7 @@ Crucially, symbols may be renamed or deleted and fields may be deleted
 from type definitions.**
 
 ## Common issues
+
 If mt-multiserver-proxy prints an error similar to this:
 
 ```
@@ -74,6 +80,7 @@ My build environment can be found in
 [build_env.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/build_env.md).
 
 ## Using plugins with development builds
+
 You can build a development version by following the instructions in
 [README.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/README.md#development-builds).
 
@@ -86,6 +93,7 @@ and copy everything excluding the `require `. Then append a new line:
 Now rebuild and install the plugin and it should be loaded.
 
 ### Automatic development version management
+
 The `mt-build-plugin` tool as well as the proxy itself are capable of
 handling development versions, but the former only works if it's located
 in the same directory as the proxy executable. See
