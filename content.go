@@ -32,7 +32,7 @@ type mediaFile struct {
 
 type contentConn struct {
 	mt.Peer
-	denied bool
+	success bool
 
 	logger *log.Logger
 
@@ -229,7 +229,6 @@ func handleContent(cc *contentConn) {
 				M: M,
 			})
 		case *mt.ToCltKick:
-			cc.denied = true
 			cc.log("<-", "deny access", cmd)
 		case *mt.ToCltAcceptAuth:
 			cc.auth.method = 0
@@ -286,6 +285,8 @@ func handleContent(cc *contentConn) {
 			if cmd.I == cmd.N-1 {
 				cc.updateCache()
 				cc.Close()
+
+				cc.success = true
 			}
 		}
 	}
@@ -356,7 +357,7 @@ func muxErrors(conns []*contentConn) map[string]struct{} {
 	for _, cc := range conns {
 		<-cc.done()
 
-		if cc.denied {
+		if !cc.success {
 			denyPools[cc.mediaPool] = struct{}{}
 		}
 	}
