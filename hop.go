@@ -23,7 +23,7 @@ var (
 // so the player may have to reconnect.
 func (cc *ClientConn) Hop(serverName string) (err error) {
 	defer func() {
-		if err != nil && !Conf().ForceDefaultSrv {
+		if err == nil && !Conf().ForceDefaultSrv {
 			err = authIface.SetLastSrv(cc.Name(), serverName)
 		}
 	}()
