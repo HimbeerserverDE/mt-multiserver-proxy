@@ -36,7 +36,7 @@ To build an image of the checked-out commit, run the following command
 from the repository root:
 
 ```
-docker build -t mt-multiserver-proxy -f Dockerfile.devel .
+docker build -t mt-multiserver-proxy -f devel.Dockerfile .
 ```
 
 ## Run
