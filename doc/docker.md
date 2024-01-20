@@ -1,8 +1,7 @@
 # Docker
 
 This repository contains a `Dockerfile` at its root.
-It can be used to build the most recent release version
-or a development version into an image.
+It can be used to build a release or development version into an image.
 
 ## Build
 
@@ -15,14 +14,14 @@ The images are intended to be built by the default buildx builder.
 
 ### Regular
 
-To build an image of the latest commit, run the following command
+To build an image of the current commit, run the following command
 from the repository root:
 
 ```
 docker buildx build -t mt-multiserver-proxy --load .
 ```
 
-This is the version most people will want.
+This works well with CI because it doesn't rely on the Go proxy being up-to-date.
 
 It is also possible to build a specific version into an image:
 
@@ -30,7 +29,8 @@ It is also possible to build a specific version into an image:
 docker buildx build -t mt-multiserver-proxy --load --build-arg version=VERSION .
 ```
 
-where `VERSION` is a Go pseudo-version.
+where `VERSION` is a Go pseudo-version or `latest` for the latest version
+known by the Go proxy.
 
 ### Development
 
