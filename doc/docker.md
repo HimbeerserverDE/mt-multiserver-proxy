@@ -11,13 +11,15 @@ For example, you can add a `:devel` suffix for development builds,
 though remember to refer the image using that name in compose files
 or the `docker run` command.
 
+The images are intended to be built by the default buildx builder.
+
 ### Regular
 
 To build an image of the latest commit, run the following command
 from the repository root:
 
 ```
-docker build -t mt-multiserver-proxy .
+docker buildx build -t mt-multiserver-proxy --load .
 ```
 
 This is the version most people will want.
@@ -25,7 +27,7 @@ This is the version most people will want.
 It is also possible to build a specific version into an image:
 
 ```
-docker build -t mt-multiserver-proxy --build-arg version=VERSION .
+docker buildx build -t mt-multiserver-proxy --load --build-arg version=VERSION .
 ```
 
 where `VERSION` is a Go pseudo-version.
@@ -36,7 +38,17 @@ To build an image of the checked-out commit, run the following command
 from the repository root:
 
 ```
-docker build -t mt-multiserver-proxy -f devel.Dockerfile .
+docker buildx build -t mt-multiserver-proxy --load -f devel.Dockerfile .
+```
+
+### Cross-compilation
+
+You can add the `--platform linux/ARCH` argument to any of the build commands.
+
+Example (ARMv8 64-bit):
+
+```
+docker buildx build --platform linux/arm64 -t mt-multiserver-proxy --load .
 ```
 
 ## Run
