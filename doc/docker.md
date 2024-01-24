@@ -1,7 +1,28 @@
 # Docker
 
+The proxy can be run in Docker if you with to do so.
+You may build it yourself or pull the latest image from
+[GitHub Packages](https://github.com/HimbeerserverDE/mt-multiserver-proxy/pkgs/container/mt-multiserver-proxy).
+
 This repository contains a `Dockerfile` at its root.
-It can be used to build a release or development version into an image.
+It can be used to build a release version into an image.
+Development versions can be built using the `devel.Dockerfile`.
+
+## Pre-built image
+
+You can pull the latest version from [GitHub Packages](https://github.com/HimbeerserverDE/mt-multiserver-proxy/pkgs/container/mt-multiserver-proxy).
+Simply follow the instructions at [Run](#run), replacing the image `mt-multiserver-proxy`
+with `ghcr.io/himbeerserverde/mt-multiserver-proxy:main`.
+
+Example (without data volume):
+
+```
+docker run \
+	-it \
+	-p 40000:40000/udp \
+	--name mt-multiserver-proxy \
+	ghcr.io/himbeerserverde/mt-multiserver-proxy:main
+```
 
 ## Build
 
