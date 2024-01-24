@@ -104,6 +104,11 @@ go build -race ./cmd/mt-multiserver-proxy
 
 *Do not move the binaries! Doing so breaks automatic plugin builds.*
 
+### Docker
+
+The proxy can be run in Docker. See [doc/docker.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/docker.md)
+for instructions and details.
+
 ## Usage
 
 ### Starting
