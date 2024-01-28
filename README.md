@@ -42,7 +42,8 @@ for all versions that were ever supported:
 * Minetest 5.4: [4c90fdd8d212a1c94a7e9ffad587ef610dcc243b](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/4c90fdd8d212a1c94a7e9ffad587ef610dcc243b), chat command plugin: [bae3cf2cf232a90203677464d83bbffc50be77b1](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/bae3cf2cf232a90203677464d83bbffc50be77b1)
 * Minetest 5.5: [dd9e80d6a9a7031c97c64a1979e1e514c092a4cd](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/dd9e80d6a9a7031c97c64a1979e1e514c092a4cd), chat command plugin: [fc27ae7c87be94a39bb9ccb15f2ad0b27fcac76c](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/fc27ae7c87be94a39bb9ccb15f2ad0b27fcac76c)
 * Minetest 5.6: [04705a9129afe3e3f5414af1799667efcc57d3eb](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/04705a9129afe3e3f5414af1799667efcc57d3eb), chat command plugin: [4020944da5bce99b878fae4c2d9709f610f4cf6a](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/4020944da5bce99b878fae4c2d9709f610f4cf6a)
-* Minetest 5.7: latest
+* Minetest 5.7: [629d57a651b46539af3ffed36fb0649b3ea6d346](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/629d57a651b46539af3ffed36fb0649b3ea6d346), chat command plugin: [718f8defad54adc04ac81f535b6d59c82a13298e](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/718f8defad54adc04ac81f535b6d59c82a13298e)
+* Minetest 5.8: latest
 
 The chat command plugin commit hashes are specified for old proxy versions
 that didn't support automatic plugin building and version management yet.
