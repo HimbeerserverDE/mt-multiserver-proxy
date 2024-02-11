@@ -45,10 +45,14 @@ for all versions that were ever supported:
 * Minetest 5.7: [629d57a651b46539af3ffed36fb0649b3ea6d346](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/629d57a651b46539af3ffed36fb0649b3ea6d346), chat command plugin: [718f8defad54adc04ac81f535b6d59c82a13298e](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/718f8defad54adc04ac81f535b6d59c82a13298e)
 * Minetest 5.8: latest
 
-The chat command plugin commit hashes are specified for old proxy versions
-that didn't support automatic plugin building and version management yet.
-It's important to downgrade the plugin to that version if you want it to work
-with the corresponding proxy version.
+The chat command plugin commit hashes are mainly specified for old proxy
+versions that didn't support automatic plugin building and version management
+yet. Using the `mt-build-plugin` tool should be sufficient, though there may
+be API changes preventing the plugin from compiling against an old proxy
+version in which case the commit hashes are needed too. Conclusively it's
+important to downgrade the plugin to that version if you want it to work with
+an old proxy version without automatic plugin building and version management
+or if it doesn't compile against old proxy versions anymore.
 
 ### Minetest development builds
 
