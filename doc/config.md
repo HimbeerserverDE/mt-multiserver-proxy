@@ -136,6 +136,8 @@ selection accept server groups on top of regular server names,
 randomly choosing one of its servers. If a server name and a group name
 are in conflict, the server name is preferred.
 This feature can be used to implement simple load balancing.
+See [server_groups.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/server_groups.md)
+for more information.
 ```
 
 > `Server.Fallbacks`
