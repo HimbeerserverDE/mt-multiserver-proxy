@@ -245,6 +245,8 @@ Description: Servers cannot override CSM Restriction Flags if this is true.
 Type: map[string][]string
 Default: map[string][]string{}
 Description: The list of permission groups.
+See [permissions.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/permissions.md)
+for details on the permission system.
 ```
 
 > `Groups[k]`
@@ -262,6 +264,8 @@ Asterisks in other places are treated as regular characters.
 Type: map[string]string
 Default: map[string]string{}
 Description: This sets the group of a user.
+See [permissions.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/blob/main/doc/permissions.md)
+for details on the permission system.
 ```
 
 > `UserGroups[k]`
