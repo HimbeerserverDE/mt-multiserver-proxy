@@ -18,7 +18,7 @@ func (sc *ServerConn) handleAOMsg(aoMsg mt.AOMsg) {
 		sc.swapAOID(&msg.Attach.ParentID)
 	case *mt.AOCmdProps:
 		for j := range msg.Props.Textures {
-			prependTexture(sc.mediaPool, &msg.Props.Textures[j])
+			prependTextureOrItem(sc.mediaPool, &msg.Props.Textures[j])
 		}
 		prepend(sc.mediaPool, &msg.Props.Mesh)
 		prepend(sc.mediaPool, &msg.Props.Itemstring)

@@ -17,8 +17,8 @@ import (
 
 const (
 	serializeVer       = 29
-	protoVer           = 43
-	versionString      = "5.8.0"
+	protoVer           = 44
+	versionString      = "5.9.0"
 	maxPlayerNameLen   = 20
 	bytesPerMediaBunch = 5000
 )

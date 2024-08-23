@@ -648,9 +648,11 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		return
 	case *mt.ToCltInv:
 		var oldInv mt.Inv
-		copy(oldInv, sc.inv)
+		oldB := &strings.Builder{}
+		sc.inv.Serialize(oldB)
+		oldInv.Deserialize(strings.NewReader(oldB.String()))
 		sc.inv.Deserialize(strings.NewReader(cmd.Inv))
-		sc.prependInv(sc.inv)
+		sc.prependInvKeep(sc.inv, oldInv)
 
 		handStack := mt.Stack{
 			Item: mt.Item{
@@ -814,7 +816,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			}
 		}
 	case *mt.ToCltSpawnParticle:
-		prependTexture(sc.mediaPool, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.TextureName)
 		sc.globalParam0(&cmd.NodeParam0)
 	case *mt.ToCltBlkData:
 		for i := range cmd.Blk.Param0 {
@@ -833,7 +835,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltAddNode:
 		sc.globalParam0(&cmd.Node.Param0)
 	case *mt.ToCltAddParticleSpawner:
-		prependTexture(sc.mediaPool, &cmd.Texture)
+		prependTexture(sc.mediaPool, &cmd.TextureName)
 		sc.swapAOID(&cmd.AttachedAOID)
 		sc.globalParam0(&cmd.NodeParam0)
 		sc.particleSpawners[cmd.ID] = struct{}{}

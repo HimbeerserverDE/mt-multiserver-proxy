@@ -18,6 +18,7 @@ import (
 )
 
 var disallowedChars = regexp.MustCompile("[^a-zA-Z0-9-_.:]")
+var itemstring = regexp.MustCompile("^[a-zA-Z0-9_]+:[a-zA-Z0-9_]+$")
 
 var b64 = base64.StdEncoding
 
@@ -590,12 +591,21 @@ func (cc *ClientConn) srvParam0(p0 *mt.Content) string {
 	return ""
 }
 
-func isDefaultNode(s string) bool {
-	list := []string{
-		"",
-		"air",
-		"unknown",
-		"ignore",
+func isDefaultNode(s string, isTexture bool) bool {
+	var list []string
+	if isTexture {
+		list = []string{
+			"",
+			"sun.png",
+			"moon.png",
+		}
+	} else {
+		list = []string{
+			"",
+			"air",
+			"unknown",
+			"ignore",
+		}
 	}
 
 	for _, s2 := range list {
@@ -608,22 +618,13 @@ func isDefaultNode(s string) bool {
 }
 
 func prependRaw(prep string, s *string, isTexture bool) {
-	if !isDefaultNode(*s) {
-		subs := disallowedChars.Split(*s, -1)
-		seps := disallowedChars.FindAllString(*s, -1)
-
-		for i, sub := range subs {
-			if !isTexture || strings.Contains(sub, ".") {
-				subs[i] = prep + "_" + sub
-			}
-		}
-
-		*s = ""
-		for i, sub := range subs {
-			*s += sub
-			if i < len(seps) {
-				*s += seps[i]
-			}
+	if !isDefaultNode(*s, isTexture) {
+		if isTexture {
+			*s = ReplaceAllStringSubmatchFunc(textureName, *s, func(groups []string) string {
+				return prep + "_" + groups[1]
+			})
+		} else {
+			*s = prep + "_" + *s
 		}
 	}
 }
@@ -638,12 +639,48 @@ func prependTexture(prep string, t *mt.Texture) {
 	*t = mt.Texture(s)
 }
 
+func prependTextureOrItem(prep string, t *mt.Texture) {
+	s := string(*t)
+	if itemstring.MatchString(s) {
+		prependRaw(prep, &s, false)
+	} else {
+		prependRaw(prep, &s, true)
+	}
+	*t = mt.Texture(s)
+}
+
 func (sc *ServerConn) prependInv(inv mt.Inv) {
 	for k, l := range inv {
-		for i := range l.Stacks {
-			prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
+		for i, stack := range l.Stacks {
+			if stack.Name != "" {
+				prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
+			}
 		}
 	}
+}
+
+func (sc *ServerConn) prependInvKeep(inv, old mt.Inv) {
+	for k, l := range inv {
+		for i, stack := range l.Stacks {
+			if shouldPrepend(old, k, i, stack.Name) {
+				prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
+			}
+		}
+	}
+}
+
+func shouldPrepend(old mt.Inv, listIndex, stackIndex int, itemName string) bool {
+	if listIndex >= len(old) {
+		return true
+	}
+	list := old[listIndex].InvList
+
+	if stackIndex >= len(list.Stacks) {
+		return true
+	}
+	stack := list.Stacks[stackIndex]
+
+	return itemName != "" && itemName != stack.Name
 }
 
 func (sc *ServerConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
