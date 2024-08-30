@@ -460,6 +460,7 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			}
 
 			def.Param0 = param0
+			oldName := def.Name // copy string to use later
 			prepend(cc.mediaPool, &def.Name)
 			prepend(cc.mediaPool, &def.Mesh)
 			for i := range def.Tiles {
@@ -487,6 +488,9 @@ func muxNodeDefs(conns []*contentConn) (nodeDefs []mt.NodeDef, p0Map param0Map, 
 			if param0 >= mt.Unknown && param0 <= mt.Ignore {
 				param0 = mt.Ignore + 1
 			}
+
+			// add nodeid (if reqested)
+			addNodeId(oldName, def.Param0)
 		}
 	}
 
