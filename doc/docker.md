@@ -107,12 +107,12 @@ Or use compose:
 services:
   proxy:
     container_name: mt-multiserver-proxy
-	image: mt-multiserver-proxy
-	ports:
-	  - "40000:40000/udp"
-	restart: unless-stopped
-	volumes:
-	  - mtproxy_data:/usr/local/mt-multiserver-proxy
+    image: mt-multiserver-proxy
+    ports:
+      - "40000:40000/udp"
+    restart: unless-stopped
+    volumes:
+      - mtproxy_data:/usr/local/mt-multiserver-proxy
 volumes:
   mtproxy_data:
     external: true
