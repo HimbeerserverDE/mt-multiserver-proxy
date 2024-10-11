@@ -165,15 +165,21 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 		}
 
 		cc.SendCmd(&mt.ToCltSkyParams{
-			Type:         "regular",
-			Clouds:       true,
-			DayHorizon:   color.NRGBA{144, 211, 246, 255},
-			DawnHorizon:  color.NRGBA{186, 193, 240, 255},
-			NightHorizon: color.NRGBA{64, 144, 255, 255},
-			DaySky:       color.NRGBA{97, 181, 245, 255},
-			DawnSky:      color.NRGBA{180, 186, 250, 255},
-			NightSky:     color.NRGBA{0, 107, 255, 255},
-			Indoor:       color.NRGBA{100, 100, 100, 255},
+			BgColor:       color.NRGBA{255, 255, 255, 255},
+			Type:          "regular",
+			Clouds:        true,
+			SunFogTint:    color.NRGBA{244, 125, 29, 255},
+			MoonFogTint:   color.NRGBA{128, 153, 204, 255},
+			FogTintType:   "default",
+			DayHorizon:    color.NRGBA{144, 211, 246, 255},
+			DawnHorizon:   color.NRGBA{186, 193, 240, 255},
+			NightHorizon:  color.NRGBA{64, 144, 255, 255},
+			DaySky:        color.NRGBA{97, 181, 245, 255},
+			DawnSky:       color.NRGBA{180, 186, 250, 255},
+			NightSky:      color.NRGBA{0, 107, 255, 255},
+			Indoor:        color.NRGBA{100, 100, 100, 255},
+			BodyOrbitTilt: -1024,
+			FogDistance:   -1,
 		})
 
 		cc.SendCmd(&mt.ToCltStarParams{
