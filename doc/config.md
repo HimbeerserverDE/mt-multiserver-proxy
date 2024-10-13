@@ -145,8 +145,7 @@ for more information.
 Type: string
 Default: ""
 Description: The name of the server a client should fall back to if this server
-shuts down or crashes gracefully. Connection attempts are made in the order in
-which the servers are given.
+shuts down, crashes gracefully or the network connection disconnects.
 ```
 
 > `ForceDefaultSrv`
