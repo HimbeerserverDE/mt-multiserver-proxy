@@ -112,6 +112,9 @@ func (cc *ClientConn) Log(dir string, v ...interface{}) {
 	cc.logger.Println(append([]interface{}{dir}, v...)...)
 }
 
+// CltInfo returns the ToSrvCltInfo known about the client.
+func (cc *ClientConn) ToSrvCltInfo() *mt.ToSrvCltInfo { return cc.cltInfo }
+
 func handleClt(cc *ClientConn) {
 	for {
 		pkt, err := cc.Recv()
