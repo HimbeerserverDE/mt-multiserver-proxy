@@ -104,7 +104,6 @@ func handleSrv(sc *ServerConn) {
 		}
 	}()
 
-RecvLoop:
 	for {
 		pkt, err := sc.Recv()
 		if err != nil {
@@ -117,38 +116,27 @@ RecvLoop:
 
 				if sc.client() != nil {
 					if errors.Is(sc.WhyClosed(), rudp.ErrTimedOut) {
-						sc.client().SendChatMsg("Server connection timed out, triggering fallback.")
-					} else {
-						sc.client().SendChatMsg("Server connection lost, triggering fallback.")
-					}
+						sc.client().SendChatMsg("Server connection timed out, switching to fallback server.")
 
-					for _, srvName := range FallbackServers(sc.name) {
-						if err := sc.client().HopRaw(srvName); err != nil {
-							sc.client().Log("<-", err)
-							sc.client().SendChatMsg("Could not connect to "+srvName+", continuing fallback. Error:", err.Error())
+						if sc.client().whyKicked == nil {
+							sc.client().whyKicked = &mt.ToCltKick{
+								Reason: mt.Custom,
+								Custom: "Server connection timed out.",
+							}
 						}
+					} else {
+						sc.client().SendChatMsg("Server connection lost, switching to fallback server.")
 
-						break RecvLoop
+						if sc.client().whyKicked == nil {
+							sc.client().whyKicked = &mt.ToCltKick{
+								Reason: mt.Custom,
+								Custom: "Server connection lost.",
+							}
+						}
 					}
 
-					ack, _ := sc.client().SendCmd(&mt.ToCltKick{
-						Reason: mt.Custom,
-						Custom: "Server connection closed unexpectedly.",
-					})
-
-					select {
-					case <-sc.client().Closed():
-					case <-ack:
-						sc.client().Close()
-
-						sc.client().mu.Lock()
-						sc.client().srv = nil
-						sc.client().mu.Unlock()
-
-						sc.mu.Lock()
-						sc.clt = nil
-						sc.mu.Unlock()
-					}
+					sc.client().fallback()
+					break
 				}
 
 				break

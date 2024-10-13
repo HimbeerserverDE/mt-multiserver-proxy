@@ -40,6 +40,9 @@ type ClientConn struct {
 		salt, srpA, srpB, srpM, srpK []byte
 	}
 
+	fallbackFrom string
+	whyKicked    *mt.ToCltKick
+
 	lang string
 
 	major, minor, patch uint8

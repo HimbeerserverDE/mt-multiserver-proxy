@@ -5,7 +5,7 @@ in the `Groups` subfield of the server definition in the config.
 Configuration options that support server groups will randomly choose
 from their member servers every time they are applied to a client.
 
-Neither local nor global fallback servers can be server groups.
+Fallback servers cannot be server groups.
 
 If there is a server group with the same name as a regular server,
 the regular server is preferred, rendering the group inaccessible.

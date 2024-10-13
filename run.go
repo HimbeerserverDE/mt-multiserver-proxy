@@ -156,18 +156,24 @@ func runFunc() {
 
 			if err := doConnect(srvName, srv); err != nil {
 				cc.Log("<-", err)
-				cc.SendChatMsg("Could not connect, triggering fallback. Error:", err.Error())
+				cc.SendChatMsg("Could not connect, trying fallback server. Error:", err)
 
-				for _, fbName := range FallbackServers(srvName) {
-					fb, ok := conf.Servers[fbName]
+				fbName := srv.Fallback
+				for fbName != "" {
+					var ok bool
+					srv, ok = conf.Servers[fbName]
 					if !ok {
 						cc.Log("<-", "invalid fallback")
 						continue
 					}
 
-					if err := doConnect(fbName, fb); err != nil {
+					if err := doConnect(fbName, srv); err != nil {
+						fbName = srv.Fallback
+
 						cc.Log("<-", err)
-						cc.SendChatMsg("Could not connect, continuing fallback. Error:", err.Error())
+						cc.SendChatMsg("Could not connect, trying next fallback server. Error:", err.Error())
+					} else {
+						break
 					}
 				}
 			}

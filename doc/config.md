@@ -140,15 +140,13 @@ See [server_groups.md](https://github.com/HimbeerserverDE/mt-multiserver-proxy/b
 for more information.
 ```
 
-> `Server.Fallbacks`
+> `Server.Fallback`
 ```
-Type: []string
-Default: []string{}
-Description: The names of the servers a client should fall back to
-if this server shuts down or crashes gracefully. Connection attempts
-are made in the order in which the servers are given. As soon as
-a connection is successful the other fallback servers in this list
-will be ignored.
+Type: string
+Default: ""
+Description: The name of the server a client should fall back to if this server
+shuts down or crashes gracefully. Connection attempts are made in the order in
+which the servers are given.
 ```
 
 > `ForceDefaultSrv`
@@ -222,15 +220,6 @@ Description: CSMs can access the player list.
 Type: uint32
 Default: 0
 Description: The maximum distance from which CSMs can read the map.
-```
-
-> `FallbackServers`
-```
-Type: []string
-Default: []string{}
-Description: Names of general fallback servers to connect to
-if a connection attempt fails or an existing connection
-to a game server is lost.
 ```
 
 > `DropCSMRF`

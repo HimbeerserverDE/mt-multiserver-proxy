@@ -568,16 +568,12 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		sc.Log("<-", "deny access", cmd)
 
 		if cmd.Reason == mt.Shutdown || cmd.Reason == mt.Crash || cmd.Reason == mt.SrvErr || cmd.Reason == mt.TooManyClts || cmd.Reason == mt.UnsupportedVer {
-			clt.SendChatMsg("A kick occured, triggering fallback. Reason:", cmd.String())
+			clt.SendChatMsg("A kick occured, switching to fallback server. Reason:", cmd)
 
-			for _, srvName := range FallbackServers(sc.name) {
-				if err := clt.HopRaw(srvName); err != nil {
-					clt.Log("<-", err)
-					clt.SendChatMsg("Could not connect to "+srvName+", continuing fallback. Error:", err.Error())
-				}
+			clt.whyKicked = cmd
 
-				return
-			}
+			clt.fallback()
+			return
 		}
 
 		ack, _ := clt.SendCmd(cmd)

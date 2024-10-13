@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/HimbeerserverDE/mt"
 )
@@ -42,7 +43,17 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 
 	cc.mu.Lock()
 	cc.srv = sc
+	cc.fallbackFrom = sc.name
 	cc.mu.Unlock()
+
+	// Mark fallback as done after a connection has persisted for some time.
+	go func() {
+		time.Sleep(10 * time.Second)
+
+		if cc.srv == sc {
+			cc.whyKicked = nil
+		}
+	}()
 
 	go handleSrv(sc)
 	return sc

@@ -29,7 +29,7 @@ type Server struct {
 	Addr      string
 	MediaPool string
 	Groups    []string
-	Fallbacks []string
+	Fallback  string
 
 	dynamic   bool
 	poolAdded time.Time
@@ -53,7 +53,6 @@ type Config struct {
 	Servers          map[string]Server
 	ForceDefaultSrv  bool
 	KickOnNewPool    bool
-	FallbackServers  []string
 	CSMRF            struct {
 		NoCSMs          bool
 		ChatMsgs        bool
@@ -164,9 +163,6 @@ func (cnf Config) clone() Config {
 	newConfig := cnf
 
 	newConfig.Servers = copyMap(cnf.Servers)
-
-	newConfig.FallbackServers = make([]string, len(cnf.FallbackServers))
-	copy(newConfig.FallbackServers, cnf.FallbackServers)
 
 	newConfig.Groups = copyMapSlice(cnf.Groups)
 	newConfig.UserGroups = copyMap(cnf.UserGroups)
@@ -286,29 +282,6 @@ func (cnf Config) RandomGroupServer(search string) (string, bool) {
 	return candidates[rand.Intn(len(candidates))], true
 }
 
-// FallbackServers returns a slice of server names that
-// a server can fall back to.
-func FallbackServers(server string) []string {
-	conf := Conf()
-
-	srv, ok := conf.Servers[server]
-	if !ok {
-		return nil
-	}
-
-	fallbacks := srv.Fallbacks
-	fallbacks = append(fallbacks, conf.FallbackServers...)
-
-	final := make([]string, 0, len(fallbacks))
-	for _, srvName := range fallbacks {
-		if srvName != server {
-			final = append(final, srvName)
-		}
-	}
-
-	return final
-}
-
 // LoadConfig attempts to parse the configuration file.
 // It leaves the config unchanged if there is an error
 // and returns the error.
@@ -325,7 +298,6 @@ func LoadConfig() error {
 	config.TelnetAddr = defaultTelnetAddr
 	config.BindAddr = defaultBindAddr
 	config.Servers = make(map[string]Server)
-	config.FallbackServers = make([]string, 0)
 	config.Groups = make(map[string][]string)
 	config.UserGroups = make(map[string]string)
 	config.List.Interval = defaultListInterval
