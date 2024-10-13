@@ -28,10 +28,10 @@ func (cc *ClientConn) DoChatMsg(msg string) {
 }
 
 // SendChatMsg sends a chat message to the ClientConn.
-func (cc *ClientConn) SendChatMsg(msg ...string) {
+func (cc *ClientConn) SendChatMsg(msg ...any) {
 	cc.SendCmd(&mt.ToCltChatMsg{
 		Type:      mt.SysMsg,
-		Text:      strings.Join(msg, " "),
+		Text:      strings.TrimSpace(fmt.Sprintln(msg...)),
 		Timestamp: time.Now().Unix(),
 	})
 }
