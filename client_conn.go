@@ -126,6 +126,9 @@ func handleClt(cc *ClientConn) {
 				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
 					cc.Log("<->", "timeout")
 				} else {
+					handlePlayerLeave(cc, &Leave{
+						Type: Exit,
+					})
 					cc.Log("<->", "disconnect")
 				}
 

@@ -60,6 +60,9 @@ func runFunc() {
 
 	log.Println("listen", l.Addr())
 
+	// plugin_node.go
+	initPluginNode()
+
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
@@ -123,7 +126,21 @@ func runFunc() {
 				return
 			}
 
-			srvName, srv := conf.DefaultServerInfo()
+			var srv, s Server
+			var found bool
+			
+			srvName := handlePlayerJoin(cc)
+			if srvName != "" {
+				s, found = Conf().Servers[srvName]
+			}
+
+			if found {
+				srv = s
+			} else { 
+				srvName, srv = conf.DefaultServerInfo()
+			}
+
+			
 			lastSrv, err := authIface.LastSrv(cc.Name())
 			if err == nil && !conf.ForceDefaultSrv && lastSrv != srvName {
 				choice, ok := conf.RandomGroupServer(lastSrv)

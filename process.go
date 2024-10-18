@@ -680,11 +680,19 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		for k := range cmd.Msgs {
 			sc.swapAOID(&cmd.Msgs[k].ID)
 			sc.handleAOMsg(cmd.Msgs[k].Msg)
+
+			if handleAOMsg(sc, cmd.Msgs[k].ID, cmd.Msgs[k].Msg) {
+				return
+			}
 		}
 	case *mt.ToCltAORmAdd:
 		resp := &mt.ToCltAORmAdd{}
 
 		for _, ao := range cmd.Remove {
+			if handleAORm(sc, ao) {
+				continue
+			}
+		
 			delete(sc.aos, ao)
 			resp.Remove = append(resp.Remove, ao)
 		}
@@ -715,10 +723,18 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 				sc.swapAOID(&ao.ID)
 				for _, msg := range ao.InitData.Msgs {
 					sc.handleAOMsg(msg)
+
+					if handleAOMsg(sc, ao.ID, msg) {
+						return
+					}
 				}
 
 				resp.Add = append(resp.Add, ao)
 				sc.aos[ao.ID] = struct{}{}
+			}
+
+			if handleAOAdd(sc, ao.ID, &ao) {
+				continue
 			}
 		}
 
@@ -827,6 +843,10 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 				}
 			}
 			sc.prependInv(cmd.Blk.NodeMetas[k].Inv)
+		}
+
+		if handleBlkData(sc.client(), cmd) {
+			return
 		}
 	case *mt.ToCltAddNode:
 		sc.globalParam0(&cmd.Node.Param0)

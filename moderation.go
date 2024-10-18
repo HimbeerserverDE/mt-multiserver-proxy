@@ -10,9 +10,16 @@ import (
 // and closes the ClientConn.
 func (cc *ClientConn) Kick(reason string) {
 	go func() {
-		ack, _ := cc.SendCmd(&mt.ToCltKick{
+		kick := &mt.ToCltKick{
 			Reason: mt.Custom,
 			Custom: reason,
+		}
+	
+		ack, _ := cc.SendCmd(kick)
+
+		handlePlayerLeave(cc ,&Leave{
+			Type: Kick,
+			Kick: kick,
 		})
 
 		select {

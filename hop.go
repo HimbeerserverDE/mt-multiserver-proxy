@@ -63,6 +63,8 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 
 	cc.Log("<->", "hop", serverName)
 
+	source := cc.ServerName()
+
 	if cc.server() == nil {
 		return ErrNoServerConn
 	}
@@ -215,6 +217,8 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 	if cc.cltInfo != nil { // May not be initialized yet if this is an early fallback.
 		cc.server().SendCmd(cc.cltInfo)
 	}
+
+	handlePlayerHop(cc, source, serverName)
 
 	return nil
 }
