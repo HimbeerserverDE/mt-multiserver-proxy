@@ -103,16 +103,18 @@ func openPlugins() {
 				log.Print(err)
 				continue
 			}
+
+			log.Println("load auto plugin", pl.Name())
 		} else if !pl.IsDir() {
 			_, err := plugin.Open(path + "/" + pl.Name())
 			if err != nil {
 				log.Print(err)
 				continue
 			}
+
+			log.Println("load comp plugin", pl.Name())
 		}
 	}
-
-	log.Print("load plugins")
 }
 
 func goCmd(args ...string) error {
