@@ -88,7 +88,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.name = cmd.PlayerName
 		cc.logger.SetPrefix(fmt.Sprintf("[%s %s] ", cc.RemoteAddr(), cc.Name()))
 
-		if authIface.Banned(cc.RemoteAddr().(*net.UDPAddr)) {
+		if DefaultAuth().Banned(cc.RemoteAddr().(*net.UDPAddr)) {
 			cc.Log("<-", "banned")
 			cc.Kick("Banned by proxy.")
 			return
@@ -141,7 +141,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		// reply
-		if authIface.Exists(cc.Name()) {
+		if DefaultAuth().Exists(cc.Name()) {
 			cc.auth.method = mt.SRP
 		} else {
 			cc.auth.method = mt.FirstSRP
@@ -188,7 +188,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				return
 			}
 
-			if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
+			if err := DefaultAuth().SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 				cc.Log("<-", "set password fail")
 				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})
 
@@ -215,7 +215,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			}
 
 			cc.setState(csActive)
-			if err := authIface.SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
+			if err := DefaultAuth().SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 				cc.Log("<-", "change password fail")
 				cc.SendChatMsg("Password change failed or unavailable.")
 				return
@@ -258,7 +258,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 		cc.auth.method = mt.SRP
 
-		salt, verifier, err := authIface.Passwd(cc.Name())
+		salt, verifier, err := DefaultAuth().Passwd(cc.Name())
 		if err != nil {
 			cc.Log("<-", "SRP data retrieval fail")
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})

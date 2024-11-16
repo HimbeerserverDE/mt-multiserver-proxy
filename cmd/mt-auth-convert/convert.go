@@ -9,6 +9,9 @@ where from is the format to convert from
 and to is the format to convert to
 and inconn is the postgres connection string for the source database
 and outconn is the postgres connection string for the destination database.
+
+Other backend-specific configuration is provided by the respective plugin's
+configuration mechanism if needed.
 */
 package main
 
@@ -23,6 +26,8 @@ func main() {
 	if len(os.Args) != 5 {
 		log.Fatal("usage: mt-auth-convert from to inconn outconn")
 	}
+
+	proxy.LoadPlugins()
 
 	var inBackend proxy.AuthBackend
 	switch os.Args[1] {
@@ -41,7 +46,10 @@ func main() {
 			log.Fatal(err)
 		}
 	default:
-		log.Fatal("invalid input auth backend")
+		var ok bool
+		if inBackend, ok = proxy.Auth(os.Args[1]); !ok {
+			log.Fatal("invalid input auth backend")
+		}
 	}
 
 	var outBackend proxy.AuthBackend
@@ -61,7 +69,10 @@ func main() {
 			log.Fatal(err)
 		}
 	default:
-		log.Fatal("invalid output auth backend")
+		var ok bool
+		if outBackend, ok = proxy.Auth(os.Args[2]); !ok {
+			log.Fatal("invalid output auth backend")
+		}
 	}
 
 	if err := convert(outBackend, inBackend); err != nil {

@@ -69,7 +69,7 @@ func (a *AuthMTSQLite3) Passwd(name string) (salt, verifier []byte, err error) {
 		return
 	}
 
-	salt, verifier, err = decodeVerifierAndSalt(encodedPasswd)
+	salt, verifier, err = DecodeVerifierAndSalt(encodedPasswd)
 
 	a.updateTimestamp(name)
 	return
@@ -78,7 +78,7 @@ func (a *AuthMTSQLite3) Passwd(name string) (salt, verifier []byte, err error) {
 // SetPasswd creates a password entry if necessary
 // and sets the password of a user.
 func (a *AuthMTSQLite3) SetPasswd(name string, salt, verifier []byte) error {
-	encodedPasswd := encodeVerifierAndSalt(salt, verifier)
+	encodedPasswd := EncodeVerifierAndSalt(salt, verifier)
 
 	_, err := a.db.Exec("REPLACE INTO auth (name, password, last_login) VALUES (?, ?, unixepoch());", name, encodedPasswd)
 	return err

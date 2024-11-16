@@ -27,16 +27,6 @@ func (cc *ClientConn) Kick(reason string) {
 // network address from connecting again.
 func (cc *ClientConn) Ban() error {
 	cc.Kick("Banned by proxy.")
-	return authIface.Ban(cc.RemoteAddr().(*net.UDPAddr).IP.String(), cc.name)
-}
-
-// Unban removes a player from the ban list. It accepts both
-// network addresses and player names.
-func Unban(id string) error {
-	return authIface.Unban(id)
-}
-
-// Banned reports whether a network address is banned.
-func Banned(addr *net.UDPAddr) bool {
-	return authIface.Banned(addr)
+	ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
+	return DefaultAuth().Ban(ip, cc.name)
 }

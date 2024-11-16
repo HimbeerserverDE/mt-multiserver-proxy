@@ -94,3 +94,29 @@ Example (converting Minetest's PostgreSQL database to the `files` backend):
 ```
 mt-auth-convert mtpostgresql files 'host=localhost user=mt dbname=mtauth sslmode=disable' nil
 ```
+
+## Implementing custom authentication backends
+
+Plugins can implement their own authentication backends and register them
+using the [RegisterAuthBackend](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy#RegisterAuthBackend)
+function. These plugins can then be enabled by setting the `AuthBackend`
+config option. Configuration for them is provided through a plugin-specific
+configuration mechanism if needed.
+
+This makes it possible to integrate with custom environments, especially those
+that share a database with other services such as a forum.
+
+Note that the network protocol is always SRP and the credentials are always SRP
+verifiers and salts. This is a protocol limitation and should not be an issue.
+
+When implementing an authentication backend, make sure you follow the
+[interface documentation](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy#AuthBackend)
+carefully. The active authentication backend can be accessed using the
+[DefaultAuth](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy#DefaultAuth)
+function *after initialization time*.
+Other backends can be accessed using the
+[Auth](https://pkg.go.dev/github.com/HimbeerserverDE/mt-multiserver-proxy#Auth)
+function *after initialization time*.
+
+Custom backends can be handled by the [mt-auth-convert](#mt-auth-convert) tool
+as long as it is able to load the relevant plugin(s).

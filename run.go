@@ -20,11 +20,11 @@ func Run() {
 
 func runFunc() {
 	if !Conf().NoPlugins {
-		loadPlugins()
+		LoadPlugins()
 	}
 
-	var err error
-	switch Conf().AuthBackend {
+	authBackendName := Conf().AuthBackend
+	switch authBackendName {
 	case "files":
 		setAuthBackend(AuthFiles{})
 	case "mtsqlite3":
@@ -41,8 +41,14 @@ func runFunc() {
 		}
 
 		setAuthBackend(ab)
-	default:
+	case "":
 		log.Fatal("invalid auth backend")
+	default:
+		if ab, ok := authBackends[authBackendName]; ok {
+			setAuthBackend(ab)
+		} else {
+			log.Fatal("invalid auth backend")
+		}
 	}
 
 	addr, err := net.ResolveUDPAddr("udp", Conf().BindAddr)
@@ -124,7 +130,7 @@ func runFunc() {
 			}
 
 			srvName, srv := conf.DefaultServerInfo()
-			lastSrv, err := authIface.LastSrv(cc.Name())
+			lastSrv, err := DefaultAuth().LastSrv(cc.Name())
 			if err == nil && !conf.ForceDefaultSrv && lastSrv != srvName {
 				choice, ok := conf.RandomGroupServer(lastSrv)
 				if !ok {

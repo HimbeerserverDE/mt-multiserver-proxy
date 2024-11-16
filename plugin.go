@@ -64,7 +64,10 @@ func buildPluginDev(version string) error {
 	return nil
 }
 
-func loadPlugins() {
+// LoadPlugins loads all plugins. Further calls are no-ops.
+// This function is not intended to be called by plugins.
+// It is meant for tools such as mt-auth-convert.
+func LoadPlugins() {
 	pluginsOnce.Do(openPlugins)
 }
 

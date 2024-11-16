@@ -123,7 +123,7 @@ func (a *AuthMTPostgreSQL) Passwd(name string) (salt, verifier []byte, err error
 		return
 	}
 
-	salt, verifier, err = decodeVerifierAndSalt(encodedPasswd)
+	salt, verifier, err = DecodeVerifierAndSalt(encodedPasswd)
 
 	a.updateTimestamp(name)
 	return
@@ -132,7 +132,7 @@ func (a *AuthMTPostgreSQL) Passwd(name string) (salt, verifier []byte, err error
 // SetPasswd creates a password entry if necessary
 // and sets the password of a user.
 func (a *AuthMTPostgreSQL) SetPasswd(name string, salt, verifier []byte) error {
-	encodedPasswd := encodeVerifierAndSalt(salt, verifier)
+	encodedPasswd := EncodeVerifierAndSalt(salt, verifier)
 
 	_, err := a.db.Exec("INSERT INTO auth (name, password, last_login) VALUES ($1, $2, extract(epoch from now())) ON CONFLICT (name) DO UPDATE SET password = EXCLUDED.password, last_login = extract(epoch from now());", name, encodedPasswd)
 	return err

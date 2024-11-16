@@ -27,21 +27,58 @@ type Ban struct {
 	Name string
 }
 
+// An AuthBackend provides authentication and moderation functionality.
+// This typically includes persistent storage.
+// It does not handle authorization, i.e. permission checks.
+// All methods are safe for concurrent use.
 type AuthBackend interface {
+	// Exists reports whether a user with the specified name exists.
+	// The result is false if an error is encountered.
 	Exists(name string) bool
+	// Passwd returns the SRP verifier and salt of the user
+	// with the specified name or an error.
 	Passwd(name string) (salt, verifier []byte, err error)
+	// SetPasswd sets the SRP verifier and salt of the user
+	// with the specified name.
 	SetPasswd(name string, salt, verifier []byte) error
+	// LastSrv returns the name of the last server the user
+	// with the specified name intentionally connected to or an error.
+	// This method should return an error if this feature is unsupported.
+	// Errors are handled gracefully (by connecting the user
+	// to the default server or group) and aren't logged.
 	LastSrv(name string) (string, error)
+	// SetLastSrv sets the name of the last server the user
+	// with the specified name intentionally connected to.
+	// This method should not return an error if this feature is unsupported.
+	// Errors will make server hopping fail.
 	SetLastSrv(name, srv string) error
+	// Timestamp returns the last time the user with the specified name
+	// connected to the proxy or an error.
 	Timestamp(name string) (time.Time, error)
+	// Import adds or modifies authentication entries in bulk.
 	Import(in []User) error
+	// Export returns all authentication entries or an error.
 	Export() ([]User, error)
 
+	// Ban adds a ban entry for a network address and an associated name.
+	// Only the specified network address is banned from connecting.
+	// Existing connections are not kicked.
 	Ban(addr, name string) error
+	// Unban deletes a ban entry by network address or username.
 	Unban(id string) error
+	// Banned reports whether a network address is banned.
+	// The result is true if an error is encountered.
 	Banned(addr *net.UDPAddr) bool
+	// ImportBans adds or modifies ban entries in bulk.
 	ImportBans(in []Ban) error
+	// Export returns all ban entries or an error.
 	ExportBans() ([]Ban, error)
+}
+
+// DefaultAuth returns the authentication backend that is currently in use
+// or nil during initialization time.
+func DefaultAuth() AuthBackend {
+	return authIface
 }
 
 func setAuthBackend(ab AuthBackend) error {
@@ -53,11 +90,11 @@ func setAuthBackend(ab AuthBackend) error {
 	return nil
 }
 
-func encodeVerifierAndSalt(salt, verifier []byte) string {
+func EncodeVerifierAndSalt(salt, verifier []byte) string {
 	return "#1#" + b64.EncodeToString(salt) + "#" + b64.EncodeToString(verifier)
 }
 
-func decodeVerifierAndSalt(encodedPasswd string) ([]byte, []byte, error) {
+func DecodeVerifierAndSalt(encodedPasswd string) ([]byte, []byte, error) {
 	if !strings.HasPrefix(encodedPasswd, "#1#") {
 		return nil, nil, ErrInvalidSRPHeader
 	}

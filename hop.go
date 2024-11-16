@@ -24,7 +24,7 @@ var (
 func (cc *ClientConn) Hop(serverName string) (err error) {
 	defer func() {
 		if err == nil && !Conf().ForceDefaultSrv {
-			err = authIface.SetLastSrv(cc.Name(), serverName)
+			err = DefaultAuth().SetLastSrv(cc.Name(), serverName)
 		}
 	}()
 
