@@ -88,7 +88,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.name = cmd.PlayerName
 		cc.logger.SetPrefix(fmt.Sprintf("[%s %s] ", cc.RemoteAddr(), cc.Name()))
 
-		if DefaultAuth().Banned(cc.RemoteAddr().(*net.UDPAddr)) {
+		ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
+		if DefaultAuth().Banned(ip, cc.Name()) {
 			cc.Log("<-", "banned")
 			cc.Kick("Banned by proxy.")
 			return
@@ -339,6 +340,11 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				})
 			}
 		} else {
+			ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
+			if err := DefaultAuth().RecordFail(ip, cc.Name(), wantSudo); err != nil {
+				cc.Log("<-", "record auth fail:", err)
+			}
+
 			if wantSudo {
 				cc.Log("<-", "invalid password (sudo)")
 				cc.SendCmd(&mt.ToCltDenySudoMode{})

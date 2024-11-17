@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"net"
 	"os"
 	"time"
 )
@@ -164,15 +163,20 @@ func (a AuthFiles) Unban(id string) error {
 
 // Banned reports whether a network address is banned.
 // Error cases count as banned.
-func (a AuthFiles) Banned(addr *net.UDPAddr) bool {
+func (a AuthFiles) Banned(addr, name string) bool {
 	os.Mkdir(Path("ban"), 0700)
 
-	_, err := os.Stat(Path("ban/", addr.IP.String()))
+	_, err := os.Stat(Path("ban/", addr))
 	if os.IsNotExist(err) {
 		return false
 	}
 
 	return true
+}
+
+// RecordFail is a no-op.
+func (a AuthFiles) RecordFail(addr, name string, sudo bool) error {
+	return nil
 }
 
 // ImportBans deletes all ban entries and adds the passed entries.

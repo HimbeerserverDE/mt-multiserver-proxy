@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"errors"
-	"net"
 	"strings"
 	"time"
 )
@@ -66,9 +65,15 @@ type AuthBackend interface {
 	Ban(addr, name string) error
 	// Unban deletes a ban entry by network address or username.
 	Unban(id string) error
-	// Banned reports whether a network address is banned.
-	// The result is true if an error is encountered.
-	Banned(addr *net.UDPAddr) bool
+	// Banned reports whether a network address or username is banned.
+	// The result is true if either identifier is banned
+	// or if an error is encountered.
+	Banned(addr, name string) bool
+	// RecordFail records an authentication failure regarding a certain
+	// network address and username. The implementation is not required
+	// to process this event in any way, but the intent is to allow
+	// rate limiting / brute-force protection to be implemented by plugins.
+	RecordFail(addr, name string, sudo bool) error
 	// ImportBans adds or modifies ban entries in bulk.
 	ImportBans(in []Ban) error
 	// Export returns all ban entries or an error.

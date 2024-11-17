@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -207,14 +206,19 @@ func (a *AuthMTSQLite3) Unban(id string) error {
 
 // Banned reports whether a network address is banned.
 // Error cases count as banned.
-func (a *AuthMTSQLite3) Banned(addr *net.UDPAddr) bool {
+func (a *AuthMTSQLite3) Banned(addr, name string) bool {
 	bans, err := a.readBans()
 	if err != nil {
 		return true
 	}
 
-	_, ok := bans[addr.IP.String()]
+	_, ok := bans[addr]
 	return ok
+}
+
+// RecordFail is a no-op.
+func (a *AuthMTSQLite3) RecordFail(addr, name string, sudo bool) error {
+	return nil
 }
 
 // ImportBans adds the passed entries.
