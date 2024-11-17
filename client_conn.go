@@ -123,6 +123,10 @@ func handleClt(cc *ClientConn) {
 		pkt, err := cc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
+				if cc.state() == csActive {
+					handleLeave(cc)
+				}
+
 				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
 					cc.Log("<->", "timeout")
 				} else {

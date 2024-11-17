@@ -435,6 +435,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.formspecVer = cmd.Formspec
 
 		cc.setState(csActive)
+		handleJoin(cc)
 		close(cc.initCh)
 
 		return
