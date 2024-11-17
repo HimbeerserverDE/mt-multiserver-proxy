@@ -123,22 +123,26 @@ func runFunc() {
 				cc.Kick("No servers are configured.")
 				return
 			}
-			if _, ok := conf.Servers[""]; !ok && conf.DefaultServerName() == "" {
-				cc.Log("<-", "no default server")
-				cc.Kick("No valid default server is configured.")
-				return
-			}
 
-			srvName, srv := conf.DefaultServerInfo()
-			lastSrv, err := DefaultAuth().LastSrv(cc.Name())
-			if err == nil && !conf.ForceDefaultSrv && lastSrv != srvName {
-				choice, ok := conf.RandomGroupServer(lastSrv)
-				if !ok {
-					cc.Log("<-", "inexistent previous server")
+			srvName, srv := selectSrv(cc)
+			if srvName == "" {
+				if _, ok := conf.Servers[""]; !ok && conf.DefaultServerName() == "" {
+					cc.Log("<-", "no default server")
+					cc.Kick("No valid default server is configured.")
+					return
 				}
 
-				srvName = choice
-				srv, _ = conf.Servers[choice] // Existence already checked.
+				srvName, srv = conf.DefaultServerInfo()
+				lastSrv, err := DefaultAuth().LastSrv(cc.Name())
+				if err == nil && !conf.ForceDefaultSrv && lastSrv != srvName {
+					choice, ok := conf.RandomGroupServer(lastSrv)
+					if !ok {
+						cc.Log("<-", "inexistent previous server")
+					}
+
+					srvName = choice
+					srv, _ = conf.Servers[choice] // Existence already checked.
+				}
 			}
 
 			doConnect := func(srvName string, srv Server) error {

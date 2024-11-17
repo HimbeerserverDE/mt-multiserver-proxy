@@ -103,6 +103,14 @@ Default: ""
 Description: The default server to connect new clients to. May be a group.
 ```
 
+> `SrvSelector`
+```
+Type: string
+Default: ""
+Description: The server selection handler to use for new clients.
+Only useful when combined with a plugin providing a handler with that name.
+```
+
 > `Servers`
 ```
 Type: map[string]Server

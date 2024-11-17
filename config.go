@@ -50,6 +50,7 @@ type Config struct {
 	TelnetAddr       string
 	BindAddr         string
 	DefaultSrv       string
+	SrvSelector      string
 	Servers          map[string]Server
 	ForceDefaultSrv  bool
 	KickOnNewPool    bool
