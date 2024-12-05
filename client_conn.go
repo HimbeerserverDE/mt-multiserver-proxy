@@ -66,6 +66,8 @@ type ClientConn struct {
 	modChsMu sync.RWMutex
 
 	cltInfo *mt.ToSrvCltInfo
+
+	FormspecPrepend string
 }
 
 // Name returns the player name of the ClientConn.

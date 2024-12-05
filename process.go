@@ -480,6 +480,10 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 	case *mt.ToSrvCltInfo:
 		// Store for any future hops (need to send it to the new server).
 		cc.cltInfo = cmd
+	case *mt.ToSrvInvFields:
+		if handleOnPlayerReceiveFields(cc, cmd) {
+			return
+		}
 	}
 
 	forward(pkt)
