@@ -12,6 +12,10 @@ import (
 )
 
 func (cc *ClientConn) process(pkt mt.Pkt) {
+	defer func() {
+		cltLeaveModChans(cc)
+	}()
+
 	srv := cc.server()
 
 	forward := func(pkt mt.Pkt) {
@@ -482,6 +486,18 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.cltInfo = cmd
 	case *mt.ToSrvInvFields:
 		if handleOnPlayerReceiveFields(cc, cmd) {
+			return
+		}
+	case *mt.ToSrvJoinModChan:
+		modChanSubscriberMu.Lock()
+		defer modChanSubscriberMu.Unlock()
+
+		subs, _ := modChanSubscribers[cmd.Channel]
+		modChanSubscribers[cmd.Channel] = append(subs, cc)
+	case *mt.ToSrvLeaveModChan:
+		cltLeaveModChan(cc, cmd.Channel)
+	case *mt.ToSrvMsgModChan:
+		if handleCltModChanMsg(cc, cmd) {
 			return
 		}
 	}
