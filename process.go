@@ -902,17 +902,54 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			}
 			sc.prependInv(cmd.Changed[k].Inv)
 		}
+	case *mt.ToCltModChanMsg:
+		if handleSrvModChanMsg(clt, cmd) {
+			return
+		}
 	case *mt.ToCltModChanSig:
+		reportStatus := func(ch chan bool, status bool) {
+			ch <- status
+			delete(sc.modChanJoinChs[cmd.Channel], ch)
+		}
+
 		switch cmd.Signal {
 		case mt.JoinOK:
+			sc.modChanJoinChMu.Lock()
+			defer sc.modChanJoinChMu.Unlock()
+
+			for ch := range sc.modChanJoinChs[cmd.Channel] {
+				go reportStatus(ch, true)
+			}
+
 			if _, ok := clt.modChs[cmd.Channel]; ok {
 				return
 			}
 			clt.modChs[cmd.Channel] = struct{}{}
 		case mt.JoinFail:
+			sc.modChanJoinChMu.Lock()
+			defer sc.modChanJoinChMu.Unlock()
+
+			for ch := range sc.modChanJoinChs[cmd.Channel] {
+				go reportStatus(ch, false)
+			}
+
 			fallthrough
 		case mt.LeaveOK:
+			sc.modChanLeaveChMu.Lock()
+			defer sc.modChanLeaveChMu.Unlock()
+
+			for ch := range sc.modChanLeaveChs[cmd.Channel] {
+				go reportStatus(ch, true)
+			}
+
 			delete(clt.modChs, cmd.Channel)
+		case mt.LeaveFail:
+			sc.modChanLeaveChMu.Lock()
+			defer sc.modChanLeaveChMu.Unlock()
+
+			for ch := range sc.modChanLeaveChs[cmd.Channel] {
+				go reportStatus(ch, false)
+			}
 		}
 	}
 

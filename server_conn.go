@@ -46,6 +46,11 @@ type ServerConn struct {
 	huds map[mt.HUDID]mt.HUDType
 
 	playerList map[string]struct{}
+
+	modChanJoinChs   map[string]map[chan bool]struct{}
+	modChanJoinChMu  sync.Mutex
+	modChanLeaveChs  map[string]map[chan bool]struct{}
+	modChanLeaveChMu sync.Mutex
 }
 
 func (sc *ServerConn) client() *ClientConn {

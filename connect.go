@@ -38,6 +38,8 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 		sounds:           make(map[mt.SoundID]struct{}),
 		huds:             make(map[mt.HUDID]mt.HUDType),
 		playerList:       make(map[string]struct{}),
+		modChanJoinChs:   make(map[string]map[chan bool]struct{}),
+		modChanLeaveChs:  make(map[string]map[chan bool]struct{}),
 	}
 	sc.Log("->", "connect")
 
