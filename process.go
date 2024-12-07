@@ -213,6 +213,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				SendInterval:    Conf().SendInterval,
 				SudoAuthMethods: mt.SRP,
 			})
+			cc.new = true
 		} else {
 			if cc.state() < csSudo {
 				cc.Log("->", "unauthorized sudo action")

@@ -39,6 +39,7 @@ type ClientConn struct {
 		method                       mt.AuthMethods
 		salt, srpA, srpB, srpM, srpK []byte
 	}
+	new bool
 
 	fallbackFrom string
 	whyKicked    *mt.ToCltKick
@@ -72,6 +73,9 @@ type ClientConn struct {
 
 // Name returns the player name of the ClientConn.
 func (cc *ClientConn) Name() string { return cc.name }
+
+// IsNew reports whether a new account was registered for the ClientConn.
+func (cc *ClientConn) IsNew() bool { return cc.new }
 
 func (cc *ClientConn) hasPlayerCAO() bool { return cc.playerCAO != 0 }
 
