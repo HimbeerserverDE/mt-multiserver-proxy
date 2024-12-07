@@ -118,7 +118,15 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 
 		// Static parameters
 		cc.SendCmd(&mt.ToCltBreath{Breath: 10})
-		cc.SendCmd(&mt.ToCltCloudParams{})
+		cc.SendCmd(&mt.ToCltCloudParams{
+			Density:      0.4,
+			DiffuseColor: color.NRGBA{229, 240, 240, 255},
+			AmbientColor: color.NRGBA{255, 0, 0, 0},
+			ShadowColor:  color.NRGBA{255, 204, 204, 204},
+			Height:       120,
+			Thickness:    16,
+			Speed:        [2]float32{0, -2},
+		})
 		cc.SendCmd(&mt.ToCltEyeOffset{})
 		cc.SendCmd(&mt.ToCltFOV{})
 		cc.SendCmd(&mt.ToCltFormspecPrepend{})
@@ -189,7 +197,13 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 			Players: players,
 		})
 
-		cc.SendCmd(&mt.ToCltLighting{Saturation: 1})
+		cc.SendCmd(&mt.ToCltLighting{
+			Saturation:     1,
+			ShadowTint:     color.NRGBA{255, 0, 0, 0},
+			BloomIntensity: 0.05,
+			BloomStrength:  1,
+			BloomRadius:    1,
+		})
 	}
 
 	cc.mu.Lock()
