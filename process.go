@@ -462,6 +462,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		go func(done chan<- struct{}) {
 			result, isCmd := onChatMsg(cc, cmd)
 			if !isCmd {
+				cmd.Msg = result
 				forward(pkt)
 			} else if result != "" {
 				cc.SendChatMsg(result)
@@ -474,9 +475,8 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			select {
 			case <-done:
 			case <-time.After(ChatCmdTimeout):
-				cmdName := strings.Split(cmd.Msg, " ")[0]
-				cc.Log("<-", "timeout command", cmd.Msg)
-				cc.SendChatMsg("Command", cmdName, "is taking suspiciously long to execute.")
+				cc.Log("<-", "timeout chat msg", cmd.Msg)
+				cc.SendChatMsg("Proxy chat message processing timeout.")
 			}
 		}(done)
 

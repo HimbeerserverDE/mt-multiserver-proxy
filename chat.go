@@ -81,5 +81,13 @@ func onChatMsg(cc *ClientConn, cmd *mt.ToSrvChatMsg) (string, bool) {
 		return cmd.Handler(cc, args...), true
 	}
 
-	return "", false
+	onChatMsgMu.RLock()
+	defer onChatMsgMu.RUnlock()
+
+	msg := cmd.Msg
+	for _, handler := range onChatMsgs {
+		msg = handler(cc, msg)
+	}
+
+	return msg, msg == ""
 }
