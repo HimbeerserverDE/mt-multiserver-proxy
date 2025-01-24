@@ -31,8 +31,8 @@ type ServerConn struct {
 
 	mediaPool string
 	dynMedia  map[string]struct {
-		token uint32
-		cache bool
+		ephemeral bool
+		token     uint32
 	}
 
 	inv          mt.Inv

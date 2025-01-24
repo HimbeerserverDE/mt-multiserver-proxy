@@ -667,7 +667,7 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 
 			dynInfo, ok := sc.dynMedia[f.Name]
 			if ok {
-				if dynInfo.cache {
+				if !dynInfo.ephemeral {
 					cacheMedia(f.Data)
 				}
 
@@ -813,11 +813,11 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 		}
 
 		sc.dynMedia[cmd.Filename] = struct {
-			token uint32
-			cache bool
+			ephemeral bool
+			token     uint32
 		}{
-			token: cmd.CallbackToken,
-			cache: cmd.ShouldCache,
+			ephemeral: cmd.Ephemeral,
+			token:     cmd.CallbackToken,
 		}
 
 		sc.SendCmd(&mt.ToSrvReqMedia{Filenames: []string{filename}})
