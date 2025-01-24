@@ -27,12 +27,16 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 
 	logPrefix := fmt.Sprintf("[server %s] ", name)
 	sc := &ServerConn{
-		Peer:             mt.Connect(conn),
-		logger:           log.New(logWriter, logPrefix, log.LstdFlags|log.Lmsgprefix),
-		initCh:           make(chan struct{}),
-		clt:              cc,
-		name:             name,
-		mediaPool:        mediaPool,
+		Peer:      mt.Connect(conn),
+		logger:    log.New(logWriter, logPrefix, log.LstdFlags|log.Lmsgprefix),
+		initCh:    make(chan struct{}),
+		clt:       cc,
+		name:      name,
+		mediaPool: mediaPool,
+		dynMedia: make(map[string]struct {
+			ephemeral bool
+			token     uint32
+		}),
 		aos:              make(map[mt.AOID]struct{}),
 		particleSpawners: make(map[mt.ParticleSpawnerID]struct{}),
 		sounds:           make(map[mt.SoundID]struct{}),
