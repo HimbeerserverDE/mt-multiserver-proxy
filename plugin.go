@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"plugin"
+	"strings"
 	"sync"
 )
 
@@ -16,7 +17,7 @@ func BuildPlugin() error {
 		return err
 	}
 
-	if version == "(devel)" {
+	if strings.Contains(version, "+dirty") {
 		return buildPluginDev(version)
 	}
 
