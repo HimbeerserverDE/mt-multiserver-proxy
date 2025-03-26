@@ -6,7 +6,7 @@ import (
 
 var itemName = regexp.MustCompile("(item_image\\[[0-9.-]+,[0-9.-]+;[0-9.-]+,[0-9.-]+;)([a-zA-Z0-9-_.: ]+)(\\])")
 var itemButtonName = regexp.MustCompile("(item_image_button\\[[0-9.-]+,[0-9.-]+;[0-9.-]+,[0-9.-]+;)([a-zA-Z0-9-_.: ]+)(;[a-zA-Z0-9-_.: ]+;[^\\[\\]]*\\])")
-var textureName = regexp.MustCompile("([a-zA-Z0-9-_.]+\\.(?i:png|jpg|jpeg|bmp|tga|obj|b3d|x|gltf|glb))")
+var textureName = regexp.MustCompile("([a-zA-Z0-9-_.]+\\.(?i:png|jpg|jpeg|tga|obj|b3d|x|gltf|glb))")
 
 func (sc *ServerConn) prependFormspec(fs *string) {
 	*fs = ReplaceAllStringSubmatchFunc(textureName, *fs, func(groups []string) string {
