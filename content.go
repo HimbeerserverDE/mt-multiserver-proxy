@@ -687,28 +687,28 @@ func (sc *ServerConn) prependHUD(t mt.HUDType, cmdIface mt.ToCltCmd) {
 	pa := func(cmd *mt.ToCltAddHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.mediaPool, &cmd.Text2)
+			prependRaw(sc.mediaPool, &cmd.Text2, true)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.mediaPool, &cmd.Text)
+			prependRaw(sc.mediaPool, &cmd.Text, true)
 		}
 	}
 
 	pc := func(cmd *mt.ToCltChangeHUD) {
 		switch t {
 		case mt.StatbarHUD:
-			prepend(sc.mediaPool, &cmd.Text2)
+			prependRaw(sc.mediaPool, &cmd.Text2, true)
 			fallthrough
 		case mt.ImgHUD:
 			fallthrough
 		case mt.ImgWaypointHUD:
 			fallthrough
 		case mt.ImgWaypointHUD + 1:
-			prepend(sc.mediaPool, &cmd.Text)
+			prependRaw(sc.mediaPool, &cmd.Text, true)
 		}
 	}
 
