@@ -1,5 +1,5 @@
-github.com/HimbeerserverDE/mt v0.0.0-20250124151607-b2c1ec5b4f2a h1:pv/umw2U710+YZUak91C67K3lOIMxuKyFWuDHpV+IfE=
-github.com/HimbeerserverDE/mt v0.0.0-20250124151607-b2c1ec5b4f2a/go.mod h1:RSf7NAuQ5zZC6CTPj5ey/uXPHOdu/oiIvHT8tH3fWK8=
+github.com/HimbeerserverDE/mt v0.0.0-20250328195248-7b34834724f7 h1:Xn0xM3ykFYj1LzlvcGwaU9lO7OauHXbIiAQ02WXVCwQ=
+github.com/HimbeerserverDE/mt v0.0.0-20250328195248-7b34834724f7/go.mod h1:RSf7NAuQ5zZC6CTPj5ey/uXPHOdu/oiIvHT8tH3fWK8=
 github.com/HimbeerserverDE/srp v0.0.0 h1:Iy2GIF7DJphXXO9NjncLEBO6VsZd8Yhrlxl/qTr09eE=
 github.com/HimbeerserverDE/srp v0.0.0/go.mod h1:pxNH8S2nh4n2DWE0ToX5GnnDr/uEAuaAhJsCpkDLIWw=
 github.com/klauspost/compress v1.16.5/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
