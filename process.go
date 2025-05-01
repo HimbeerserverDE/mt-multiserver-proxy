@@ -76,6 +76,9 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
+		cc.name = cmd.PlayerName
+		cc.logger.SetPrefix(fmt.Sprintf("[%s %s] ", cc.RemoteAddr(), cc.Name()))
+
 		if !playerNameChars.MatchString(cmd.PlayerName) {
 			cc.Log("<-", "invalid player name")
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadNameChars})
@@ -88,9 +91,6 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 			return
 		}
-
-		cc.name = cmd.PlayerName
-		cc.logger.SetPrefix(fmt.Sprintf("[%s %s] ", cc.RemoteAddr(), cc.Name()))
 
 		ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
 		if DefaultAuth().Banned(ip, cc.Name()) {
