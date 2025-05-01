@@ -92,32 +92,6 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			return
 		}
 
-		ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
-		if DefaultAuth().Banned(ip, cc.Name()) {
-			cc.Log("<-", "banned")
-			cc.Kick("Banned by proxy.")
-			return
-		}
-
-		playersMu.Lock()
-		_, ok := players[cc.Name()]
-		if ok {
-			cc.Log("<-", "already connected")
-			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.AlreadyConnected})
-
-			select {
-			case <-cc.Closed():
-			case <-ack:
-				cc.Close()
-			}
-
-			playersMu.Unlock()
-			return
-		}
-
-		players[cc.Name()] = struct{}{}
-		playersMu.Unlock()
-
 		if cc.Name() == "singleplayer" {
 			cc.Log("<-", "name is singleplayer")
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadName})
@@ -144,6 +118,32 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 			return
 		}
+
+		ip := cc.RemoteAddr().(*net.UDPAddr).IP.String()
+		if DefaultAuth().Banned(ip, cc.Name()) {
+			cc.Log("<-", "banned")
+			cc.Kick("Banned by proxy.")
+			return
+		}
+
+		playersMu.Lock()
+		_, ok := players[cc.Name()]
+		if ok {
+			cc.Log("<-", "already connected")
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.AlreadyConnected})
+
+			select {
+			case <-cc.Closed():
+			case <-ack:
+				cc.Close()
+			}
+
+			playersMu.Unlock()
+			return
+		}
+
+		players[cc.Name()] = struct{}{}
+		playersMu.Unlock()
 
 		// reply
 		if DefaultAuth().Exists(cc.Name()) {
