@@ -79,6 +79,30 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.name = cmd.PlayerName
 		cc.logger.SetPrefix(fmt.Sprintf("[%s %s] ", cc.RemoteAddr(), cc.Name()))
 
+		playersMu.Lock()
+		_, ok := players[cc.Name()]
+		if ok {
+			cc.Log("<-", "already connected")
+			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.AlreadyConnected})
+
+			select {
+			case <-cc.Closed():
+			case <-ack:
+				cc.Close()
+			}
+
+			// Needed so that the username doesn't get removed from
+			// the player list which would allow other clients to
+			// bypass this check.
+			cc.name = ""
+
+			playersMu.Unlock()
+			return
+		}
+
+		players[cc.Name()] = struct{}{}
+		playersMu.Unlock()
+
 		if !playerNameChars.MatchString(cmd.PlayerName) {
 			cc.Log("<-", "invalid player name")
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.BadNameChars})
@@ -125,25 +149,6 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			cc.Kick("Banned by proxy.")
 			return
 		}
-
-		playersMu.Lock()
-		_, ok := players[cc.Name()]
-		if ok {
-			cc.Log("<-", "already connected")
-			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.AlreadyConnected})
-
-			select {
-			case <-cc.Closed():
-			case <-ack:
-				cc.Close()
-			}
-
-			playersMu.Unlock()
-			return
-		}
-
-		players[cc.Name()] = struct{}{}
-		playersMu.Unlock()
 
 		// reply
 		if DefaultAuth().Exists(cc.Name()) {
