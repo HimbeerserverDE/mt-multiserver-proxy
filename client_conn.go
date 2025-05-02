@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/HimbeerserverDE/mt"
-	"github.com/HimbeerserverDE/mt/rudp"
 )
 
 type clientState uint8
@@ -133,8 +132,8 @@ func handleClt(cc *ClientConn) {
 					handleLeave(cc)
 				}
 
-				if errors.Is(cc.WhyClosed(), rudp.ErrTimedOut) {
-					cc.Log("<->", "timeout")
+				if why := cc.WhyClosed(); why != nil {
+					cc.Log("<->", "connection lost:", why)
 				} else {
 					cc.Log("<->", "disconnect")
 				}

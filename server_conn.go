@@ -113,8 +113,8 @@ func handleSrv(sc *ServerConn) {
 		pkt, err := sc.Recv()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				if errors.Is(sc.WhyClosed(), rudp.ErrTimedOut) {
-					sc.Log("<->", "timeout")
+				if why := sc.WhyClosed(); why != nil {
+					sc.Log("<->", "connection lost:", why)
 				} else {
 					sc.Log("<->", "disconnect")
 				}
