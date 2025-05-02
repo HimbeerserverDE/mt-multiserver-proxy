@@ -130,7 +130,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		}
 
 		// user limit
-		if len(players) >= Conf().UserLimit {
+		if len(players) > Conf().UserLimit {
 			cc.Log("<-", "player limit reached")
 			ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.TooManyClts})
 
