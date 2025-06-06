@@ -390,8 +390,9 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		})
 		cc.SendCmd(&mt.ToCltNodeDefs{Defs: cc.nodeDefs})
 
-		cc.itemDefs = []mt.ItemDef{}
-		cc.nodeDefs = []mt.NodeDef{}
+		cc.itemDefs = nil
+		cc.aliases = nil
+		cc.nodeDefs = nil
 
 		var files []struct{ Name, Base64SHA1 string }
 		for _, f := range cc.media {
@@ -437,6 +438,10 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.sendMedia(cmd.Filenames)
 		return
 	case *mt.ToSrvCltReady:
+		// Don't leak media memory, regardless of whether the client
+		// requested anything.
+		cc.media = nil
+
 		cc.major = cmd.Major
 		cc.minor = cmd.Minor
 		cc.patch = cmd.Patch
