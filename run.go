@@ -146,6 +146,10 @@ func runFunc() {
 			}
 
 			doConnect := func(srvName string, srv Server) error {
+				if _, ok := cc.denyPools[srv.MediaPool]; ok {
+					return ErrNewMediaPool
+				}
+
 				addr, err := net.ResolveUDPAddr("udp", srv.Addr)
 				if err != nil {
 					cc.Log("<-", "address resolution fail")
