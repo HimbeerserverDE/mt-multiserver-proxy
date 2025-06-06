@@ -165,7 +165,7 @@ func runFunc() {
 			}
 
 			if err := doConnect(srvName, srv); err != nil {
-				cc.Log("<-", err)
+				cc.Log("<-", "connect", srvName+":", err)
 				cc.SendChatMsg("Could not connect, trying fallback server. Error:", err)
 
 				fbName := srv.Fallback
@@ -177,10 +177,11 @@ func runFunc() {
 						continue
 					}
 
-					if err := doConnect(fbName, srv); err != nil {
+					if err = doConnect(fbName, srv); err != nil {
+						srvName = fbName
 						fbName = srv.Fallback
 
-						cc.Log("<-", err)
+						cc.Log("<-", "connect", srvName+":", err)
 						cc.SendChatMsg("Could not connect, trying next fallback server. Error:", err.Error())
 					} else {
 						break
