@@ -25,7 +25,7 @@ func connect(conn net.Conn, name string, cc *ClientConn) *ServerConn {
 		}
 	}
 
-	logPrefix := fmt.Sprintf("[server %s] ", name)
+	logPrefix := fmt.Sprintf("[server %s as %s %s] ", name, cc.Name(), conn.LocalAddr())
 	sc := &ServerConn{
 		Peer:      mt.Connect(conn),
 		logger:    log.New(logWriter, logPrefix, log.LstdFlags|log.Lmsgprefix),
