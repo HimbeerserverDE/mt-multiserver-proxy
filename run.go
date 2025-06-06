@@ -184,9 +184,11 @@ func runFunc() {
 						cc.Log("<-", "connect", srvName+":", err)
 						cc.SendChatMsg("Could not connect, trying next fallback server. Error:", err.Error())
 					} else {
-						break
+						return
 					}
 				}
+
+				cc.Kick("All upstream connections failed. Please try again later or contact the server administrator. Error: " + err.Error())
 			}
 		}()
 	}
