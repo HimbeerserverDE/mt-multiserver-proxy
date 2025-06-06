@@ -144,17 +144,16 @@ func handleClt(cc *ClientConn) {
 					playersMu.Unlock()
 				}
 
-				if cc.server() != nil {
-					cc.server().Close()
+				cc.mu.Lock()
+				if cc.srv != nil {
+					cc.srv.mu.Lock()
+					cc.srv.clt = nil
+					cc.srv.mu.Unlock()
 
-					cc.server().mu.Lock()
-					cc.server().clt = nil
-					cc.server().mu.Unlock()
-
-					cc.mu.Lock()
+					cc.srv.Close()
 					cc.srv = nil
-					cc.mu.Unlock()
 				}
+				cc.mu.Unlock()
 
 				break
 			}

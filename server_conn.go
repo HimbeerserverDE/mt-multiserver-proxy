@@ -119,30 +119,31 @@ func handleSrv(sc *ServerConn) {
 					sc.Log("<->", "disconnect")
 				}
 
-				if sc.client() != nil {
+				sc.mu.Lock()
+				if sc.clt != nil {
 					if errors.Is(sc.WhyClosed(), rudp.ErrTimedOut) {
-						sc.client().SendChatMsg("Server connection timed out, switching to fallback server.")
+						sc.clt.SendChatMsg("Server connection timed out, switching to fallback server.")
 
-						if sc.client().whyKicked == nil {
-							sc.client().whyKicked = &mt.ToCltKick{
+						if sc.clt.whyKicked == nil {
+							sc.clt.whyKicked = &mt.ToCltKick{
 								Reason: mt.Custom,
 								Custom: "Server connection timed out.",
 							}
 						}
 					} else {
-						sc.client().SendChatMsg("Server connection lost, switching to fallback server.")
+						sc.clt.SendChatMsg("Server connection lost, switching to fallback server.")
 
-						if sc.client().whyKicked == nil {
-							sc.client().whyKicked = &mt.ToCltKick{
+						if sc.clt.whyKicked == nil {
+							sc.clt.whyKicked = &mt.ToCltKick{
 								Reason: mt.Custom,
 								Custom: "Server connection lost.",
 							}
 						}
 					}
 
-					sc.client().fallback()
-					break
+					sc.clt.fallback()
 				}
+				sc.mu.Unlock()
 
 				break
 			}
