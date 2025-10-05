@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"crypto/sha1"
 	"crypto/subtle"
 	"fmt"
 	"net"
@@ -394,17 +395,28 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 		cc.aliases = nil
 		cc.nodeDefs = nil
 
-		var files []struct{ Name, Base64SHA1 string }
-		for _, f := range cc.media {
-			files = append(files, struct{ Name, Base64SHA1 string }{
-				Name:       f.name,
-				Base64SHA1: f.base64SHA1,
-			})
+		fnamelens := make([]uint16, len(cc.media))
+		fnamedata := make([]byte, 0)
+		fdigests := make([][sha1.Size]byte, len(cc.media))
+		for i, f := range cc.media {
+			digest, err := b64.DecodeString(f.base64SHA1)
+			if err != nil {
+				cc.Log("<-", "base64decode media digest: "+err.Error())
+				cc.Kick("Media announcement re-encoding failed.")
+				return
+			}
+
+			fnamelens[i] = uint16(len([]byte(f.name)))
+			fnamedata = append(fnamedata, []byte(f.name)...)
+			copy(fdigests[i][:], digest)
 		}
 
 		cc.SendCmd(&mt.ToCltAnnounceMedia{
-			Files: files,
-			URL:   strings.Join(remotes, ","),
+			N:        uint32(len(fnamelens)),
+			NameLens: fnamelens,
+			NameData: fnamedata,
+			Digests:  fdigests,
+			URL:      strings.Join(remotes, ","),
 		})
 		cc.lang = cmd.Lang
 

@@ -246,24 +246,30 @@ func handleContent(cc *contentConn) {
 		case *mt.ToCltAnnounceMedia:
 			var filenames []string
 
-			for _, f := range cmd.Files {
+			var offs uint64
+			for fi, fnamelen := range cmd.NameLens {
+				n := uint64(fnamelen)
+				fname := string(cmd.NameData[offs : offs+n])
+				offs += n
 
-				if cc.fromCache(f.Name, f.Base64SHA1) {
+				base64SHA1 := b64.EncodeToString(cmd.Digests[fi][:])
+
+				if cc.fromCache(fname, base64SHA1) {
 					continue
 				}
 
-				filenames = append(filenames, f.Name)
+				filenames = append(filenames, fname)
 
 				for i, mf := range cc.media {
-					if mf.name == f.Name {
-						cc.media[i].base64SHA1 = f.Base64SHA1
+					if mf.name == fname {
+						cc.media[i].base64SHA1 = base64SHA1
 						continue
 					}
 				}
 
 				cc.media = append(cc.media, mediaFile{
-					name:       f.Name,
-					base64SHA1: f.Base64SHA1,
+					name:       fname,
+					base64SHA1: base64SHA1,
 				})
 			}
 
