@@ -146,6 +146,7 @@ func (cc *ClientConn) HopRaw(serverName string) error {
 		})
 
 		cc.SendCmd(&mt.ToCltMovement{})
+		cc.SendCmd(&mt.ToCltCam{Mode: mt.AnyCam})
 		cc.SendCmd(&mt.ToCltOverrideDayNightRatio{})
 		cc.SendCmd(&mt.ToCltPrivs{})
 
