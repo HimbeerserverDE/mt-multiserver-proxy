@@ -48,7 +48,8 @@ for all versions that were ever supported:
 * Luanti 5.10: [7800bf490fa92879dfc46a54836624a8d1c6c6f6](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/7800bf490fa92879dfc46a54836624a8d1c6c6f6), chat command plugin: [8ea5400bdd4f68bbccb8f25e8f60c1346d218ff8](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/8ea5400bdd4f68bbccb8f25e8f60c1346d218ff8)
 * Luanti 5.11: [278d619d28f7d17e44c55311e2221dda3c86ca4e](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/278d619d28f7d17e44c55311e2221dda3c86ca4e), chat command plugin: [f69d016fd7b84b594250913a8a52eacc73788265](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/f69d016fd7b84b594250913a8a52eacc73788265)
 * Luanti 5.12: [3b16493fbc7d81653a8f445dd875349679cf7d2a](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/3b16493fbc7d81653a8f445dd875349679cf7d2a), chat command plugin: [2613b70407e0b69f34fd31d11cee993ea330ccf7](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/2613b70407e0b69f34fd31d11cee993ea330ccf7)
-* Luanti 5.13: latest
+* Luanti 5.13: [812055bbce5e84c383dfab29440e48cc6bebd349](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/812055bbce5e84c383dfab29440e48cc6bebd349), chat command plugin: [68a6384793beb321b695f71b5078d3b23a338aea](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/68a6384793beb321b695f71b5078d3b23a338aea)
+* Luanti 5.14: latest
 
 The chat command plugin commit hashes are mainly specified for old proxy
 versions that didn't support automatic plugin building and version management

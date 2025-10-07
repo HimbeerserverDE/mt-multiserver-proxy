@@ -875,6 +875,11 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 	case *mt.ToCltSpawnParticle:
 		prependTexture(sc.mediaPool, &cmd.TextureName)
 		sc.globalParam0(&cmd.NodeParam0)
+	case *mt.ToCltSpawnParticleBatch:
+		for i := range cmd.Particles {
+			prependTexture(sc.mediaPool, &cmd.Particles[i].TextureName)
+			sc.globalParam0(&cmd.Particles[i].NodeParam0)
+		}
 	case *mt.ToCltBlkData:
 		for i := range cmd.Blk.Param0 {
 			sc.globalParam0(&cmd.Blk.Param0[i])
