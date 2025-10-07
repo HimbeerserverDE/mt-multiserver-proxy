@@ -660,6 +660,12 @@ func (sc *ServerConn) prependInv(inv mt.Inv) {
 		for i, stack := range l.Stacks {
 			if stack.Name != "" {
 				prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
+
+				m := &inv[k].InvList.Stacks[i].ItemMeta
+				if s, ok := m.Field("inventory_image"); ok {
+					prepend(sc.mediaPool, &s)
+					m.SetField("inventory_image", s)
+				}
 			}
 		}
 	}
@@ -670,6 +676,12 @@ func (sc *ServerConn) prependInvKeep(inv, old mt.Inv) {
 		for i, stack := range l.Stacks {
 			if shouldPrepend(old, k, i, stack.Name) {
 				prepend(sc.mediaPool, &inv[k].InvList.Stacks[i].Name)
+
+				m := &inv[k].InvList.Stacks[i].ItemMeta
+				if s, ok := m.Field("inventory_image"); ok {
+					prepend(sc.mediaPool, &s)
+					m.SetField("inventory_image", s)
+				}
 			}
 		}
 	}
