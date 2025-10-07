@@ -3,7 +3,7 @@
 ## `go version`
 
 ```
-go version go1.21.6 linux/amd64
+go version go1.25.1 X:nodwarf5 linux/amd64
 ```
 
 ## Build commands
