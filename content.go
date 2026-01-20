@@ -378,7 +378,7 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 
 	itemDefs = append(itemDefs, mt.ItemDef{
 		Type:       mt.ToolItem,
-		InvImg:     "wieldhand.png",
+		InvImg:     mt.AnimTexture{Texture: "wieldhand.png"},
 		WieldScale: [3]float32{1, 1, 1},
 		StackMax:   1,
 		ToolCaps: mt.ToolCaps{
@@ -395,14 +395,14 @@ func muxItemDefs(conns []*contentConn) ([]mt.ItemDef, []struct{ Alias, Orig stri
 			}
 
 			prepend(cc.mediaPool, &def.Name)
-			prependTexture(cc.mediaPool, &def.InvImg)
-			prependTexture(cc.mediaPool, &def.WieldImg)
+			prependTexture(cc.mediaPool, &def.InvImg.Texture)
+			prependTexture(cc.mediaPool, &def.WieldImg.Texture)
 			prepend(cc.mediaPool, &def.PlacePredict)
 			prepend(cc.mediaPool, &def.PlaceSnd.Name)
 			prepend(cc.mediaPool, &def.PlaceFailSnd.Name)
 			prependTexture(cc.mediaPool, &def.Palette)
-			prependTexture(cc.mediaPool, &def.InvOverlay)
-			prependTexture(cc.mediaPool, &def.WieldOverlay)
+			prependTexture(cc.mediaPool, &def.InvOverlay.Texture)
+			prependTexture(cc.mediaPool, &def.WieldOverlay.Texture)
 			itemDefs = append(itemDefs, def)
 		}
 
