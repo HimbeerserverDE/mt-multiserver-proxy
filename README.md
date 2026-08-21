@@ -51,7 +51,8 @@ for all versions that were ever supported:
 * Luanti 5.13: [812055bbce5e84c383dfab29440e48cc6bebd349](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/812055bbce5e84c383dfab29440e48cc6bebd349), chat command plugin: [68a6384793beb321b695f71b5078d3b23a338aea](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/68a6384793beb321b695f71b5078d3b23a338aea)
 * Luanti 5.14: [a80b19b772df2c47a14de3d6eb02c13389a5707c](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/a80b19b772df2c47a14de3d6eb02c13389a5707c), chat command plugin: [f8f0e059b06d84c86f644dfc94c16c1b31ccc731](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/f8f0e059b06d84c86f644dfc94c16c1b31ccc731)
 * Luanti 5.15: [30fb232004f382690a15ba1fc2340135d6c41b68](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/30fb232004f382690a15ba1fc2340135d6c41b68), chat command plugin: [273b5e1fde32962b6f80a2d66a511b678cf3d9c9](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/273b5e1fde32962b6f80a2d66a511b678cf3d9c9)
-* Luanti 5.16: latest
+* Luanti 5.16: [6421f82da4a62ba89745d995fe74ecfc5b8959b7](https://github.com/HimbeerserverDE/mt-multiserver-proxy/commit/6421f82da4a62ba89745d995fe74ecfc5b8959b7), chat command plugin: [a8c41511b8ec05d224d1fcdec873a00c9136bdfa](https://github.com/HimbeerserverDE/mt-multiserver-chatcommands/commit/a8c41511b8ec05d224d1fcdec873a00c9136bdfa)
+* Luanti 5.17: latest
 
 The chat command plugin commit hashes are mainly specified for old proxy
 versions that didn't support automatic plugin building and version management
@@ -81,7 +82,7 @@ It is recommended to explicitly set the `GOBIN` environment variable
 to a directory that is only used for the proxy binaries, databases
 and configuration files.
 
-Go 1.21 or higher is required. Run
+Go 1.24 or higher is required. Run
 
 ```
 export GOBIN=~/.local/share/mt-multiserver-proxy
