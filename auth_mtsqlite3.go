@@ -301,3 +301,9 @@ func (a *AuthMTSQLite3) writeBans(bans map[string]string) error {
 
 	return nil
 }
+
+// CreateAccount inserts a new user without replacing an existing password.
+func (a *AuthMTSQLite3) CreateAccount(name string, salt, verifier []byte) error {
+	_, err := a.db.Exec("INSERT INTO auth (name, password, last_login) VALUES (?, ?, unixepoch());", name, EncodeVerifierAndSalt(salt, verifier))
+	return err
+}

@@ -116,3 +116,21 @@ func DecodeVerifierAndSalt(encodedPasswd string) ([]byte, []byte, error) {
 
 	return salt, verifier, nil
 }
+
+// AuthAccountCreator optionally supports atomic, create-only registration.
+// Implementations must reject existing names without changing credentials.
+type AuthAccountCreator interface {
+	CreateAccount(name string, salt, verifier []byte) error
+}
+
+// createAccount preserves compatibility with external authentication backends.
+// Builtin backends use exclusive creation, including for client registration.
+func createAccount(ab AuthBackend, name string, salt, verifier []byte) error {
+	if creator, ok := ab.(AuthAccountCreator); ok {
+		return creator.CreateAccount(name, salt, verifier)
+	}
+	if ab.Exists(name) {
+		return errors.New("account already exists")
+	}
+	return ab.SetPasswd(name, salt, verifier)
+}

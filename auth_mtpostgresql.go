@@ -355,3 +355,9 @@ func (a *AuthMTPostgreSQL) writeBans(bans map[string]string) error {
 
 	return nil
 }
+
+// CreateAccount inserts a new user without replacing an existing password.
+func (a *AuthMTPostgreSQL) CreateAccount(name string, salt, verifier []byte) error {
+	_, err := a.db.Exec("INSERT INTO auth (name, password, last_login) VALUES ($1, $2, extract(epoch from now()));", name, EncodeVerifierAndSalt(salt, verifier))
+	return err
+}

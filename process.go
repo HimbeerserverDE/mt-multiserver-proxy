@@ -199,7 +199,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 				return
 			}
 
-			if err := DefaultAuth().SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
+			if err := createAccount(DefaultAuth(), cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
 				cc.Log("<-", "set password fail")
 				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})
 
