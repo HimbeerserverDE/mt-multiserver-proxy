@@ -47,7 +47,7 @@ func SendModChanMsg(channel, msg string) {
 // before a response is received. If this cannot be controlled,
 // using a select statement with a timeout is recommended.
 func (cc *ClientConn) JoinModChan(channel string) <-chan bool {
-	failCh := make(chan bool)
+	failCh := make(chan bool, 1)
 	failCh <- false
 
 	sc := cc.server()
@@ -55,7 +55,9 @@ func (cc *ClientConn) JoinModChan(channel string) <-chan bool {
 		return failCh
 	}
 
-	successCh := make(chan bool)
+	// Buffer the result so packet processing cannot block if the caller times
+	// out before the upstream server replies.
+	successCh := make(chan bool, 1)
 
 	sc.modChanJoinChMu.Lock()
 	defer sc.modChanJoinChMu.Unlock()
@@ -72,7 +74,7 @@ func (cc *ClientConn) JoinModChan(channel string) <-chan bool {
 // LeaveModChan attempts to unscribe from a modchannel, returning a channel
 // yielding a boolean indicating success.
 func (cc *ClientConn) LeaveModChan(channel string) <-chan bool {
-	failCh := make(chan bool)
+	failCh := make(chan bool, 1)
 	failCh <- false
 
 	sc := cc.server()
@@ -80,7 +82,9 @@ func (cc *ClientConn) LeaveModChan(channel string) <-chan bool {
 		return failCh
 	}
 
-	successCh := make(chan bool)
+	// Buffer the result so packet processing cannot block if the caller times
+	// out before the upstream server replies.
+	successCh := make(chan bool, 1)
 
 	sc.modChanLeaveChMu.Lock()
 	defer sc.modChanLeaveChMu.Unlock()

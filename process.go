@@ -946,49 +946,66 @@ func (sc *ServerConn) process(pkt mt.Pkt) {
 			return
 		}
 	case *mt.ToCltModChanSig:
-		reportStatus := func(ch chan bool, status bool) {
-			ch <- status
-			delete(sc.modChanJoinChs[cmd.Channel], ch)
-		}
-
 		switch cmd.Signal {
 		case mt.JoinOK:
 			sc.modChanJoinChMu.Lock()
-			defer sc.modChanJoinChMu.Unlock()
-
+			proxyInitiated := len(sc.modChanJoinChs[cmd.Channel]) > 0
 			for ch := range sc.modChanJoinChs[cmd.Channel] {
-				go reportStatus(ch, true)
+				ch <- true
+				delete(sc.modChanJoinChs[cmd.Channel], ch)
 			}
+			delete(sc.modChanJoinChs, cmd.Channel)
+			sc.modChanJoinChMu.Unlock()
 
+			clt.modChsMu.Lock()
 			if _, ok := clt.modChs[cmd.Channel]; ok {
+				clt.modChsMu.Unlock()
 				return
 			}
 			clt.modChs[cmd.Channel] = struct{}{}
+			clt.modChsMu.Unlock()
+
+			// JoinModChan is a proxy/plugin operation. Its acknowledgement
+			// belongs to the proxy and must not be exposed to a client that
+			// never requested the join. In particular, Luanti 5.16.1
+			// dereferences its disabled client-script environment when it
+			// receives such an unsolicited mod-channel signal.
+			if proxyInitiated {
+				return
+			}
 		case mt.JoinFail:
 			sc.modChanJoinChMu.Lock()
-			defer sc.modChanJoinChMu.Unlock()
-
+			proxyInitiated := len(sc.modChanJoinChs[cmd.Channel]) > 0
 			for ch := range sc.modChanJoinChs[cmd.Channel] {
-				go reportStatus(ch, false)
+				ch <- false
+				delete(sc.modChanJoinChs[cmd.Channel], ch)
 			}
+			delete(sc.modChanJoinChs, cmd.Channel)
+			sc.modChanJoinChMu.Unlock()
 
-			fallthrough
+			if proxyInitiated {
+				return
+			}
 		case mt.LeaveOK:
 			sc.modChanLeaveChMu.Lock()
-			defer sc.modChanLeaveChMu.Unlock()
-
 			for ch := range sc.modChanLeaveChs[cmd.Channel] {
-				go reportStatus(ch, true)
+				ch <- true
+				delete(sc.modChanLeaveChs[cmd.Channel], ch)
 			}
+			delete(sc.modChanLeaveChs, cmd.Channel)
+			sc.modChanLeaveChMu.Unlock()
 
+			clt.modChsMu.Lock()
 			delete(clt.modChs, cmd.Channel)
+			clt.modChsMu.Unlock()
 		case mt.LeaveFail:
 			sc.modChanLeaveChMu.Lock()
-			defer sc.modChanLeaveChMu.Unlock()
-
 			for ch := range sc.modChanLeaveChs[cmd.Channel] {
-				go reportStatus(ch, false)
+				ch <- false
+				delete(sc.modChanLeaveChs[cmd.Channel], ch)
 			}
+			delete(sc.modChanLeaveChs, cmd.Channel)
+			sc.modChanLeaveChMu.Unlock()
 		}
 	}
 
