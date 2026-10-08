@@ -13,10 +13,10 @@ func (sc *ServerConn) prependFormspec(fs *string) {
 		return sc.mediaPool + "_" + groups[1]
 	})
 	*fs = ReplaceAllStringSubmatchFunc(itemName, *fs, func(groups []string) string {
-		return groups[1] + sc.name + "_" + groups[2] + groups[3]
+		return groups[1] + sc.mediaPool + "_" + groups[2] + groups[3]
 	})
 	*fs = ReplaceAllStringSubmatchFunc(itemButtonName, *fs, func(groups []string) string {
-		return groups[1] + sc.name + "_" + groups[2] + groups[3]
+		return groups[1] + sc.mediaPool + "_" + groups[2] + groups[3]
 	})
 }
 
