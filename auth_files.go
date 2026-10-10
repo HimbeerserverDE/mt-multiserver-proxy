@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"errors"
 	"os"
 	"time"
 )
@@ -239,4 +240,20 @@ func (a AuthFiles) updateTimestamp(name string) {
 
 	t := time.Now().Local()
 	os.Chtimes(path, t, t)
+}
+
+// CreateAccount reserves the name exclusively before writing credentials.
+func (a AuthFiles) CreateAccount(name string, salt, verifier []byte) error {
+	if len(name) == 0 || len(name) > maxPlayerNameLen || !playerNameChars.MatchString(name) || name == "singleplayer" {
+		return errors.New("invalid account name")
+	}
+	if err := os.MkdirAll(Path("auth"), 0700); err != nil {
+		return err
+	}
+	if err := os.Mkdir(Path("auth/", name), 0700); err != nil {
+		return err
+	}
+	// Keep the reservation on failure: never expose a partially written name
+	// for another registration or remove files a concurrent operation may use.
+	return a.SetPasswd(name, salt, verifier)
 }

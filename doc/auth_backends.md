@@ -120,3 +120,20 @@ function *after initialization time*.
 
 Custom backends can be handled by the [mt-auth-convert](#mt-auth-convert) tool
 as long as it is able to load the relevant plugin(s).
+
+## Create-only account registration
+
+Backends may implement `AuthAccountCreator` (`CreateAccount(name, salt, verifier)
+error`). This operation must fail if the name exists without changing existing
+credentials. All built-in backends implement it: the file backend reserves the
+user directory with exclusive `mkdir`, and SQL backends use plain `INSERT` with
+the existing unique name constraint. Client FirstSRP registration also uses this
+operation, so a pending registration cannot overwrite an account created by other
+means, such as a plugin.
+Password changes for authenticated users continue to use `SetPasswd`.
+
+External backends without this extension retain the legacy client registration
+path.
+For the file backend, an I/O failure after reserving a name leaves the directory
+reserved. An operator must inspect/repair that entry before retrying; registration
+never automatically removes potentially concurrent data.
