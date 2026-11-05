@@ -200,7 +200,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 			}
 
 			if err := DefaultAuth().CreateAccount(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
-				cc.Log("<-", "set password fail")
+				cc.Log("<-", "set password fail:", err.Error())
 				ack, _ := cc.SendCmd(&mt.ToCltKick{Reason: mt.SrvErr})
 
 				select {
@@ -228,7 +228,7 @@ func (cc *ClientConn) process(pkt mt.Pkt) {
 
 			cc.setState(csActive)
 			if err := DefaultAuth().SetPasswd(cc.Name(), cmd.Salt, cmd.Verifier); err != nil {
-				cc.Log("<-", "change password fail")
+				cc.Log("<-", "change password fail:", err.Error())
 				cc.SendChatMsg("Password change failed or unavailable.")
 				return
 			}
