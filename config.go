@@ -70,6 +70,8 @@ type Config struct {
 		Enable   bool
 		Addr     string
 		Interval int
+		Address  string
+		Port     int
 
 		Name     string
 		Desc     string

@@ -299,6 +299,26 @@ Default: 300
 Description: The interval between server list announcements.
 ```
 
+> `List.Address`
+```
+Type: string
+Default: ""
+Description: The address (hostname or IP) clients should connect to, without
+the port. If this is empty and BindAddr has no specific IP, no address is sent
+and the list server uses the source IP address of the announcement. If a
+hostname is specified, it must resolve to the source IP address of the
+announcement (but may resolve to additional addresses, such as in a dual-stack
+IPv4/IPv6 setup).
+```
+
+> `List.Port`
+```
+Type: int
+Default: 0
+Description: The port clients should connect to. If this is 0, the port of
+BindAddr is used.
+```
+
 > `List.Name`
 ```
 Type: string

@@ -32,10 +32,20 @@ func announce(action string) error {
 		return err
 	}
 
+	port := addr.Port
+	if Conf().List.Port != 0 {
+		port = Conf().List.Port
+	}
+
 	a := map[string]interface{}{
-		"action":  action,
-		"address": addr.IP.String(),
-		"port":    addr.Port,
+		"action": action,
+		"port":   port,
+	}
+
+	// Without an address the list server uses the source IP address of the
+	// announcement.
+	if Conf().List.Address != "" {
+		a["address"] = Conf().List.Address
 	}
 
 	if action != listRm {
