@@ -12,6 +12,7 @@ var (
 	ErrAuthBackendExists   = errors.New("auth backend already set")
 	ErrInvalidSRPHeader    = errors.New("encoded password is not SRP")
 	ErrLastSrvNotSupported = errors.New("auth backend does not support server information")
+	ErrUserExists          = errors.New("user already exists")
 )
 
 type User struct {
@@ -31,6 +32,10 @@ type Ban struct {
 // It does not handle authorization, i.e. permission checks.
 // All methods are safe for concurrent use.
 type AuthBackend interface {
+	// CreateAccount sets the SRP verifier and salt of the user
+	// with the specified name, but returns ErrUserExists
+	// if the user already exists.
+	CreateAccount(name string, salt, verifier []byte) error
 	// Exists reports whether a user with the specified name exists.
 	// The result is false if an error is encountered.
 	Exists(name string) bool

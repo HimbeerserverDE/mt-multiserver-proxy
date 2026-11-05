@@ -100,6 +100,12 @@ func (a *AuthMTPostgreSQL) Close() error {
 	return a.db.Close()
 }
 
+// CreateAccount creates a password entry unless it already exists.
+func (a *AuthMTPostgreSQL) CreateAccount(name string, salt, verifier []byte) error {
+	_, err := a.db.Exec("INSERT INTO auth (name, password, last_login) VALUES ($1, $2, extract(epoch from now()));", name, EncodeVerifierAndSalt(salt, verifier))
+	return err
+}
+
 // Exists reports whether a user is registered.
 // Error cases count as inexistent.
 func (a *AuthMTPostgreSQL) Exists(name string) bool {

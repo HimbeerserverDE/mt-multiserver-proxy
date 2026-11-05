@@ -1,11 +1,29 @@
 package proxy
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"time"
 )
 
 type AuthFiles struct{}
+
+// CreateAccount creates a password entry unless it already exists.
+func (a AuthFiles) CreateAccount(name string, salt, verifier []byte) error {
+	if err := os.MkdirAll(Path("auth"), 0700); err != nil {
+		return err
+	}
+	if err := os.Mkdir(Path("auth/", name), 0700); err != nil {
+		if errors.Is(err, fs.ErrExist) {
+			return ErrUserExists
+		}
+		return err
+	}
+	// Keep the reservation on failure: never expose a partially written name
+	// for another registration or remove files a concurrent operation may use.
+	return a.SetPasswd(name, salt, verifier)
+}
 
 // Exists reports whether a user is registered.
 // Error cases count as inexistent.
