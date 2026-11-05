@@ -3,6 +3,8 @@ package proxy
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"math"
 	"mime/multipart"
@@ -83,9 +85,15 @@ func announce(action string) error {
 	part.Write(s)
 	w.Close()
 
-	_, err = http.Post(Conf().List.Addr+"/announce", "multipart/form-data; boundary="+w.Boundary(), body)
+	resp, err := http.Post(Conf().List.Addr+"/announce", "multipart/form-data; boundary="+w.Boundary(), body)
 	if err != nil {
 		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return fmt.Errorf("announce %s: %s: %s", action, resp.Status, bytes.TrimSpace(msg))
 	}
 
 	log.Println("announce", action)
