@@ -2,6 +2,8 @@ package proxy
 
 import (
 	"crypto/sha1"
+	"errors"
+	"io/fs"
 	"os"
 	"strings"
 )
@@ -15,7 +17,7 @@ func (cc *contentConn) fromCache(filename, base64SHA1 string) bool {
 
 	data, err := os.ReadFile(Path("cache/", base64SHA1Filesafe))
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			cc.log("->", "cache", err)
 		}
 

@@ -157,7 +157,7 @@ func (a AuthFiles) Unban(id string) error {
 	os.Mkdir(Path("ban"), 0700)
 
 	if err := os.Remove(Path("ban/", id)); err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			dir, err := os.ReadDir(Path("ban"))
 			if err != nil {
 				return err
@@ -185,7 +185,7 @@ func (a AuthFiles) Banned(addr, name string) bool {
 	os.Mkdir(Path("ban"), 0700)
 
 	_, err := os.Stat(Path("ban/", addr))
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return false
 	}
 
@@ -243,7 +243,7 @@ func (a AuthFiles) updateTimestamp(name string) {
 
 	_, err := os.Stat(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
 			if err != nil {
 				return
