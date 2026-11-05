@@ -96,7 +96,6 @@ func announce(action string) error {
 		return fmt.Errorf("announce %s: %s: %s", action, resp.Status, bytes.TrimSpace(msg))
 	}
 
-	log.Println("announce", action)
 	return nil
 }
 
@@ -110,6 +109,8 @@ func init() {
 				if !added {
 					if err := announce(listAdd); err != nil {
 						log.Print(err)
+					} else {
+						log.Println("announce", listAdd)
 					}
 
 					added = true
@@ -118,6 +119,8 @@ func init() {
 
 				if err := announce(listUpdate); err != nil {
 					log.Print(err)
+				} else {
+					log.Println("announce", listUpdate)
 				}
 			}
 		}()
